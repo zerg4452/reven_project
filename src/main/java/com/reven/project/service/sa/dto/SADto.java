@@ -41,7 +41,15 @@ public final class SADto {
         public LocalDate endDate = LocalDate.now(PROJECT_ZONE).plusDays(1);
         public String keywordType = DEFAULT_KEYWORD_TYPE;
         public String keyword;
-        public String status;
+        public List<String> statuses = new ArrayList<>();
+    }
+
+    @Getter
+    @Setter
+    /** 설문 이력 검색 화면에서 상태 체크박스 옵션을 표현한다. */
+    public static class SubmissionStatusOption {
+        public String code;
+        public String label;
     }
 
     @Getter
@@ -268,10 +276,19 @@ public final class SADto {
 
         public String getStatusText() {
             if ("new".equalsIgnoreCase(status) || "NEW".equalsIgnoreCase(status)) {
-                return "접수";
+                return "신규";
             }
-            if ("checked".equalsIgnoreCase(status) || "Y".equalsIgnoreCase(status)) {
-                return "확인";
+            if ("reviewing".equalsIgnoreCase(status)) {
+                return "확인중";
+            }
+            if ("contacted".equalsIgnoreCase(status)) {
+                return "연락완료";
+            }
+            if ("done".equalsIgnoreCase(status)) {
+                return "처리완료";
+            }
+            if ("hold".equalsIgnoreCase(status)) {
+                return "보류";
             }
             return status;
         }

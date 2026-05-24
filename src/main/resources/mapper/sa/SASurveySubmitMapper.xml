@@ -60,8 +60,11 @@
             <if test="endDate != null">
                 and date(sm.submitted_dtm) &lt;= #{endDate}
             </if>
-            <if test="status != null and status != ''">
-                and sm.status = #{status}
+            <if test="statuses != null and !statuses.isEmpty()">
+                and sm.status in
+                <foreach collection="statuses" item="status" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
             </if>
             <if test="keyword != null and keyword != ''">
                 <choose>

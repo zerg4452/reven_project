@@ -15,25 +15,28 @@
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 관리', '관리자 목록')}"></div>
         <section class="page-head"><h1>관리자 관리</h1><p>관리자 계정과 사용 상태를 확인합니다.</p></section>
         <div class="alert" th:if="${error}" th:text="${error}">오류가 발생했습니다.</div>
-        <form class="search-panel management-search-panel" method="get" th:action="@{/admin/management/list.do}">
-            <div class="management-search-row">
+        <form class="search-panel news-search-panel" method="get" th:action="@{/admin/management/list.do}">
+            <div class="news-search-row">
                 <span class="search-label">등록일자</span>
-                <div class="management-search-range">
-                    <input class="form-control news-date-input" type="date" name="dateFrom" th:value="${dateFrom}">
+                <div class="news-search-range">
+                    <input class="form-control news-date-input" type="date" name="dateFrom" th:value="${dateFrom}" data-date-default="start">
                     <span class="date-separator">~</span>
-                    <input class="form-control news-date-input" type="date" name="dateTo" th:value="${dateTo}">
+                    <input class="form-control news-date-input" type="date" name="dateTo" th:value="${dateTo}" data-date-default="end">
                 </div>
             </div>
-            <div class="management-search-row management-search-keyword-row">
+            <div class="news-search-row news-search-keyword-row">
                 <label class="search-label" for="adminKeywordType">검색조건</label>
-                <select class="form-control management-search-select" id="adminKeywordType" name="keywordType">
+                <select class="form-control news-search-select" id="adminKeywordType" name="keywordType">
                     <option value="all" th:selected="${keywordType == null or keywordType == 'all'}">전체</option>
                     <option value="name" th:selected="${keywordType == 'name'}">관리자명</option>
                     <option value="login_id" th:selected="${keywordType == 'login_id'}">아이디</option>
                 </select>
                 <label class="search-label" for="adminKeyword">검색어</label>
-                <input class="form-control management-search-keyword" id="adminKeyword" name="keyword" th:value="${keyword}">
-                <button class="btn btn-register management-search-submit" type="submit">검색</button>
+                <input class="form-control news-search-keyword" id="adminKeyword" name="keyword" th:value="${keyword}">
+                <div class="news-search-actions">
+                    <button class="btn btn-register btn-sm news-search-submit" type="submit">검색</button>
+                    <a class="btn btn-neutral btn-sm news-search-reset" th:href="@{/admin/management/list.do}">초기화</a>
+                </div>
             </div>
         </form>
         <div class="list-action-bar"><a class="btn btn-register" th:href="@{/admin/management/write.do}">관리자 등록</a></div>

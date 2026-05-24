@@ -9,24 +9,37 @@
     <main class="admin-content">
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '설문 운영', '설문 이력 관리')}"></div>
         <section class="page-head"><h1>설문 이력 관리</h1><p>사용자가 제출한 설문 이력을 확인합니다.</p></section>
-        <form class="search-panel" method="get" th:action="@{/admin/survey-submissions/list.do}">
-            <div class="search-row">
+        <form class="search-panel news-search-panel" method="get" th:action="@{/admin/survey-submissions/list.do}">
+            <div class="news-search-row">
                 <span class="search-label">제출일자</span>
-                <input class="form-control" type="date" name="startDate" th:value="${dateFrom}" data-date-default="start">
-                <span class="date-separator">~</span>
-                <input class="form-control" type="date" name="endDate" th:value="${dateTo}" data-date-default="end">
+                <div class="news-search-range">
+                    <input class="form-control news-date-input" type="date" name="startDate" th:value="${dateFrom}" data-date-default="start">
+                    <span class="date-separator">~</span>
+                    <input class="form-control news-date-input" type="date" name="endDate" th:value="${dateTo}" data-date-default="end">
+                </div>
             </div>
-            <div class="search-row">
+            <div class="news-search-row">
+                <span class="search-label">상태</span>
+                <div class="news-search-statuses">
+                    <label class="search-checkbox" th:each="option : ${statusOptions}">
+                        <input type="checkbox" name="statuses" th:value="${option.code}" th:checked="${#lists.contains(statuses, option.code)}">
+                        <span th:text="${option.label}">접수</span>
+                    </label>
+                </div>
+            </div>
+            <div class="news-search-row news-search-keyword-row">
                 <label class="search-label" for="historyKeywordType">검색조건</label>
-                <select class="form-control" id="historyKeywordType" name="keywordType">
+                <select class="form-control news-search-select" id="historyKeywordType" name="keywordType">
                     <option value="전체" th:selected="${keywordType == '전체'}">전체</option>
                     <option value="설문명" th:selected="${keywordType == '설문명'}">설문명</option>
                     <option value="작성자명" th:selected="${keywordType == '작성자명'}">작성자명</option>
                 </select>
                 <label class="search-label" for="historyKeyword">검색어</label>
-                <input class="form-control search-keyword" id="historyKeyword" name="keyword" th:value="${keyword}">
-                <button class="btn btn-register" type="submit">검색</button>
-                <a class="btn btn-neutral" th:href="@{/admin/survey-submissions/list.do}">초기화</a>
+                <input class="form-control news-search-keyword" id="historyKeyword" name="keyword" th:value="${keyword}">
+                <div class="news-search-actions">
+                    <button class="btn btn-register btn-sm news-search-submit" type="submit">검색</button>
+                    <a class="btn btn-neutral btn-sm news-search-reset" th:href="@{/admin/survey-submissions/list.do}">초기화</a>
+                </div>
             </div>
         </form>
         <section class="content-panel no-pad">

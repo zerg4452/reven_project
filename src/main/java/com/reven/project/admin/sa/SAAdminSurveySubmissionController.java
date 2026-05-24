@@ -39,13 +39,16 @@ public class SAAdminSurveySubmissionController {
      */
     @GetMapping("/admin/survey-submissions/list.do")
     public String list(@ModelAttribute SADto.SubmissionSearchRequest request, Model model) {
-        List<SADto.SubmissionListItem> submissions = submitService.findSubmissions(request);
+        SADto.SubmissionSearchRequest normalized = normalizeSearch(request);
+        List<SADto.SubmissionListItem> submissions = submitService.findSubmissions(normalized);
         model.addAttribute("submissions", submissions);
         model.addAttribute("totalCount", submissions.size());
-        model.addAttribute("dateFrom", request.startDate);
-        model.addAttribute("dateTo", request.endDate);
-        model.addAttribute("keywordType", request.keywordType);
-        model.addAttribute("keyword", request.keyword);
+        model.addAttribute("dateFrom", normalized.startDate);
+        model.addAttribute("dateTo", normalized.endDate);
+        model.addAttribute("keywordType", normalized.keywordType);
+        model.addAttribute("keyword", normalized.keyword);
+        model.addAttribute("statuses", normalized.statuses);
+        model.addAttribute("statusOptions", statusOptions());
         return "admin/survey/history-list";
     }
 
@@ -63,11 +66,47 @@ public class SAAdminSurveySubmissionController {
      */
     @GetMapping("/admin/survey-submissions/download.do")
     public ResponseEntity<ByteArrayResource> csv(@ModelAttribute SADto.SubmissionSearchRequest request) {
-        byte[] csv = csvService.createSubmissionCsv(request);
+        byte[] csv = csvService.createSubmissionCsv(normalizeSearch(request));
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"survey-submissions.csv\"")
                 .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
                 .contentLength(csv.length)
                 .body(new ByteArrayResource(csv));
+    }
+
+    /**
+     * 설문 이력 검색 조건의 날짜/상태 기본값을 보정한다.
+     */
+    private SADto.SubmissionSearchRequest normalizeSearch(SADto.SubmissionSearchRequest request) {
+        List<String> statuses = request.statuses == null || request.statuses.isEmpty()
+                ? statusOptions().stream().map(SADto.SubmissionStatusOption::getCode).toList()
+                : request.statuses;
+        SADto.SubmissionSearchRequest normalized = new SADto.SubmissionSearchRequest();
+        normalized.startDate = request.startDate;
+        normalized.endDate = request.endDate;
+        normalized.keywordType = request.keywordType;
+        normalized.keyword = request.keyword;
+        normalized.statuses = statuses;
+        return normalized;
+    }
+
+    /**
+     * 설문 이력 상태 체크박스 옵션을 반환한다.
+     */
+    private List<SADto.SubmissionStatusOption> statusOptions() {
+        return List.of(
+                statusOption("new", "신규"),
+                statusOption("reviewing", "확인중"),
+                statusOption("contacted", "연락완료"),
+                statusOption("done", "처리완료"),
+                statusOption("hold", "보류")
+        );
+    }
+
+    private SADto.SubmissionStatusOption statusOption(String code, String label) {
+        SADto.SubmissionStatusOption option = new SADto.SubmissionStatusOption();
+        option.code = code;
+        option.label = label;
+        return option;
     }
 }

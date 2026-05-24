@@ -12,23 +12,27 @@
             <h1>설문 관리</h1>
             <p>설문 제목, 문항 수, 사용여부를 관리합니다.</p>
         </section>
-        <form class="search-panel" method="get" th:action="@{/admin/surveys/list.do}">
-            <div class="search-row">
+        <form class="search-panel news-search-panel" method="get" th:action="@{/admin/surveys/list.do}">
+            <div class="news-search-row">
                 <span class="search-label">등록일자</span>
-                <input class="form-control" type="date" name="startDate" th:value="${dateFrom}" data-date-default="start">
-                <span class="date-separator">~</span>
-                <input class="form-control" type="date" name="endDate" th:value="${dateTo}" data-date-default="end">
+                <div class="news-search-range">
+                    <input class="form-control news-date-input" type="date" name="startDate" th:value="${dateFrom}" data-date-default="start">
+                    <span class="date-separator">~</span>
+                    <input class="form-control news-date-input" type="date" name="endDate" th:value="${dateTo}" data-date-default="end">
+                </div>
             </div>
-            <div class="search-row">
+            <div class="news-search-row news-search-keyword-row">
                 <label class="search-label" for="keywordType">검색조건</label>
-                <select class="form-control" id="keywordType" name="keywordType">
+                <select class="form-control news-search-select" id="keywordType" name="keywordType">
                     <option value="전체" th:selected="${keywordType == '전체'}">전체</option>
                     <option value="설문명" th:selected="${keywordType == '설문명'}">설문명</option>
                 </select>
                 <label class="search-label" for="keyword">검색어</label>
-                <input class="form-control search-keyword" id="keyword" name="keyword" th:value="${keyword}">
-                <button class="btn btn-register" type="submit">검색</button>
-                <a class="btn btn-neutral" th:href="@{/admin/surveys/list.do}">초기화</a>
+                <input class="form-control news-search-keyword" id="keyword" name="keyword" th:value="${keyword}">
+                <div class="news-search-actions">
+                    <button class="btn btn-register btn-sm news-search-submit" type="submit">검색</button>
+                    <a class="btn btn-neutral btn-sm news-search-reset" th:href="@{/admin/surveys/list.do}">초기화</a>
+                </div>
             </div>
         </form>
         <div class="list-action-bar"><a class="btn btn-register" th:href="@{/admin/surveys/write.do}">설문 등록</a></div>

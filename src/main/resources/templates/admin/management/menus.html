@@ -25,7 +25,10 @@
                     <a class="btn btn-register" th:href="@{/admin/management/menus/write.do}">신규</a>
                 </div>
                 <div class="admin-menu-tree-shell">
-                    <div class="admin-menu-tree" id="adminMenuTree" aria-label="관리자 메뉴 트리"></div>
+                    <div class="admin-menu-tree"
+                         id="adminMenuTree"
+                         aria-label="관리자 메뉴 트리"
+                         th:attr="data-selected-seq=${selectedSeq == null ? '' : selectedSeq}"></div>
                     <div class="empty" th:if="${#lists.isEmpty(menus)}">등록된 메뉴가 없습니다.</div>
                 </div>
             </section>
@@ -94,12 +97,15 @@
         </section>
     </main>
 </div>
+<script type="application/json" id="adminMenuTreeData" th:utext="${menuTreeNodesJson}"></script>
 <script th:if="${!#lists.isEmpty(menus)}" th:src="@{/vendor/jquery/jquery.min.js}"></script>
 <script th:if="${!#lists.isEmpty(menus)}" th:src="@{/vendor/jstree/jstree.min.js}"></script>
 <script th:if="${!#lists.isEmpty(menus)}" th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
-        var selectedMenuSeq = String([[${selectedSeq}]]);
-        var treeData = JSON.parse(document.getElementById('adminMenuTreeData').textContent || '[]');
+        var treeElement = document.getElementById('adminMenuTree');
+        var dataElement = document.getElementById('adminMenuTreeData');
+        var selectedMenuSeq = treeElement ? String(treeElement.dataset.selectedSeq || '') : '';
+        var treeData = JSON.parse(dataElement ? dataElement.textContent || '[]' : '[]');
         var $tree = window.jQuery('#adminMenuTree');
 
         if (!$tree.length) {
@@ -114,21 +120,20 @@
             },
             plugins: ['wholerow']
         }).on('select_node.jstree', function (event, data) {
-            if (data && data.node && data.node.id && String(data.node.id) !== selectedMenuSeq) {
+            if (data && data.event && data.node && data.node.id && String(data.node.id) !== selectedMenuSeq) {
                 window.location.href = '/admin/management/menus/write.do?adminMenuSeq=' + encodeURIComponent(data.node.id);
             }
         }).on('ready.jstree', function () {
             var instance = $tree.jstree(true);
             if (instance) {
                 instance.open_all();
-                if (selectedMenuSeq && selectedMenuSeq !== 'null' && selectedMenuSeq !== 'undefined') {
+                if (selectedMenuSeq) {
                     instance.select_node(String(selectedMenuSeq));
                 }
             }
         });
     });
 </script>
-<script type="application/json" id="adminMenuTreeData" th:utext="${menuTreeNodesJson}"></script>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
