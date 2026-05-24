@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${survey?.surveyUid} != null ? '설문 상세' : '설문 등록')}"></head>
+<body>
+<!-- screen: 설문 상세 / purpose: 설문 문항과 사용여부를 등록하거나 수정하는 화면 / created: 2026-05-23 -->
+<header th:replace="~{fragments/layout :: gnb('survey')}"></header>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: lnb('surveys')}"></aside>
+    <main class="admin-content">
+        <div th:replace="~{fragments/layout :: breadcrumb('관리자', '설문 운영', ${survey?.surveyUid} != null ? '설문 상세' : '설문 등록')}"></div>
+        <section class="page-head">
+            <h1 th:text="${survey?.surveyUid} != null ? '설문 상세' : '설문 등록'">설문 상세</h1>
+            <p>설문 문항, 보기, 사용여부를 편집합니다.</p>
+        </section>
+        <form class="form-stack" method="post" th:action="${survey?.surveyUid} != null ? @{/admin/surveys/{id}(id=${survey.surveyUid})} : @{/admin/surveys}">
+            <section class="content-panel">
+                <label>설문 제목 <span class="required">*</span><input class="form-control" name="title" th:value="${survey?.title}" required></label>
+                <label>설명<textarea class="form-control" name="description" rows="4" th:text="${survey?.description}"></textarea></label>
+                <label>사용여부
+                    <select class="form-control" name="useYn">
+                        <option value="true" th:selected="${survey?.enabled != false}">사용</option>
+                        <option value="false" th:selected="${survey?.enabled == false}">미사용</option>
+                    </select>
+                </label>
+            </section>
+            <section class="content-panel">
+                <div class="panel-head">
+                    <h2>제출 항목</h2>
+                    <button class="btn btn-register" type="button" data-add-field>항목 추가</button>
+                </div>
+                <div class="field-editor" data-field-editor>
+                    <article class="field-row" th:each="field, stat : ${survey?.fields}" data-field-row>
+                        <div class="field-row-head">
+                            <strong th:text="|문항 ${stat.count}|">문항 1</strong>
+                            <button class="btn btn-delete" type="button" data-remove-field>삭제</button>
+                        </div>
+                        <label>항목명<input class="form-control" th:name="|fields[${stat.index}].label|" th:value="${field.label}"></label>
+                        <label>유형
+                            <select class="form-control" th:name="|fields[${stat.index}].fieldType|">
+                                <option value="text" th:selected="${field.type == 'text'}">단답형</option>
+                                <option value="textarea" th:selected="${field.type == 'textarea'}">장문형</option>
+                                <option value="select" th:selected="${field.type == 'select'}">선택목록</option>
+                                <option value="radio" th:selected="${field.type == 'radio'}">라디오</option>
+                                <option value="checkbox" th:selected="${field.type == 'checkbox'}">체크박스</option>
+                                <option value="date" th:selected="${field.type == 'date'}">날짜</option>
+                                <option value="number" th:selected="${field.type == 'number'}">숫자</option>
+                                <option value="email" th:selected="${field.type == 'email'}">이메일</option>
+                            </select>
+                        </label>
+                        <label class="check-label"><input type="checkbox" th:name="|fields[${stat.index}].requiredYn|" value="Y" th:checked="${field.required}"> 필수</label>
+                        <label class="wide">옵션<textarea class="form-control" rows="3" th:name="|fields[${stat.index}].optionsText|" th:text="${field.optionsText}" placeholder="선택형 항목일 때 줄바꿈으로 입력"></textarea></label>
+                    </article>
+                    <article class="field-row" data-field-row th:if="${survey == null || #lists.isEmpty(survey.fields)}">
+                        <div class="field-row-head"><strong>문항 1</strong><button class="btn btn-delete" type="button" data-remove-field>삭제</button></div>
+                        <label>항목명<input class="form-control" name="fields[0].label"></label>
+                        <label>유형<select class="form-control" name="fields[0].fieldType"><option value="text">단답형</option><option value="textarea">장문형</option><option value="select">선택목록</option><option value="radio">라디오</option><option value="checkbox">체크박스</option><option value="date">날짜</option><option value="number">숫자</option><option value="email">이메일</option></select></label>
+                        <label class="check-label"><input type="checkbox" name="fields[0].requiredYn" value="Y"> 필수</label>
+                        <label class="wide">옵션<textarea class="form-control" rows="3" name="fields[0].optionsText" placeholder="선택형 항목일 때 줄바꿈으로 입력"></textarea></label>
+                    </article>
+                </div>
+            </section>
+            <div class="detail-action-bar">
+                <a class="btn btn-neutral" th:href="@{/admin/surveys}">목록</a>
+                <div>
+                    <button class="btn btn-delete" type="submit" name="_method" value="delete" th:if="${survey?.surveyUid != null}">삭제</button>
+                    <button class="btn btn-edit" type="submit" th:text="${survey?.surveyUid} != null ? '수정' : '등록'">수정</button>
+                </div>
+            </div>
+        </form>
+        <template data-field-template>
+            <article class="field-row" data-field-row>
+                <div class="field-row-head"><strong>문항</strong><button class="btn btn-delete" type="button" data-remove-field>삭제</button></div>
+                <label>항목명<input class="form-control" name="fields[__INDEX__].label"></label>
+                <label>유형<select class="form-control" name="fields[__INDEX__].fieldType"><option value="text">단답형</option><option value="textarea">장문형</option><option value="select">선택목록</option><option value="radio">라디오</option><option value="checkbox">체크박스</option><option value="date">날짜</option><option value="number">숫자</option><option value="email">이메일</option></select></label>
+                <label class="check-label"><input type="checkbox" name="fields[__INDEX__].requiredYn" value="Y"> 필수</label>
+                <label class="wide">옵션<textarea class="form-control" rows="3" name="fields[__INDEX__].optionsText" placeholder="선택형 항목일 때 줄바꿈으로 입력"></textarea></label>
+            </article>
+        </template>
+    </main>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/admin/js/survey-field-editor.js}" defer></script>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

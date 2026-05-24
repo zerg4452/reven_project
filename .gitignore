@@ -1,0 +1,40 @@
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
+# Java / Spring Boot
+build/
+out/
+target/
+.gradle/
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs / runtime
+*.log
+logs/
+
+# Environment
+.env
+.env.*
+application-local.yml
+application-local.properties
+
+# Legacy PHP runtime data copied only locally if needed
+legacy-php-source/data/*.json
+legacy-php-source/data/!*.gitkeep
+.gradle/
+build/
+out/
+target/
+*.class
+
+.idea/
+*.iml
+.vscode/
+
+.DS_Store
+
+legacy-php-source/data/*.json
+!legacy-php-source/data/.gitkeep

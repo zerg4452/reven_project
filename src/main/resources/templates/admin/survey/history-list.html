@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('설문 이력 관리')}"></head>
+<body>
+<!-- screen: 설문 이력 관리 / purpose: 제출된 설문 이력을 검색하고 목록으로 확인하는 화면 / created: 2026-05-23 -->
+<header th:replace="~{fragments/layout :: gnb('survey')}"></header>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: lnb('submissions')}"></aside>
+    <main class="admin-content">
+        <div th:replace="~{fragments/layout :: breadcrumb('관리자', '설문 운영', '설문 이력 관리')}"></div>
+        <section class="page-head"><h1>설문 이력 관리</h1><p>사용자가 제출한 설문 이력을 확인합니다.</p></section>
+        <form class="search-panel" method="get" th:action="@{/admin/survey-submissions}">
+            <div class="search-row">
+                <span class="search-label">제출일자</span>
+                <input class="form-control" type="date" name="startDate" th:value="${dateFrom}" data-date-default="start">
+                <span class="date-separator">~</span>
+                <input class="form-control" type="date" name="endDate" th:value="${dateTo}" data-date-default="end">
+            </div>
+            <div class="search-row">
+                <label class="search-label" for="historyKeywordType">검색조건</label>
+                <select class="form-control" id="historyKeywordType" name="keywordType">
+                    <option value="전체" th:selected="${keywordType == '전체'}">전체</option>
+                    <option value="설문명" th:selected="${keywordType == '설문명'}">설문명</option>
+                    <option value="작성자명" th:selected="${keywordType == '작성자명'}">작성자명</option>
+                </select>
+                <label class="search-label" for="historyKeyword">검색어</label>
+                <input class="form-control search-keyword" id="historyKeyword" name="keyword" th:value="${keyword}">
+                <button class="btn btn-register" type="submit">검색</button>
+                <a class="btn btn-neutral" th:href="@{/admin/survey-submissions}">초기화</a>
+            </div>
+        </form>
+        <section class="content-panel no-pad">
+            <div class="panel-head"><h2>설문 이력 목록</h2><span th:text="|${totalCount ?: 0}개|">0개</span></div>
+            <div class="table-scroll">
+                <table>
+                    <thead><tr><th>순번</th><th>설문명</th><th>제출자명</th><th>연락처</th><th>상태</th><th>제출일</th></tr></thead>
+                    <tbody>
+                    <tr th:each="item, stat : ${submissions}">
+                        <td th:text="${stat.count}">1</td>
+                        <td><a th:href="@{/admin/survey-submissions/{id}(id=${item.submitUid})}" th:text="${item.surveyTitle}">설문명</a></td>
+                        <td><a th:href="@{/admin/survey-submissions/{id}(id=${item.submitUid})}" th:text="${item.submitterName}">제출자명</a></td>
+                        <td th:text="${item.phone}">010-0000-0000</td>
+                        <td><span class="badge badge-info" th:text="${item.statusText}">접수</span></td>
+                        <td th:text="${item.submittedDate}">2026-05-23</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(submissions)}"><td colspan="6" class="empty">설문 이력이 없습니다.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

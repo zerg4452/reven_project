@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('관리자 접속이력')}"></head>
+<body>
+<!-- screen: 관리자 접속이력 / purpose: 관리자 접속 경로와 시각을 확인하는 화면 / created: 2026-05-23 -->
+<header th:replace="~{fragments/layout :: gnb('home')}"></header>
+<div class="admin-shell">
+    <aside class="admin-lnb" aria-label="관리자 관리 메뉴">
+        <div class="lnb-group">관리자 관리</div>
+        <a th:href="@{/admin/management}">관리자 목록</a>
+        <a class="is-active" th:href="@{/admin/management/access-logs}">관리자 접속이력</a>
+    </aside>
+    <main class="admin-content">
+        <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 관리', '관리자 접속이력')}"></div>
+        <section class="page-head"><h1>관리자 접속이력</h1><p>관리자 접속 메뉴와 시각을 확인합니다.</p></section>
+        <section class="content-panel no-pad">
+            <div class="panel-head"><h2>관리자 접속이력 목록</h2></div>
+            <div class="table-scroll">
+                <table>
+                    <thead><tr><th>순번</th><th>관리자 ID</th><th>접속 경로</th><th>접속일시</th></tr></thead>
+                    <tbody>
+                    <tr th:each="log, stat : ${logs}">
+                        <td th:text="${stat.count}">1</td>
+                        <td th:text="${log.loginId}">admin</td>
+                        <td th:text="${log.requestUri}">/admin</td>
+                        <td th:text="${log.accessAt}">2026-05-23T00:00:00</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(logs)}"><td colspan="4" class="empty">관리자 접속이력이 없습니다.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

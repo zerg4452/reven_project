@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reven.project.service.bd.mapper.BDAiNewsMapper">
+
+    <sql id="aiNewsSearchWhere">
+        where delete_flg = 'N'
+          and published_dtm &gt;= #{startDate}
+          and published_dtm &lt; date_add(#{endDate}, interval 1 day)
+        <if test="statuses != null and statuses.size() &gt; 0">
+          and status in
+          <foreach collection="statuses" item="status" open="(" separator="," close=")">
+            #{status}
+          </foreach>
+        </if>
+        <if test="keyword != null and keyword != ''">
+          <choose>
+            <when test="keywordType == 'title'">
+              and title like concat('%', #{keyword}, '%')
+            </when>
+            <when test="keywordType == 'tag'">
+              and tags_json like concat('%', #{keyword}, '%')
+            </when>
+            <when test="keywordType == 'status'">
+              and status like concat('%', #{keyword}, '%')
+            </when>
+            <otherwise>
+              and (
+                title like concat('%', #{keyword}, '%')
+                or tags_json like concat('%', #{keyword}, '%')
+                or status like concat('%', #{keyword}, '%')
+              )
+            </otherwise>
+          </choose>
+        </if>
+    </sql>
+
+    <select id="countAiNews" resultType="long">
+        select count(*)
+        from bd_ai_news_mst
+        <include refid="aiNewsSearchWhere"/>
+    </select>
+
+    <select id="selectAiNewsList" resultType="com.reven.project.service.bd.dto.BDAiNewsListItemResponseDto">
+        select
+            news_seq as newsSeq,
+            title,
+            slug,
+            category,
+            status,
+            date(published_dtm) as publishedDate,
+            date(reg_dtm) as registeredDate,
+            date(mod_dtm) as updatedDate
+        from bd_ai_news_mst
+        <include refid="aiNewsSearchWhere"/>
+        order by published_dtm desc, news_seq desc
+        limit #{limit} offset #{offset}
+    </select>
+
+    <select id="selectAiNewsDetail" resultType="com.reven.project.service.bd.dto.BDAiNewsDetailResponseDto">
+        select
+            news_seq as newsSeq,
+            slug,
+            title,
+            category,
+            summary,
+            content,
+            tags_json as tagsJson,
+            source_url as sourcesJson,
+            status,
+            delete_flg as deleteFlg,
+            date(published_dtm) as publishedDate,
+            null as sourceFile,
+            null as crawlError,
+            reg_dtm as registeredAt,
+            reg_id as registeredBy,
+            mod_dtm as modifiedAt,
+            mod_id as modifiedBy
+        from bd_ai_news_mst
+        where news_seq = #{newsSeq}
+          and delete_flg = 'N'
+    </select>
+
+    <select id="selectAiNewsBySlug" resultType="com.reven.project.service.bd.dto.BDAiNewsDetailResponseDto">
+        select
+            news_seq as newsSeq,
+            slug,
+            title,
+            category,
+            summary,
+            content,
+            tags_json as tagsJson,
+            source_url as sourcesJson,
+            status,
+            delete_flg as deleteFlg,
+            date(published_dtm) as publishedDate,
+            null as sourceFile,
+            null as crawlError,
+            reg_dtm as registeredAt,
+            reg_id as registeredBy,
+            mod_dtm as modifiedAt,
+            mod_id as modifiedBy
+        from bd_ai_news_mst
+        where slug = #{slug}
+          and delete_flg = 'N'
+    </select>
+
+    <insert id="insertAiNews">
+        insert into bd_ai_news_mst (
+            slug,
+            title,
+            category,
+            summary,
+            content,
+            tags_json,
+            source_url,
+            published_dtm,
+            status,
+            delete_flg,
+            reg_dtm,
+            reg_id,
+            mod_dtm,
+            mod_id
+        ) values (
+            #{slug},
+            #{title},
+            #{category},
+            #{summary},
+            #{content},
+            #{tagsJson},
+            #{sourcesJson},
+            #{publishedDate},
+            #{status},
+            'N',
+            current_timestamp,
+            #{actorId},
+            current_timestamp,
+            #{actorId}
+        )
+    </insert>
+
+    <update id="updateAiNews">
+        update bd_ai_news_mst
+        set slug = #{slug},
+            title = #{title},
+            category = #{category},
+            summary = #{summary},
+            content = #{content},
+            tags_json = #{tagsJson},
+            source_url = #{sourcesJson},
+            published_dtm = #{publishedDate},
+            status = #{status},
+            mod_dtm = current_timestamp,
+            mod_id = #{actorId}
+        where news_seq = #{newsSeq}
+          and delete_flg = 'N'
+    </update>
+
+    <update id="deleteAiNews">
+        update bd_ai_news_mst
+        set delete_flg = 'Y',
+            mod_dtm = current_timestamp
+        where news_seq = #{newsSeq}
+    </update>
+</mapper>

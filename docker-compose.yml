@@ -1,0 +1,42 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: reven-spring-app
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: "3306"
+      DB_NAME: survey_app
+      DB_USER: survey_user
+      DB_PASSWORD: survey_pass
+      TZ: Asia/Seoul
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mariadb:
+    image: mariadb:11.4
+    container_name: reven-mariadb
+    ports:
+      - "13307:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpass
+      MARIADB_DATABASE: survey_app
+      MARIADB_USER: survey_user
+      MARIADB_PASSWORD: survey_pass
+      TZ: Asia/Seoul
+    volumes:
+      - reven_mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p$$MARIADB_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  reven_mariadb_data:

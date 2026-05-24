@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${survey?.title} ?: '설문 작성')}"></head>
+<body>
+<!-- screen: 설문 작성 / purpose: 사용자가 인적사항과 설문 답변을 제출하는 화면 / created: 2026-05-23 -->
+<header th:replace="~{fragments/layout :: gnb('user')}"></header>
+<main class="public-content">
+    <div th:replace="~{fragments/layout :: breadcrumb('사용자 화면', '설문', '설문 작성')}"></div>
+    <section class="page-head"><h1 th:text="${survey?.title} ?: '설문 작성'">설문 작성</h1><p th:text="${survey?.description}">설문 설명</p></section>
+    <form class="form-stack" method="post" th:action="@{/surveys/{id}/submit(id=${survey?.surveyUid})}">
+        <section class="content-panel">
+            <div class="panel-head"><h2>제출자 정보</h2></div>
+            <label>제출자명 <span class="required">*</span><input class="form-control" name="submitterName" required></label>
+            <label>연락처 <span class="required">*</span><input class="form-control" name="phone" required></label>
+        </section>
+        <section class="content-panel">
+            <div class="panel-head"><h2>설문 문항</h2></div>
+            <div class="question-list">
+                <label th:each="field, stat : ${survey?.fields}">
+                    <span th:text="${field.label}">문항</span>
+                    <span class="required" th:if="${field.required}">*</span>
+                    <textarea class="form-control" rows="4" th:if="${field.type == 'textarea'}" th:name="|answers[${field.key}]|" th:required="${field.required}"></textarea>
+                    <select class="form-control" th:if="${field.type == 'select'}" th:name="|answers[${field.key}]|" th:required="${field.required}">
+                        <option value="">선택</option>
+                        <option th:each="option : ${field.options}" th:value="${option.optionValue}" th:text="${option.optionLabel}">보기</option>
+                    </select>
+                    <input class="form-control" th:unless="${field.type == 'textarea' || field.type == 'select'}" th:type="${field.type == 'date' ? 'date' : (field.type == 'number' ? 'number' : (field.type == 'email' ? 'email' : 'text'))}" th:name="|answers[${field.key}]|" th:required="${field.required}">
+                </label>
+            </div>
+        </section>
+        <div class="detail-action-bar"><a class="btn btn-neutral" th:href="@{/}">목록</a><button class="btn btn-register" type="submit">제출</button></div>
+    </form>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

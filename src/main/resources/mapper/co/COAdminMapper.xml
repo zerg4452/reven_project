@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reven.project.service.co.mapper.COAdminMapper">
+
+    <resultMap id="COAdminSessionResultMap" type="com.reven.project.service.co.dto.COAdminSessionDto">
+        <constructor>
+            <idArg column="adm_seq" javaType="java.lang.Long"/>
+            <arg column="login_id" javaType="java.lang.String"/>
+            <arg column="password_hash" javaType="java.lang.String"/>
+            <arg column="name" javaType="java.lang.String"/>
+            <arg column="role_csv" javaType="java.lang.String"/>
+            <arg column="last_login_at" javaType="java.time.LocalDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectAdminByLoginId" resultMap="COAdminSessionResultMap">
+        select
+            adm_seq,
+            login_id,
+            password_hash,
+            name,
+            coalesce(role, 'ADMIN') as role_csv,
+            null as last_login_at
+        from co_adm_mst
+        where login_id = #{loginId}
+          and status = 'active'
+    </select>
+</mapper>

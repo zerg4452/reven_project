@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('관리자 관리')}"></head>
+<body>
+<!-- screen: 관리자 관리 / purpose: 관리자 계정 목록을 관리하는 화면 / created: 2026-05-23 -->
+<header th:replace="~{fragments/layout :: gnb('management')}"></header>
+<div class="admin-shell">
+    <aside class="admin-lnb"><div class="lnb-group">관리자 홈</div><a class="is-active" th:href="@{/admin/management}">관리자 관리</a></aside>
+    <main class="admin-content">
+        <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 홈', '관리자 관리')}"></div>
+        <section class="page-head"><h1>관리자 관리</h1><p>관리자 계정과 사용 상태를 확인합니다.</p></section>
+        <div class="list-action-bar"><a class="btn btn-register" th:href="@{/admin/management/new}">관리자 등록</a></div>
+        <section class="content-panel no-pad">
+            <div class="panel-head"><h2>관리자 목록</h2><span th:text="|${totalCount ?: 0}개|">0개</span></div>
+            <div class="table-scroll">
+                <table>
+                    <thead><tr><th>순번</th><th>아이디</th><th>이름</th><th>사용여부</th><th>등록일</th></tr></thead>
+                    <tbody>
+                    <tr th:each="admin, stat : ${admins}">
+                        <td th:text="${stat.count}">1</td>
+                        <td><a th:href="@{/admin/management/{id}(id=${admin.id})}" th:text="${admin.username}">admin</a></td>
+                        <td th:text="${admin.name}">관리자</td>
+                        <td><span class="badge" th:classappend="${admin.enabled} ? ' badge-success' : ' badge-muted'" th:text="${admin.enabled} ? '사용' : '미사용'">사용</span></td>
+                        <td th:text="${admin.createdDate}">2026-05-23</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(admins)}"><td colspan="5" class="empty">관리자 계정이 없습니다.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reven.project.service.sa.mapper.SASurveySubmitMapper">
+    <resultMap id="SubmissionListItemMap" type="com.reven.project.service.sa.dto.SADto$SubmissionListItem">
+        <id property="submitSeq" column="submit_seq"/>
+        <result property="rowNo" column="row_no"/>
+        <result property="submitUid" column="submit_uid"/>
+        <result property="surveyUid" column="survey_uid"/>
+        <result property="surveyTitle" column="survey_title"/>
+        <result property="submitterName" column="submitter_name"/>
+        <result property="phone" column="phone"/>
+        <result property="status" column="status"/>
+        <result property="submittedDate" column="submitted_date"/>
+    </resultMap>
+
+    <resultMap id="SubmissionDetailMap" type="com.reven.project.service.sa.dto.SADto$SubmissionDetail">
+        <id property="submitSeq" column="submit_seq"/>
+        <result property="submitUid" column="submit_uid"/>
+        <result property="surveyUid" column="survey_uid"/>
+        <result property="surveyTitle" column="survey_title"/>
+        <result property="submitterName" column="submitter_name"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="status" column="status"/>
+        <result property="adminMemo" column="admin_memo"/>
+        <result property="submittedDate" column="submitted_date"/>
+    </resultMap>
+
+    <resultMap id="AnswerSnapshotMap" type="com.reven.project.service.sa.dto.SADto$AnswerSnapshot">
+        <id property="answerSeq" column="answer_seq"/>
+        <result property="submitSeq" column="submit_seq"/>
+        <result property="fieldKey" column="field_key"/>
+        <result property="fieldLabel" column="field_label"/>
+        <result property="fieldType" column="field_type"/>
+        <result property="answerValue" column="answer_value"/>
+        <result property="answerJson" column="answer_json"/>
+        <result property="sortOrd" column="sort_ord"/>
+    </resultMap>
+
+    <resultMap id="CsvRowMap" type="com.reven.project.service.sa.dto.SADto$CsvRow">
+        <result property="submitUid" column="submit_uid"/>
+        <result property="surveyTitle" column="survey_title"/>
+        <result property="submitterName" column="submitter_name"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="status" column="status"/>
+        <result property="submittedDate" column="submitted_date"/>
+        <result property="fieldLabel" column="field_label"/>
+        <result property="answerValue" column="answer_value"/>
+        <result property="answerJson" column="answer_json"/>
+        <result property="sortOrd" column="sort_ord"/>
+    </resultMap>
+
+    <sql id="SubmissionSearchWhere">
+        <where>
+            <if test="startDate != null">
+                and date(sm.submitted_dtm) &gt;= #{startDate}
+            </if>
+            <if test="endDate != null">
+                and date(sm.submitted_dtm) &lt;= #{endDate}
+            </if>
+            <if test="status != null and status != ''">
+                and sm.status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                <choose>
+                    <when test="keywordType == '설문명'">
+                        and sm.survey_title_snapshot like concat('%', #{keyword}, '%')
+                    </when>
+                    <when test="keywordType == '작성자명'">
+                        and sm.submitter_name like concat('%', #{keyword}, '%')
+                    </when>
+                    <otherwise>
+                        and (
+                            sm.survey_title_snapshot like concat('%', #{keyword}, '%')
+                            or sm.submitter_name like concat('%', #{keyword}, '%')
+                        )
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+    </sql>
+
+    <insert id="insertSubmission" parameterType="com.reven.project.service.sa.dto.SADto$SubmitInsert"
+            useGeneratedKeys="true" keyProperty="submitSeq" keyColumn="submit_seq">
+        insert into sa_survey_submit_mst
+            (survey_seq, survey_uid, submit_uid, survey_title_snapshot, submitter_name, phone, email, status, submitted_dtm, ip, reg_dtm, reg_id, mod_dtm, mod_id)
+        values
+            (#{surveySeq}, #{surveyUid}, #{submitUid}, #{surveyTitle}, #{submitterName}, #{phone}, #{email}, #{status}, now(), #{ip}, now(), 'system', now(), 'system')
+    </insert>
+
+    <insert id="insertAnswer" parameterType="com.reven.project.service.sa.dto.SADto$AnswerInsert"
+            useGeneratedKeys="true" keyProperty="answerSeq" keyColumn="answer_seq">
+        insert into sa_survey_answer_dtl
+            (submit_seq, field_seq, field_key_snapshot, field_label_snapshot, field_type_snapshot, required_yn_snapshot, answer_value, answer_json, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id)
+        values
+            (#{submitSeq}, #{fieldSeq}, #{fieldKey}, #{fieldLabel}, #{fieldType}, 'N', #{answerValue}, #{answerJson}, #{sortOrd}, now(), 'system', now(), 'system')
+    </insert>
+
+    <select id="selectSubmissionList" resultMap="SubmissionListItemMap">
+        select row_number() over (order by sm.submitted_dtm desc, sm.submit_seq desc) as row_no,
+               sm.submit_seq,
+               sm.submit_uid,
+               sm.survey_uid,
+               sm.survey_title_snapshot as survey_title,
+               sm.submitter_name,
+               sm.phone,
+               sm.status,
+               date(sm.submitted_dtm) as submitted_date
+        from sa_survey_submit_mst sm
+        <include refid="SubmissionSearchWhere"/>
+        order by sm.submitted_dtm desc, sm.submit_seq desc
+    </select>
+
+    <select id="selectSubmission" resultMap="SubmissionDetailMap">
+        select submit_seq,
+               submit_uid,
+               survey_uid,
+               survey_title_snapshot as survey_title,
+               submitter_name,
+               phone,
+               email,
+               status,
+               admin_memo,
+               date(submitted_dtm) as submitted_date
+        from sa_survey_submit_mst
+        where submit_uid = #{submitUid}
+    </select>
+
+    <select id="selectSubmissionAnswers" resultMap="AnswerSnapshotMap">
+        select answer_seq,
+               submit_seq,
+               field_key_snapshot as field_key,
+               field_label_snapshot as field_label,
+               field_type_snapshot as field_type,
+               answer_value,
+               answer_json,
+               sort_ord
+        from sa_survey_answer_dtl
+        where submit_seq = #{submitSeq}
+        order by sort_ord, answer_seq
+    </select>
+
+    <select id="selectCsvRows" resultMap="CsvRowMap">
+        select sm.submit_uid,
+               sm.survey_title_snapshot as survey_title,
+               sm.submitter_name,
+               sm.phone,
+               sm.email,
+               sm.status,
+               date(sm.submitted_dtm) as submitted_date,
+               a.field_label_snapshot as field_label,
+               a.answer_value,
+               a.answer_json,
+               a.sort_ord
+        from sa_survey_submit_mst sm
+        left join sa_survey_answer_dtl a on a.submit_seq = sm.submit_seq
+        <include refid="SubmissionSearchWhere"/>
+        order by sm.submitted_dtm desc, sm.submit_seq desc, a.sort_ord, a.answer_seq
+    </select>
+</mapper>

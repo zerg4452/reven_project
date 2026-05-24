@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reven.project.service.co.mapper.COAccessLogMapper">
+
+    <insert id="insertAccessLog">
+        insert into co_adm_access_log_mst (
+            adm_seq,
+            login_id,
+            adm_nm,
+            location_nm,
+            path,
+            access_dtm
+        ) values (
+            #{adminSeq},
+            #{loginId},
+            '',
+            #{requestUri},
+            #{requestUri},
+            #{accessAt}
+        )
+    </insert>
+
+    <select id="countAccessLogs" resultType="long">
+        select count(*)
+        from co_adm_access_log_mst
+        where access_dtm &gt;= #{startDate}
+          and access_dtm &lt; date_add(#{endDate}, interval 1 day)
+        <if test="keyword != null and keyword != ''">
+          and (login_id like concat('%', #{keyword}, '%')
+            or path like concat('%', #{keyword}, '%')
+            or location_nm like concat('%', #{keyword}, '%'))
+        </if>
+    </select>
+
+    <select id="selectAccessLogs" resultType="com.reven.project.service.co.dto.COAccessLogResponseDto">
+        select
+            access_log_seq as accessLogSeq,
+            adm_seq as adminSeq,
+            login_id as loginId,
+            path as requestUri,
+            '' as method,
+            '' as remoteAddr,
+            '' as userAgent,
+            access_dtm as accessAt
+        from co_adm_access_log_mst
+        where access_dtm &gt;= #{startDate}
+          and access_dtm &lt; date_add(#{endDate}, interval 1 day)
+        <if test="keyword != null and keyword != ''">
+          and (login_id like concat('%', #{keyword}, '%')
+            or path like concat('%', #{keyword}, '%')
+            or location_nm like concat('%', #{keyword}, '%'))
+        </if>
+        order by access_dtm desc
+        limit #{limit} offset #{offset}
+    </select>
+</mapper>

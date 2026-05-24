@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(pageTitle)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${pageTitle} ?: 'Reven 설문'">Reven 설문</title>
+    <link rel="stylesheet" th:href="@{/common/css/app.css}">
+</head>
+<body>
+<nav class="admin-gnb" th:fragment="gnb(active)">
+    <a class="brand" th:href="@{/admin}">Reven Admin</a>
+    <button class="nav-toggle" type="button" data-nav-toggle aria-controls="globalNavigation" aria-expanded="false">메뉴</button>
+    <div class="gnb-links" id="globalNavigation">
+        <a th:classappend="${active == 'home'} ? 'is-active'" th:href="@{/admin}">관리자 홈</a>
+        <a th:classappend="${active == 'survey'} ? 'is-active'" th:href="@{/admin/surveys}">설문 운영</a>
+        <a th:classappend="${active == 'news'} ? 'is-active'" th:href="@{/admin/news/ai-news}">뉴스</a>
+        <a th:classappend="${active == 'management'} ? 'is-active'" th:href="@{/admin/management}">관리자 관리</a>
+    </div>
+    <div class="gnb-utils">
+        <a th:href="@{/}">사용자 화면</a>
+        <a th:href="@{/admin/logout}">로그아웃</a>
+    </div>
+</nav>
+
+<aside class="admin-lnb" th:fragment="lnb(active)">
+    <div class="lnb-group">설문 운영</div>
+    <a th:classappend="${active == 'surveys'} ? 'is-active'" th:href="@{/admin/surveys}">설문 관리</a>
+    <a th:classappend="${active == 'submissions'} ? 'is-active'" th:href="@{/admin/survey-submissions}">설문 이력 관리</a>
+</aside>
+
+<div class="page-breadcrumb" th:fragment="breadcrumb(depth1, depth2, depth3)">
+    <span th:text="${depth1}">1-depth</span>
+    <span aria-hidden="true"> &gt; </span>
+    <span th:text="${depth2}">2-depth</span>
+    <span aria-hidden="true"> &gt; </span>
+    <strong th:text="${depth3}">3-depth</strong>
+</div>
+
+<footer class="site-footer" th:fragment="footer">
+    <span>Reven 설문 운영</span>
+</footer>
+
+<th:block th:fragment="scripts">
+    <script th:src="@{/common/js/app.js}" defer></script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('관리자 로그인')}"></head>
+<body>
+<!-- screen: 관리자 로그인 / purpose: 관리자 인증을 수행하는 화면 / created: 2026-05-23 -->
+<main class="auth-page">
+    <section class="auth-card">
+        <h1>관리자 로그인</h1>
+        <p>설문 운영 관리자 계정으로 로그인합니다.</p>
+        <form th:action="@{/admin/login}" method="post" class="form-stack">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <div class="alert alert-danger" th:if="${loginError}" th:text="${loginError}">로그인 정보를 확인해 주세요.</div>
+            <label>아이디<input class="form-control" type="text" name="loginId" autocomplete="username" required></label>
+            <label>비밀번호<input class="form-control" type="password" name="password" autocomplete="current-password" required></label>
+            <button class="btn btn-register" type="submit">로그인</button>
+        </form>
+    </section>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

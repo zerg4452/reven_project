@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('접수 완료')}"></head>
+<body>
+<!-- screen: 접수 완료 / purpose: 설문 제출 완료를 안내하는 화면 / created: 2026-05-23 -->
+<header th:replace="~{fragments/layout :: gnb('user')}"></header>
+<main class="public-content narrow">
+    <div th:replace="~{fragments/layout :: breadcrumb('사용자 화면', '설문', '접수 완료')}"></div>
+    <section class="content-panel complete-panel">
+        <h1>접수 완료</h1>
+        <p>설문 제출이 완료되었습니다.</p>
+        <a class="btn btn-register" th:href="@{/}">설문 목록</a>
+    </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
