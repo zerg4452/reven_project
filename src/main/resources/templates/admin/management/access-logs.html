@@ -3,12 +3,13 @@
 <head th:replace="~{fragments/layout :: head('관리자 접속이력')}"></head>
 <body>
 <!-- screen: 관리자 접속이력 / purpose: 관리자 접속 경로와 시각을 확인하는 화면 / created: 2026-05-23 -->
-<header th:replace="~{fragments/layout :: gnb('home')}"></header>
+<header th:replace="~{fragments/layout :: gnb('management')}"></header>
 <div class="admin-shell">
     <aside class="admin-lnb" aria-label="관리자 관리 메뉴">
         <div class="lnb-group">관리자 관리</div>
-        <a th:href="@{/admin/management}">관리자 목록</a>
-        <a class="is-active" th:href="@{/admin/management/access-logs}">관리자 접속이력</a>
+        <a th:href="@{/admin/management/list.do}">관리자 목록</a>
+        <a th:href="@{/admin/management/menus/list.do}">메뉴 관리</a>
+        <a class="is-active" th:href="@{/admin/management/access-logs/list.do}">관리자 접속이력</a>
     </aside>
     <main class="admin-content">
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 관리', '관리자 접속이력')}"></div>
@@ -25,7 +26,7 @@
                         <td th:text="${log.requestUri}">/admin</td>
                         <td th:text="${log.accessAt}">2026-05-23T00:00:00</td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(logs)}"><td colspan="4" class="empty">관리자 접속이력이 없습니다.</td></tr>
+                    <tr th:if="${#lists.isEmpty(logs)}"><td colspan="4" class="empty">현재 등록된 내용이 없습니다.</td></tr>
                     </tbody>
                 </table>
             </div>

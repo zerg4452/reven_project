@@ -5,26 +5,52 @@
 <!-- screen: 뉴스 관리 / purpose: 뉴스 원고를 검색하고 목록으로 관리하는 화면 / created: 2026-05-23 -->
 <header th:replace="~{fragments/layout :: gnb('news')}"></header>
 <div class="admin-shell">
-    <aside class="admin-lnb"><div class="lnb-group">뉴스</div><a class="is-active" th:href="@{/admin/news}">뉴스 관리</a></aside>
+    <aside class="admin-lnb"><div class="lnb-group">뉴스</div><a class="is-active" th:href="@{/admin/news/list.do}">뉴스 관리</a></aside>
     <main class="admin-content">
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '뉴스', '뉴스 관리')}"></div>
         <section class="page-head"><h1>뉴스 관리</h1><p>뉴스 원고와 게시 상태를 관리합니다.</p></section>
-        <form class="search-panel" method="get" th:action="@{/admin/news}">
-            <div class="search-row">
+        <div class="alert alert-success" th:if="${message}" th:text="${message}">크롤링 완료 메시지</div>
+        <form class="search-panel news-search-panel" method="get" th:action="@{/admin/news/list.do}">
+            <div class="news-search-row">
                 <span class="search-label">게시일자</span>
-                <input class="form-control" type="date" name="dateFrom" th:value="${dateFrom}" data-date-default="start">
-                <span class="date-separator">~</span>
-                <input class="form-control" type="date" name="dateTo" th:value="${dateTo}" data-date-default="end">
+                <div class="news-search-range">
+                    <input class="form-control news-date-input" type="date" name="dateFrom" th:value="${dateFrom}" data-date-default="start">
+                    <span class="date-separator">~</span>
+                    <input class="form-control news-date-input" type="date" name="dateTo" th:value="${dateTo}" data-date-default="end">
+                </div>
             </div>
-            <div class="search-row">
+            <div class="news-search-row">
+                <span class="search-label">상태</span>
+                <div class="news-search-statuses">
+                    <label class="search-checkbox" th:each="option : ${statusOptions}">
+                        <input type="checkbox" name="statuses" th:value="${option.code}" th:checked="${#lists.contains(page.search.statuses(), option.code)}">
+                        <span th:text="${option.label}">대기</span>
+                    </label>
+                </div>
+            </div>
+            <div class="news-search-row news-search-keyword-row">
                 <label class="search-label" for="newsKeywordType">검색조건</label>
-                <select class="form-control" id="newsKeywordType" name="keywordType"><option value="all">전체</option><option value="title">제목</option><option value="tag">태그</option></select>
+                <select class="form-control news-search-select" id="newsKeywordType" name="keywordType">
+                    <option value="all">전체</option>
+                    <option value="title">제목</option>
+                    <option value="tag">태그</option>
+                    <option value="status">상태</option>
+                </select>
                 <label class="search-label" for="newsKeyword">검색어</label>
-                <input class="form-control search-keyword" id="newsKeyword" name="keyword" th:value="${keyword}">
-                <button class="btn btn-register" type="submit">검색</button>
+                <input class="form-control news-search-keyword" id="newsKeyword" name="keyword" th:value="${keyword}">
+                <div class="news-search-actions">
+                    <button class="btn btn-register btn-sm news-search-submit" type="submit">검색</button>
+                    <a class="btn btn-neutral btn-sm news-search-reset" th:href="@{/admin/news/list.do}">초기화</a>
+                </div>
             </div>
         </form>
-        <div class="list-action-bar"><a class="btn btn-register" th:href="@{/admin/news/new}">뉴스 등록</a></div>
+        <div class="list-action-bar">
+            <form class="crawl-form" method="post" th:action="@{/admin/news/crawl.do}">
+                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="btn btn-neutral btn-sm" type="submit" onclick="return confirm('레거시 JSON 파일을 읽어 AI News를 DB에 반영하시겠습니까?');">크롤링</button>
+            </form>
+            <a class="btn btn-register" th:href="@{/admin/news/write.do}">뉴스 등록</a>
+        </div>
         <section class="content-panel no-pad">
             <div class="panel-head"><h2>뉴스 목록</h2><span th:text="|${totalCount ?: 0}개|">0개</span></div>
             <div class="table-scroll">
@@ -33,12 +59,12 @@
                     <tbody>
                     <tr th:each="news, stat : ${newsList}">
                         <td th:text="${stat.count}">1</td>
-                        <td><a th:href="@{/admin/news/{id}(id=${news.id})}" th:text="${news.title}">제목</a></td>
+                        <td><a th:href="@{/admin/news/write.do(newsSeq=${news.id})}" th:text="${news.title}">제목</a></td>
                         <td><span class="badge badge-info" th:text="${news.statusText}">게시</span></td>
                         <td th:text="${news.publishedDate}">2026-05-23</td>
                         <td th:text="${news.updatedDate}">2026-05-23</td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(newsList)}"><td colspan="5" class="empty">뉴스가 없습니다.</td></tr>
+                    <tr th:if="${#lists.isEmpty(newsList)}"><td colspan="5" class="empty">현재 등록된 내용이 없습니다.</td></tr>
                     </tbody>
                 </table>
             </div>

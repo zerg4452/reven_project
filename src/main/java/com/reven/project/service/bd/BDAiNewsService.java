@@ -1,14 +1,23 @@
 package com.reven.project.service.bd;
 
 import com.reven.project.service.bd.dto.BDAiNewsDetailResponseDto;
+import com.reven.project.service.bd.dto.BDAiNewsCrawlResultDto;
 import com.reven.project.service.bd.dto.BDAiNewsPageResponseDto;
 import com.reven.project.service.bd.dto.BDAiNewsSaveRequestDto;
 import com.reven.project.service.bd.dto.BDAiNewsSearchRequestDto;
 import com.reven.project.service.bd.mapper.BDAiNewsMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Comparator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,9 +25,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class BDAiNewsService {
 
     private final BDAiNewsMapper aiNewsMapper;
+    private final ObjectMapper objectMapper;
 
-    public BDAiNewsService(BDAiNewsMapper aiNewsMapper) {
+    public BDAiNewsService(BDAiNewsMapper aiNewsMapper, ObjectMapper objectMapper) {
         this.aiNewsMapper = aiNewsMapper;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -64,19 +75,70 @@ public class BDAiNewsService {
     }
 
     /**
+     * 레거시 JSON 디렉터리에서 AI News 파일을 읽어 DB에 반영한다.
+     */
+    @Transactional
+    public BDAiNewsCrawlResultDto crawlLegacyJsonFiles(String actorId) {
+        Path crawlDirectory = resolveLegacyCrawlDirectory();
+        if (!Files.isDirectory(crawlDirectory)) {
+            return new BDAiNewsCrawlResultDto(0, 0, 0);
+        }
+
+        List<Path> jsonFiles;
+        try (var stream = Files.list(crawlDirectory)) {
+            jsonFiles = stream
+                    .filter(path -> path.getFileName().toString().endsWith(".json"))
+                    .sorted(Comparator.comparing(Path::toString))
+                    .toList();
+        } catch (IOException exception) {
+            throw new IllegalStateException("AI News JSON 디렉터리를 읽을 수 없습니다.", exception);
+        }
+
+        int success = 0;
+        int failed = 0;
+        int total = 0;
+
+        for (Path path : jsonFiles) {
+            total++;
+            try {
+                JsonNode payload = objectMapper.readTree(path.toFile());
+                BDAiNewsSaveRequestDto request = new BDAiNewsSaveRequestDto(
+                        null,
+                        text(payload, "slug", generatedSlug()),
+                        text(payload, "title", "제목 없음"),
+                        text(payload, "category", "AI News"),
+                        text(payload, "summary", ""),
+                        text(payload, "content_markdown", text(payload, "content", "")),
+                        toJsonArrayString(payload.path("tags")),
+                        toJsonArrayString(payload.path("sources")),
+                        parsePublishedDate(payload.path("published_at")),
+                        text(payload, "status", "P"),
+                        actorId
+                );
+                upsertAiNews(request);
+                success++;
+            } catch (Exception exception) {
+                failed++;
+            }
+        }
+
+        return new BDAiNewsCrawlResultDto(total, success, failed);
+    }
+
+    /**
      * 검색 조건이 비어 있을 때 화면 기본값과 같은 날짜/상태/페이징 조건을 채운다.
      */
     private BDAiNewsSearchRequestDto normalizeSearch(BDAiNewsSearchRequestDto search) {
         LocalDate endDate = search.endDate() == null ? LocalDate.now().plusDays(1) : search.endDate();
         LocalDate startDate = search.startDate() == null ? LocalDate.now().minusDays(60) : search.startDate();
-        String keywordType = List.of("all", "title", "tag", "status").contains(search.keywordType())
+        String keywordType = search.keywordType() != null && List.of("all", "title", "tag", "status").contains(search.keywordType())
                 ? search.keywordType()
                 : "all";
         List<String> statuses = search.statuses() == null || search.statuses().isEmpty()
                 ? List.of("N", "P", "Y", "E")
                 : search.statuses();
-        int limit = search.limit() <= 0 ? 10 : search.limit();
-        int offset = Math.max(0, search.offset());
+        int limit = search.limit() == null || search.limit() <= 0 ? 10 : search.limit();
+        int offset = search.offset() == null || search.offset() < 0 ? 0 : search.offset();
         return new BDAiNewsSearchRequestDto(
                 startDate,
                 endDate,
@@ -120,6 +182,27 @@ public class BDAiNewsService {
         );
     }
 
+    /**
+     * slug 기준으로 기존 원고가 있으면 수정하고, 없으면 새로 등록한다.
+     */
+    private void upsertAiNews(BDAiNewsSaveRequestDto requestDto) {
+        BDAiNewsDetailResponseDto existing = aiNewsMapper.selectAiNewsBySlug(requestDto.slug());
+        BDAiNewsSaveRequestDto payload = new BDAiNewsSaveRequestDto(
+                existing == null ? null : existing.newsSeq(),
+                requestDto.slug(),
+                requestDto.title(),
+                requestDto.category(),
+                requestDto.summary(),
+                requestDto.content(),
+                requestDto.tagsJson(),
+                requestDto.sourcesJson(),
+                requestDto.publishedDate(),
+                requestDto.status(),
+                requestDto.actorId()
+        );
+        saveAiNews(payload);
+    }
+
     private String firstText(String... values) {
         for (String value : values) {
             if (value != null && !value.isBlank()) {
@@ -131,5 +214,55 @@ public class BDAiNewsService {
 
     private String generatedSlug() {
         return "news-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+    }
+
+    /**
+     * 레거시 PHP 프로젝트의 AI News JSON 폴더 위치를 찾는다.
+     */
+    private Path resolveLegacyCrawlDirectory() {
+        Path repositoryPath = Paths.get(System.getProperty("user.dir"), "legacy-php-source", "croll", "ai-news");
+        return Files.exists(repositoryPath) ? repositoryPath : Paths.get("legacy-php-source", "croll", "ai-news");
+    }
+
+    private String text(JsonNode node, String field, String defaultValue) {
+        JsonNode value = node.get(field);
+        if (value == null || value.isNull()) {
+            return defaultValue;
+        }
+        String text = value.asText();
+        return text == null || text.isBlank() ? defaultValue : text;
+    }
+
+    private String toJsonArrayString(JsonNode node) {
+        if (node == null || node.isNull() || node.isMissingNode()) {
+            return "[]";
+        }
+        if (node.isArray()) {
+            try {
+                return objectMapper.writeValueAsString(node);
+            } catch (Exception exception) {
+                return "[]";
+            }
+        }
+        return node.asText("[]");
+    }
+
+    private LocalDate parsePublishedDate(JsonNode node) {
+        if (node == null || node.isNull() || node.isMissingNode()) {
+            return LocalDate.now();
+        }
+        String value = node.asText("");
+        if (value.isBlank()) {
+            return LocalDate.now();
+        }
+        try {
+            return OffsetDateTime.parse(value).toLocalDate();
+        } catch (Exception ignored) {
+            try {
+                return LocalDate.parse(value.substring(0, Math.min(value.length(), 10)));
+            } catch (Exception ignoredAgain) {
+                return LocalDate.now();
+            }
+        }
     }
 }

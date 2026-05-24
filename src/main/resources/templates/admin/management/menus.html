@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${menu?.adminMenuSeq} != null ? '메뉴 수정' : '메뉴 등록')}"></head>
+<body>
+<!-- screen: 메뉴 관리 / purpose: 관리자 메뉴 계층과 게시판 연결을 관리하는 화면 / created: 2026-05-24 -->
+<header th:replace="~{fragments/layout :: gnb('management')}"></header>
+<div class="admin-shell">
+    <aside class="admin-lnb" aria-label="관리자 관리 메뉴">
+        <div class="lnb-group">관리자 관리</div>
+        <a th:href="@{/admin/management/list.do}">관리자 목록</a>
+        <a class="is-active" th:href="@{/admin/management/menus/list.do}">메뉴 관리</a>
+        <a th:href="@{/admin/management/access-logs/list.do}">관리자 접속이력</a>
+    </aside>
+    <main class="admin-content">
+        <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 관리', '메뉴 관리')}"></div>
+        <section class="page-head"><h1>메뉴 관리</h1><p>관리자 메뉴 계층과 게시판 연결을 관리합니다.</p></section>
+
+        <div class="alert alert-success" th:if="${message}" th:text="${message}">메뉴를 저장했습니다.</div>
+        <div class="alert" th:if="${error}" th:text="${error}">오류가 발생했습니다.</div>
+
+        <section class="menu-management-grid">
+            <section class="content-panel no-pad">
+                <div class="panel-head">
+                    <h2>메뉴 트리</h2>
+                    <a class="btn btn-register" th:href="@{/admin/management/menus/write.do}">신규</a>
+                </div>
+                <div class="admin-menu-tree-shell">
+                    <div class="admin-menu-tree" id="adminMenuTree" aria-label="관리자 메뉴 트리"></div>
+                    <div class="empty" th:if="${#lists.isEmpty(menus)}">등록된 메뉴가 없습니다.</div>
+                </div>
+            </section>
+
+            <form class="form-stack" method="post" th:action="${menu?.adminMenuSeq} != null ? @{/admin/management/menus/update.do(adminMenuSeq=${menu.adminMenuSeq})} : @{/admin/management/menus/insert.do}">
+                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="adminMenuSeq" th:value="${menu?.adminMenuSeq}">
+                <section class="content-panel">
+                    <div class="panel-head">
+                        <h2 th:text="${menu?.adminMenuSeq} != null ? '메뉴 수정' : '메뉴 등록'">메뉴 등록</h2>
+                    </div>
+                    <div class="form-grid two-cols">
+                        <label>상위 메뉴
+                            <select class="form-control" name="parentMenuCode">
+                                <option value="">최상위 메뉴</option>
+                                <option th:each="parent : ${parentOptions}"
+                                        th:value="${parent.menuCode}"
+                                        th:selected="${parent.menuCode == menu?.parentMenuCode}"
+                                        th:text="${(parent.depthNo > 1 ? '└ ' : '') + parent.menuName}">상위 메뉴</option>
+                            </select>
+                        </label>
+                        <label>표시 순서
+                            <input class="form-control" type="number" name="sortOrder" th:value="${menu?.sortOrder}">
+                        </label>
+                        <label>메뉴 코드 <span class="required">*</span>
+                            <input class="form-control" name="menuCode" th:value="${menu?.menuCode}" required>
+                        </label>
+                        <label>메뉴명 <span class="required">*</span>
+                            <input class="form-control" name="menuName" th:value="${menu?.menuName}" required>
+                        </label>
+                        <label class="wide">메뉴 URL
+                            <input class="form-control" name="menuUrl" th:value="${menu?.menuUrl}">
+                        </label>
+                        <label class="wide">활성 경로
+                            <textarea class="form-control" name="matchUrlsText" rows="5" th:text="${menu?.matchUrlsText}"></textarea>
+                        </label>
+                        <label>메뉴 유형
+                            <select class="form-control" name="menuType">
+                                <option value="group" th:selected="${menu?.menuType == 'group'}">그룹</option>
+                                <option value="page" th:selected="${menu?.menuType == null or menu?.menuType == 'page'}">페이지</option>
+                                <option value="board" th:selected="${menu?.menuType == 'board'}">게시판</option>
+                            </select>
+                        </label>
+                        <label>게시판 키
+                            <input class="form-control" name="boardKey" th:value="${menu?.boardKey}" placeholder="ai_news">
+                        </label>
+                        <label>사용여부
+                            <select class="form-control" name="useYn">
+                                <option value="Y" th:selected="${menu?.useYn == null or menu?.useYn == 'Y'}">사용</option>
+                                <option value="N" th:selected="${menu?.useYn == 'N'}">미사용</option>
+                            </select>
+                        </label>
+                    </div>
+                </section>
+                <div class="detail-action-bar">
+                    <a class="btn btn-neutral" th:href="@{/admin/management/list.do}">목록</a>
+                    <div>
+                        <button class="btn btn-delete" type="submit"
+                                th:if="${menu?.adminMenuSeq != null}"
+                                th:formaction="@{/admin/management/menus/delete.do(adminMenuSeq=${menu.adminMenuSeq})}"
+                                onclick="return confirm('이 메뉴를 삭제 처리하시겠습니까?');">삭제</button>
+                        <button class="btn btn-edit" type="submit">저장</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+<script th:if="${!#lists.isEmpty(menus)}" th:src="@{/vendor/jquery/jquery.min.js}"></script>
+<script th:if="${!#lists.isEmpty(menus)}" th:src="@{/vendor/jstree/jstree.min.js}"></script>
+<script th:if="${!#lists.isEmpty(menus)}" th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        var selectedMenuSeq = String([[${selectedSeq}]]);
+        var treeData = JSON.parse(document.getElementById('adminMenuTreeData').textContent || '[]');
+        var $tree = window.jQuery('#adminMenuTree');
+
+        if (!$tree.length) {
+            return;
+        }
+
+        $tree.jstree({
+            core: {
+                data: treeData,
+                multiple: false,
+                themes: { icons: false }
+            },
+            plugins: ['wholerow']
+        }).on('select_node.jstree', function (event, data) {
+            if (data && data.node && data.node.id && String(data.node.id) !== selectedMenuSeq) {
+                window.location.href = '/admin/management/menus/write.do?adminMenuSeq=' + encodeURIComponent(data.node.id);
+            }
+        }).on('ready.jstree', function () {
+            var instance = $tree.jstree(true);
+            if (instance) {
+                instance.open_all();
+                if (selectedMenuSeq && selectedMenuSeq !== 'null' && selectedMenuSeq !== 'undefined') {
+                    instance.select_node(String(selectedMenuSeq));
+                }
+            }
+        });
+    });
+</script>
+<script type="application/json" id="adminMenuTreeData" th:utext="${menuTreeNodesJson}"></script>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

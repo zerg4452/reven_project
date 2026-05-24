@@ -6,7 +6,7 @@ public record COAccessLogSearchRequestDto(
         LocalDate startDate,
         LocalDate endDate,
         String keyword,
-        int offset,
-        int limit
+        Integer offset,
+        Integer limit
 ) {
 }

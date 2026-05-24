@@ -1,22 +1,38 @@
 <!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head(${admin?.id} != null ? '관리자 상세' : '관리자 등록')}"></head>
+<head th:replace="~{fragments/layout :: head(${adminSeq} != null ? '관리자 상세' : '관리자 등록')}"></head>
 <body>
 <!-- screen: 관리자 상세 / purpose: 관리자 계정과 사용 상태를 등록하거나 수정하는 화면 / created: 2026-05-23 -->
 <header th:replace="~{fragments/layout :: gnb('management')}"></header>
 <div class="admin-shell">
-    <aside class="admin-lnb"><div class="lnb-group">관리자 홈</div><a class="is-active" th:href="@{/admin/management}">관리자 관리</a></aside>
+    <aside class="admin-lnb" aria-label="관리자 관리 메뉴">
+        <div class="lnb-group">관리자 관리</div>
+        <a class="is-active" th:href="@{/admin/management/list.do}">관리자 목록</a>
+        <a th:href="@{/admin/management/menus/list.do}">메뉴 관리</a>
+        <a th:href="@{/admin/management/access-logs/list.do}">관리자 접속이력</a>
+    </aside>
     <main class="admin-content">
-        <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 홈', ${admin?.id} != null ? '관리자 상세' : '관리자 등록')}"></div>
-        <section class="page-head"><h1 th:text="${admin?.id} != null ? '관리자 상세' : '관리자 등록'">관리자 상세</h1><p>관리자 계정 정보를 편집합니다.</p></section>
-        <form class="form-stack" method="post">
+        <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 관리', ${adminSeq} != null ? '관리자 상세' : '관리자 등록')}"></div>
+        <section class="page-head"><h1 th:text="${adminSeq} != null ? '관리자 상세' : '관리자 등록'">관리자 상세</h1><p>관리자 계정 정보를 편집합니다.</p></section>
+        <form class="form-stack" method="post" th:action="${adminSeq} != null ? @{/admin/management/update.do(adminSeq=${adminSeq})} : @{/admin/management/insert.do}">
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="adminSeq" th:value="${adminSeq}">
             <section class="content-panel">
                 <label>아이디 <span class="required">*</span><input class="form-control" name="username" th:value="${admin?.username}" required></label>
                 <label>이름 <input class="form-control" name="name" th:value="${admin?.name}"></label>
                 <label>비밀번호 <input class="form-control" type="password" name="password" autocomplete="new-password"></label>
                 <label>사용여부<select class="form-control" name="enabled"><option value="true">사용</option><option value="false">미사용</option></select></label>
             </section>
-            <div class="detail-action-bar"><a class="btn btn-neutral" th:href="@{/admin/management}">목록</a><div><button class="btn btn-delete" type="submit" name="_method" value="delete" th:if="${admin?.id != null}">삭제</button><button class="btn btn-edit" type="submit">저장</button></div></div>
+            <div class="detail-action-bar">
+                <a class="btn btn-neutral" th:href="@{/admin/management/list.do}">목록</a>
+                <div>
+                    <button class="btn btn-delete" type="submit"
+                            th:if="${adminSeq != null}"
+                            th:formaction="@{/admin/management/delete.do(adminSeq=${adminSeq})}"
+                            onclick="return confirm('이 관리자를 삭제하시겠습니까?');">삭제</button>
+                    <button class="btn btn-edit" type="submit" th:text="${adminSeq} != null ? '수정' : '등록'">저장</button>
+                </div>
+            </div>
         </form>
     </main>
 </div>

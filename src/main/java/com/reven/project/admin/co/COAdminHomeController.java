@@ -18,7 +18,7 @@ public class COAdminHomeController {
     /**
      * 로그인 후 처음 진입하는 관리자 홈 화면을 표시한다.
      */
-    @GetMapping("/admin")
+    @GetMapping("/admin/home.do")
     public String adminHome(Model model) {
         model.addAttribute("home", adminHomeService.adminHome());
         model.addAttribute("activeSurveyCount", 0);

@@ -12,7 +12,9 @@
             <h1 th:text="${survey?.surveyUid} != null ? '설문 상세' : '설문 등록'">설문 상세</h1>
             <p>설문 문항, 보기, 사용여부를 편집합니다.</p>
         </section>
-        <form class="form-stack" method="post" th:action="${survey?.surveyUid} != null ? @{/admin/surveys/{id}(id=${survey.surveyUid})} : @{/admin/surveys}">
+        <form class="form-stack" method="post" th:action="${survey?.surveyUid} != null ? @{/admin/surveys/update.do(surveyUid=${survey.surveyUid})} : @{/admin/surveys/insert.do}">
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="surveyUid" th:value="${survey?.surveyUid}">
             <section class="content-panel">
                 <label>설문 제목 <span class="required">*</span><input class="form-control" name="title" th:value="${survey?.title}" required></label>
                 <label>설명<textarea class="form-control" name="description" rows="4" th:text="${survey?.description}"></textarea></label>
@@ -60,9 +62,11 @@
                 </div>
             </section>
             <div class="detail-action-bar">
-                <a class="btn btn-neutral" th:href="@{/admin/surveys}">목록</a>
+                <a class="btn btn-neutral" th:href="@{/admin/surveys/list.do}">목록</a>
                 <div>
-                    <button class="btn btn-delete" type="submit" name="_method" value="delete" th:if="${survey?.surveyUid != null}">삭제</button>
+                    <button class="btn btn-delete" type="submit" th:if="${survey?.surveyUid != null}"
+                            th:formaction="@{/admin/surveys/delete.do(surveyUid=${survey.surveyUid})}"
+                            onclick="return confirm('이 설문을 삭제하시겠습니까?');">삭제</button>
                     <button class="btn btn-edit" type="submit" th:text="${survey?.surveyUid} != null ? '수정' : '등록'">수정</button>
                 </div>
             </div>

@@ -43,6 +43,7 @@
 
     <sql id="SurveySearchWhere">
         <where>
+            and s.delete_flg = 'N'
             <if test="startDate != null">
                 and date(s.reg_dtm) &gt;= #{startDate}
             </if>
@@ -86,6 +87,7 @@
         from sa_survey_mst s
         left join sa_survey_field_dtl f on f.survey_seq = s.survey_seq
         where s.use_yn = 'Y'
+          and s.delete_flg = 'N'
         group by s.survey_seq, s.survey_uid, s.title, s.use_yn, s.reg_dtm, s.mod_dtm
         order by s.reg_dtm desc, s.survey_seq desc
     </select>
@@ -100,6 +102,7 @@
                date(mod_dtm) as mod_date
         from sa_survey_mst
         where survey_uid = #{surveyUid}
+          and delete_flg = 'N'
     </select>
 
     <select id="selectSurveyFields" resultMap="SurveyFieldMap">
@@ -153,6 +156,15 @@
         delete from sa_survey_field_dtl
         where survey_seq = #{surveySeq}
     </delete>
+
+    <update id="deleteSurvey">
+        update sa_survey_mst
+        set delete_flg = 'Y',
+            use_yn = 'N',
+            mod_dtm = now(),
+            mod_id = 'system'
+        where survey_seq = #{surveySeq}
+    </update>
 
     <insert id="insertSurveyField" parameterType="com.reven.project.service.sa.dto.SADto$SurveyField"
             useGeneratedKeys="true" keyProperty="fieldSeq" keyColumn="field_seq">

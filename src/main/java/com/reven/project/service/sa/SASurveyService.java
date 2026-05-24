@@ -73,6 +73,17 @@ public class SASurveyService {
         return findSurvey(survey.surveyUid);
     }
 
+    /**
+     * 설문 마스터와 하위 문항/보기를 삭제 상태로 전환한다.
+     */
+    @Transactional
+    public void deleteSurvey(String surveyUid) {
+        SADto.SurveyDetail existing = findSurvey(surveyUid);
+        surveyMapper.deleteSurveyOptions(existing.surveySeq);
+        surveyMapper.deleteSurveyFields(existing.surveySeq);
+        surveyMapper.deleteSurvey(existing.surveySeq);
+    }
+
     private void attachChildren(SADto.SurveyDetail survey) {
         List<SADto.SurveyField> fields = surveyMapper.selectSurveyFields(survey.surveySeq);
         List<SADto.SurveyOption> options = surveyMapper.selectSurveyOptions(survey.surveySeq);

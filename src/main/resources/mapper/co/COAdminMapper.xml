@@ -4,6 +4,28 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.reven.project.service.co.mapper.COAdminMapper">
 
+    <sql id="adminSearchWhere">
+        where 1 = 1
+          and reg_dtm &gt;= #{dateFrom}
+          and reg_dtm &lt; date_add(#{dateTo}, interval 1 day)
+        <if test="keyword != null and keyword != ''">
+            <choose>
+                <when test="keywordType == 'name'">
+                    and name like concat('%', #{keyword}, '%')
+                </when>
+                <when test="keywordType == 'login_id'">
+                    and login_id like concat('%', #{keyword}, '%')
+                </when>
+                <otherwise>
+                    and (
+                        name like concat('%', #{keyword}, '%')
+                        or login_id like concat('%', #{keyword}, '%')
+                    )
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+
     <resultMap id="COAdminSessionResultMap" type="com.reven.project.service.co.dto.COAdminSessionDto">
         <constructor>
             <idArg column="adm_seq" javaType="java.lang.Long"/>
@@ -26,5 +48,25 @@
         from co_adm_mst
         where login_id = #{loginId}
           and status = 'active'
+    </select>
+
+    <select id="countAdmins" resultType="long">
+        select count(*)
+        from co_adm_mst
+        <include refid="adminSearchWhere"/>
+    </select>
+
+    <select id="selectAdmins" resultType="com.reven.project.service.co.dto.COAdminListItemResponseDto">
+        select
+            adm_seq as adminSeq,
+            login_id as loginId,
+            name,
+            role,
+            status,
+            date(reg_dtm) as registeredDate,
+            date(mod_dtm) as updatedDate
+        from co_adm_mst
+        <include refid="adminSearchWhere"/>
+        order by reg_dtm desc, adm_seq desc
     </select>
 </mapper>

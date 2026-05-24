@@ -1,0 +1,45 @@
+{
+    "status": "P",
+    "title": "오늘의 Codex/Cursor/Claude + Harness 소식",
+    "slug": "ai-news-2026-05-23",
+    "category": "AI News",
+    "tags": [
+        "Codex",
+        "Cursor",
+        "Claude",
+        "Harness"
+    ],
+    "summary": "오늘은 Codex/Cursor/Claude를 한 도구로 통일하기보다 역할을 분리해 쓰는 실사용 흐름이 계속 확인됐고, Codex용 하네스·플러그인 후보로 my-codex, remnic, Azure Skills, codex-app-server 계열 도구가 눈에 띄었습니다.",
+    "content_markdown": "오늘의 Codex/Cursor/Claude + Harness 소식\n\n1. Cursor Pro+ vs Codex + Claude Code + Cursor Pro 비용 비교\n- 출처: Reddit r/cursor\n- 링크: https://www.reddit.com/r/cursor/comments/1tkvr28/cursor_pro_60_vs_codex_20_claude_code_20_cursor/\n- 핵심 요약: 같은 월 60달러 예산에서 Cursor Pro+ 하나를 쓸지, Codex/Claude Code/Cursor Pro를 조합할지 묻는 토론입니다. 최근 Reddit의 반복 신호는 Cursor는 IDE 안 빠른 반복, Claude Code는 긴 구현과 repo 이해, Codex는 OpenAI 생태계와 비동기/검증 작업에 강하다는 쪽입니다.\n- 왜 중요한지: 실제 비용 최적화가 “모델 하나 선택”이 아니라 “작업 종류별 도구 배치” 문제로 바뀌고 있습니다.\n- 다음 행동: 월 예산 기준으로 Cursor 단독 플랜과 Codex+Claude+Cursor 조합의 사용량/대기시간을 비교해보세요.\n\n2. my-codex: Codex CLI용 올인원 agent harness\n- 출처: GitHub sehoon787/my-codex\n- 링크: https://github.com/sehoon787/my-codex\n- 핵심 요약: OpenAI Codex CLI 위에 boss meta-orchestrator, 다수 agents/skills, MCP 서버를 얹는 하네스입니다. Codex CLI의 native toml agent 형식과 spawn_agent 위임을 강조합니다.\n- 왜 중요한지: 사용자가 찾는 “Codex용 harness/plugin”에 직접 가까운 후보입니다. 다만 빠르게 변하는 개인/커뮤니티 프로젝트라 설치 전 파일 생성 범위와 권한을 확인해야 합니다.\n- 다음 행동: 별도 샌드박스에서 설치 스크립트만 먼저 검토하고, 기존 .codex 설정을 덮어쓰는지 확인하세요.\n\n3. remnic: Codex/Claude/OpenClaw용 로컬 우선 메모리 플러그인\n- 출처: GitHub joshuaswarren/remnic\n- 링크: https://github.com/joshuaswarren/remnic\n- 핵심 요약: Codex, Claude Code, OpenClaw 등 여러 에이전트에 장기 메모리와 검색을 제공하는 로컬 우선 플러그인입니다. Codex용으로 hooks, skills, MCP 구성을 제공한다고 설명합니다.\n- 왜 중요한지: 하네스의 핵심은 실행뿐 아니라 기억/검색/컨텍스트 관리입니다. Codex를 장기 프로젝트에 붙일 때 실험 가치가 있습니다.\n- 다음 행동: 저장 방식이 markdown/로컬 중심인지, 민감 정보가 외부로 나가지 않는지 확인한 뒤 테스트 후보로 두세요.\n\n4. Microsoft Azure Skills: multi-harness Codex plugin 예시\n- 출처: GitHub microsoft/azure-skills\n- 링크: https://github.com/microsoft/azure-skills\n- 핵심 요약: Azure 시나리오용 공식 agent plugin으로, Codex plugin marketplace 추가 흐름과 MCP 설정을 포함합니다. 여러 하네스에서 쓰는 multi-harness plugin 구조를 보여줍니다.\n- 왜 중요한지: 특정 제품용이긴 하지만 “Codex 플러그인을 어떻게 패키징하고 배포하는가”의 좋은 레퍼런스입니다.\n- 다음 행동: 직접 Codex용 플러그인을 만들 때 manifest, MCP 설정, marketplace 구조 참고용으로 보세요.\n\n5. codex-app-server 기반 통합 도구 카테고리\n- 출처: GitHub codex-app-server topic\n- 링크: https://github.com/topics/codex-app-server\n- 핵심 요약: CodexSessionBar, ToolLoop, coordinated Codex run harness 같은 app-server 기반 프로젝트들이 보입니다. CLI 래핑보다 JSON-RPC/app-server로 Codex를 제어하려는 방향입니다.\n- 왜 중요한지: 장기적으로는 stdout 파싱 wrapper보다 app-server 기반 통합이 더 안정적인 하네스 경로일 수 있습니다.\n- 다음 행동: 후보를 평가할 때 CLI wrapper, app-server integration, MCP bridge 세 범주로 나눠 추적하세요.\n\n오늘의 추천 액션\n1. Codex 플러그인/하네스 후보는 my-codex, remnic, Azure Skills, codex-app-server topic을 우선 추적하세요.\n2. PHP 사이트 자동 등록용 JSON은 오늘부터 status=N 파일로 떨어지게 했으니, 목록 페이지에서 읽고 insert 성공 후 status=Y로 바꾸는 importer를 붙이면 됩니다.\n3. Reddit의 도구 비교 글은 개별 결론보다 역할 분리 패턴만 채집하는 편이 신호가 좋습니다.",
+    "sources": [
+        {
+            "title": "Cursor Pro+ ($60) vs Codex ($20) + Claude Code ($20) + Cursor Pro ($20)",
+            "source": "Reddit r/cursor",
+            "url": "https://www.reddit.com/r/cursor/comments/1tkvr28/cursor_pro_60_vs_codex_20_claude_code_20_cursor/"
+        },
+        {
+            "title": "my-codex",
+            "source": "GitHub sehoon787/my-codex",
+            "url": "https://github.com/sehoon787/my-codex"
+        },
+        {
+            "title": "remnic",
+            "source": "GitHub joshuaswarren/remnic",
+            "url": "https://github.com/joshuaswarren/remnic"
+        },
+        {
+            "title": "azure-skills",
+            "source": "GitHub microsoft/azure-skills",
+            "url": "https://github.com/microsoft/azure-skills"
+        },
+        {
+            "title": "codex-app-server topic",
+            "source": "GitHub Topics",
+            "url": "https://github.com/topics/codex-app-server"
+        }
+    ],
+    "published_at": "2026-05-23T09:55:27+09:00",
+    "inserted_at": "2026-05-23 10:25:19",
+    "error": null,
+    "news_seq": 1
+}

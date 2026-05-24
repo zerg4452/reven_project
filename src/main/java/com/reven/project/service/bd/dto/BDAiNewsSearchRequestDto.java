@@ -9,7 +9,7 @@ public record BDAiNewsSearchRequestDto(
         String keywordType,
         String keyword,
         List<String> statuses,
-        int offset,
-        int limit
+        Integer offset,
+        Integer limit
 ) {
 }

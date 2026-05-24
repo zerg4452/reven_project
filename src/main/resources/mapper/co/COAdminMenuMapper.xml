@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reven.project.service.co.mapper.COAdminMenuMapper">
+
+    <sql id="adminMenuColumns">
+        adm_menu_seq as adminMenuSeq,
+        menu_cd as menuCode,
+        parent_menu_cd as parentMenuCode,
+        depth_no as depthNo,
+        menu_nm as menuName,
+        menu_url as menuUrl,
+        match_urls_json as matchUrlsJson,
+        null as matchUrlsText,
+        menu_type as menuType,
+        board_key as boardKey,
+        use_yn as useYn,
+        delete_flg as deleteFlg,
+        sort_ord as sortOrder,
+        date(reg_dtm) as registeredDate,
+        date(mod_dtm) as updatedDate,
+        reg_dtm as registeredAt,
+        reg_id as registeredBy,
+        mod_dtm as modifiedAt,
+        mod_id as modifiedBy
+    </sql>
+
+    <select id="selectAdminMenus" resultType="com.reven.project.service.co.dto.COAdminMenuResponseDto">
+        select
+            <include refid="adminMenuColumns"/>
+        from co_adm_menu_mst
+        where delete_flg = 'N'
+        order by depth_no asc, parent_menu_cd asc, sort_ord asc, adm_menu_seq asc
+    </select>
+
+    <select id="selectAdminMenuBySeq" resultType="com.reven.project.service.co.dto.COAdminMenuResponseDto">
+        select
+            <include refid="adminMenuColumns"/>
+        from co_adm_menu_mst
+        where adm_menu_seq = #{adminMenuSeq}
+          and delete_flg = 'N'
+    </select>
+
+    <select id="selectAdminMenuByCode" resultType="com.reven.project.service.co.dto.COAdminMenuResponseDto">
+        select
+            <include refid="adminMenuColumns"/>
+        from co_adm_menu_mst
+        where menu_cd = #{menuCode}
+          and delete_flg = 'N'
+    </select>
+
+    <select id="countChildren" resultType="long">
+        select count(*)
+        from co_adm_menu_mst
+        where parent_menu_cd = #{parentMenuCode}
+          and delete_flg = 'N'
+    </select>
+
+    <insert id="insertAdminMenu">
+        insert into co_adm_menu_mst (
+            menu_cd,
+            parent_menu_cd,
+            depth_no,
+            menu_nm,
+            menu_url,
+            match_urls_json,
+            menu_type,
+            board_key,
+            use_yn,
+            delete_flg,
+            sort_ord,
+            reg_dtm,
+            reg_id,
+            mod_dtm,
+            mod_id
+        ) values (
+            #{menu.menuCode},
+            #{menu.parentMenuCode},
+            #{depthNo},
+            #{menu.menuName},
+            #{menu.menuUrl},
+            #{matchUrlsJson},
+            #{menu.menuType},
+            #{menu.boardKey},
+            #{menu.useYn},
+            'N',
+            #{menu.sortOrder},
+            current_timestamp,
+            #{menu.actorId},
+            current_timestamp,
+            #{menu.actorId}
+        )
+    </insert>
+
+    <update id="updateAdminMenu">
+        update co_adm_menu_mst
+        set menu_cd = #{menu.menuCode},
+            parent_menu_cd = #{menu.parentMenuCode},
+            depth_no = #{depthNo},
+            menu_nm = #{menu.menuName},
+            menu_url = #{menu.menuUrl},
+            match_urls_json = #{matchUrlsJson},
+            menu_type = #{menu.menuType},
+            board_key = #{menu.boardKey},
+            use_yn = #{menu.useYn},
+            sort_ord = #{menu.sortOrder},
+            mod_dtm = current_timestamp,
+            mod_id = #{menu.actorId}
+        where adm_menu_seq = #{menu.adminMenuSeq}
+          and delete_flg = 'N'
+    </update>
+
+    <update id="deleteAdminMenu">
+        update co_adm_menu_mst
+        set delete_flg = 'Y',
+            mod_dtm = current_timestamp,
+            mod_id = #{actorId}
+        where adm_menu_seq = #{adminMenuSeq}
+          and delete_flg = 'N'
+    </update>
+</mapper>

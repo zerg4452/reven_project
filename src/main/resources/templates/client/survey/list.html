@@ -12,9 +12,9 @@
             <span class="badge badge-success">접수중</span>
             <h2 th:text="${survey.title}">설문 제목</h2>
             <p>내용을 작성해 제출해주세요.</p>
-            <a class="btn btn-register" th:href="@{/surveys/{id}(id=${survey.surveyUid})}">작성하기</a>
+            <a class="btn btn-register" th:href="@{/surveys/detail.do(surveyUid=${survey.surveyUid})}">작성하기</a>
         </article>
-        <p class="empty" th:if="${#lists.isEmpty(surveys)}">현재 접수 가능한 설문이 없습니다.</p>
+        <p class="empty" th:if="${#lists.isEmpty(surveys)}">현재 등록된 내용이 없습니다.</p>
     </section>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>

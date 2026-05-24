@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ public class SAAdminSurveyController {
     /**
      * 설문 관리 목록 화면을 조회한다.
      */
-    @GetMapping
+    @GetMapping("/list.do")
     public String list(@ModelAttribute SADto.SurveySearchRequest request, Model model) {
         List<SADto.SurveyListItem> surveys = surveyService.findAdminSurveys(request);
         model.addAttribute("surveys", surveys);
@@ -49,47 +49,60 @@ public class SAAdminSurveyController {
     /**
      * 신규 설문 등록 화면에 필요한 기본 DTO를 만든다.
      */
-    @GetMapping("/new")
-    public String newSurvey(Model model) {
-        model.addAttribute("survey", surveyService.newSurveyForm());
+    @GetMapping({"/write.do", "/detail.do"})
+    public String writeForm(@RequestParam(required = false) String surveyUid, Model model) {
+        surveyUid = surveyUid == null || surveyUid.isBlank() ? null : surveyUid;
+        model.addAttribute("survey", surveyUid == null ? surveyService.newSurveyForm() : surveyService.findSurvey(surveyUid));
         return "admin/survey/detail";
     }
 
     /**
-     * 설문 상세/수정 화면을 조회한다.
+     * 설문 신규 등록 요청을 저장한다.
      */
-    @GetMapping("/{surveyUid}")
-    public String detail(@PathVariable String surveyUid, Model model) {
-        model.addAttribute("survey", surveyService.findSurvey(surveyUid));
-        return "admin/survey/detail";
+    @PostMapping("/insert.do")
+    public String insert(
+            @RequestParam(required = false) String surveyUid,
+            @Valid @ModelAttribute SADto.SurveySaveRequest request,
+            BindingResult bindingResult,
+            Model model
+    ) {
+        return saveSurvey(null, request, bindingResult, model);
     }
 
     /**
-     * 신규 설문과 문항/보기 정보를 저장한다.
+     * 설문 수정 요청을 저장한다.
      */
-    @PostMapping
-    public String create(@Valid @ModelAttribute SADto.SurveySaveRequest request, BindingResult bindingResult, Model model) {
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("survey", surveyService.newSurveyForm());
-            return "admin/survey/detail";
-        }
-        SADto.SurveyDetail saved = surveyService.saveSurvey(null, request);
-        return "redirect:/admin/surveys/" + saved.surveyUid;
+    @PostMapping("/update.do")
+    public String update(
+            @RequestParam(required = false) String surveyUid,
+            @Valid @ModelAttribute SADto.SurveySaveRequest request,
+            BindingResult bindingResult,
+            Model model
+    ) {
+        return saveSurvey(surveyUid, request, bindingResult, model);
     }
 
     /**
-     * 기존 설문 마스터와 하위 문항/보기를 수정한다.
+     * 설문 삭제 요청을 처리한다.
      */
-    @PostMapping("/{surveyUid}")
-    public String update(@PathVariable String surveyUid,
-                         @Valid @ModelAttribute SADto.SurveySaveRequest request,
-                         BindingResult bindingResult,
-                         Model model) {
+    @PostMapping("/delete.do")
+    public String delete(@RequestParam String surveyUid) {
+        surveyService.deleteSurvey(surveyUid);
+        return "redirect:/admin/surveys/list.do";
+    }
+
+    private String saveSurvey(
+            String surveyUid,
+            SADto.SurveySaveRequest request,
+            BindingResult bindingResult,
+            Model model
+    ) {
+        surveyUid = surveyUid == null || surveyUid.isBlank() ? null : surveyUid;
         if (bindingResult.hasErrors()) {
-            model.addAttribute("survey", surveyService.findSurvey(surveyUid));
+            model.addAttribute("survey", surveyUid == null ? surveyService.newSurveyForm() : surveyService.findSurvey(surveyUid));
             return "admin/survey/detail";
         }
         SADto.SurveyDetail saved = surveyService.saveSurvey(surveyUid, request);
-        return "redirect:/admin/surveys/" + saved.surveyUid;
+        return "redirect:/admin/surveys/write.do?surveyUid=" + saved.surveyUid;
     }
 }

@@ -35,6 +35,9 @@ public interface SASurveyMapper {
     /** 설문에 속한 보기 목록을 삭제한다. */
     void deleteSurveyOptions(@Param("surveySeq") Long surveySeq);
 
+    /** 설문 마스터를 삭제 상태로 전환한다. */
+    void deleteSurvey(@Param("surveySeq") Long surveySeq);
+
     /** 설문 문항을 등록한다. */
     void insertSurveyField(SADto.SurveyField field);
 

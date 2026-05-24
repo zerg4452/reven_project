@@ -7,7 +7,7 @@
 <div class="admin-shell">
     <aside class="admin-lnb" aria-label="관리자 홈 메뉴">
         <div class="lnb-group">관리자 홈</div>
-        <a class="is-active" th:href="@{/admin}">대시보드</a>
+        <a class="is-active" th:href="@{/admin/home.do}">대시보드</a>
     </aside>
     <main class="admin-content">
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 홈', '대시보드')}"></div>
@@ -32,7 +32,7 @@
         <section class="content-panel no-pad">
             <div class="panel-head">
                 <h2>최근 설문 이력</h2>
-                <a class="text-link" th:href="@{/admin/survey-submissions}">more</a>
+                <a class="text-link" th:href="@{/admin/survey-submissions/list.do}">more</a>
             </div>
             <div class="table-scroll">
                 <table>
@@ -42,12 +42,12 @@
                     <tbody>
                     <tr th:each="item, stat : ${recentSubmissions}">
                         <td th:text="${stat.count}">1</td>
-                        <td><a th:href="@{/admin/survey-submissions/{id}(id=${item.id})}" th:text="${item.surveyTitle}">설문명</a></td>
+                        <td><a th:href="@{/admin/survey-submissions/detail.do(submitUid=${item.id})}" th:text="${item.surveyTitle}">설문명</a></td>
                         <td th:text="${item.submitterName}">작성자</td>
                         <td><span class="badge badge-info" th:text="${item.statusText}">접수</span></td>
                         <td th:text="${item.submittedDate}">2026-05-23</td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(recentSubmissions)}"><td colspan="5" class="empty">최근 설문 이력이 없습니다.</td></tr>
+                    <tr th:if="${#lists.isEmpty(recentSubmissions)}"><td colspan="5" class="empty">현재 등록된 내용이 없습니다.</td></tr>
                     </tbody>
                 </table>
             </div>

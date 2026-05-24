@@ -23,12 +23,12 @@
   - Controller request/response, Thymeleaf form binding, Service 입출력, Mapper parameter/result는 DTO를 사용한다.
   - Entity 또는 Map 기반 화면 전달은 사용하지 않는다.
 - REST형 URL:
-  - 관리자 홈: `/admin`
-  - 로그인: `/admin/login`
-  - 설문 관리: `/admin/surveys`, `/admin/surveys/new`, `/admin/surveys/{surveyUid}`
-  - 설문 이력: `/admin/survey-submissions`, `/admin/survey-submissions/{submitUid}`, `/admin/survey-submissions.csv`
-  - 사용자 화면: `/`, `/surveys/{surveyUid}`, `/surveys/{surveyUid}/submit`, `/surveys/thanks`
-  - AI News: `/admin/news/ai-news`, `/admin/news/ai-news/new`, `/admin/news/ai-news/{newsSeq}`, `/admin/news/ai-news/{newsSeq}/edit`
+  - 관리자 홈: `/admin/home.do`
+  - 로그인: `/admin/login.do`
+  - 설문 관리: `/admin/surveys/list.do`, `/admin/surveys/write.do`, `/admin/surveys/insert.do`, `/admin/surveys/update.do`, `/admin/surveys/delete.do`
+  - 설문 이력: `/admin/survey-submissions/list.do`, `/admin/survey-submissions/detail.do`, `/admin/survey-submissions/download.do`
+  - 사용자 화면: `/surveys/list.do`, `/surveys/detail.do`, `/surveys/submit.do`, `/surveys/thanks.do`
+  - AI News: `/admin/news/list.do`, `/admin/news/write.do`, `/admin/news/insert.do`, `/admin/news/update.do`, `/admin/news/delete.do`, `/admin/news/crawl.do`
 
 ## DB / MyBatis
 
@@ -80,7 +80,7 @@
 
 - `./gradlew test`로 서비스/매퍼/DTO 바인딩 테스트 실행.
 - `./gradlew bootRun` 후 주요 URL 확인:
-  - `/`, `/surveys/{surveyUid}`, `/admin/login`, `/admin`, `/admin/surveys`, `/admin/survey-submissions`, `/admin/news/ai-news`
+  - `/surveys/list.do`, `/surveys/detail.do?surveyUid=...`, `/admin/login.do`, `/admin/home.do`, `/admin/surveys/list.do`, `/admin/survey-submissions/list.do`, `/admin/news/list.do`
 - 설문 시나리오:
   - 설문 등록 → 문항/옵션 저장 → 사용자 제출 → 설문 수정 → 기존 설문 이력 상세 snapshot 불변 확인.
 - DTO 검증:

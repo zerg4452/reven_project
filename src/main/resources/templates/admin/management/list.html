@@ -5,25 +5,54 @@
 <!-- screen: 관리자 관리 / purpose: 관리자 계정 목록을 관리하는 화면 / created: 2026-05-23 -->
 <header th:replace="~{fragments/layout :: gnb('management')}"></header>
 <div class="admin-shell">
-    <aside class="admin-lnb"><div class="lnb-group">관리자 홈</div><a class="is-active" th:href="@{/admin/management}">관리자 관리</a></aside>
+    <aside class="admin-lnb" aria-label="관리자 관리 메뉴">
+        <div class="lnb-group">관리자 관리</div>
+        <a class="is-active" th:href="@{/admin/management/list.do}">관리자 목록</a>
+        <a th:href="@{/admin/management/menus/list.do}">메뉴 관리</a>
+        <a th:href="@{/admin/management/access-logs/list.do}">관리자 접속이력</a>
+    </aside>
     <main class="admin-content">
-        <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 홈', '관리자 관리')}"></div>
+        <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 관리', '관리자 목록')}"></div>
         <section class="page-head"><h1>관리자 관리</h1><p>관리자 계정과 사용 상태를 확인합니다.</p></section>
-        <div class="list-action-bar"><a class="btn btn-register" th:href="@{/admin/management/new}">관리자 등록</a></div>
+        <div class="alert" th:if="${error}" th:text="${error}">오류가 발생했습니다.</div>
+        <form class="search-panel management-search-panel" method="get" th:action="@{/admin/management/list.do}">
+            <div class="management-search-row">
+                <span class="search-label">등록일자</span>
+                <div class="management-search-range">
+                    <input class="form-control news-date-input" type="date" name="dateFrom" th:value="${dateFrom}">
+                    <span class="date-separator">~</span>
+                    <input class="form-control news-date-input" type="date" name="dateTo" th:value="${dateTo}">
+                </div>
+            </div>
+            <div class="management-search-row management-search-keyword-row">
+                <label class="search-label" for="adminKeywordType">검색조건</label>
+                <select class="form-control management-search-select" id="adminKeywordType" name="keywordType">
+                    <option value="all" th:selected="${keywordType == null or keywordType == 'all'}">전체</option>
+                    <option value="name" th:selected="${keywordType == 'name'}">관리자명</option>
+                    <option value="login_id" th:selected="${keywordType == 'login_id'}">아이디</option>
+                </select>
+                <label class="search-label" for="adminKeyword">검색어</label>
+                <input class="form-control management-search-keyword" id="adminKeyword" name="keyword" th:value="${keyword}">
+                <button class="btn btn-register management-search-submit" type="submit">검색</button>
+            </div>
+        </form>
+        <div class="list-action-bar"><a class="btn btn-register" th:href="@{/admin/management/write.do}">관리자 등록</a></div>
         <section class="content-panel no-pad">
             <div class="panel-head"><h2>관리자 목록</h2><span th:text="|${totalCount ?: 0}개|">0개</span></div>
             <div class="table-scroll">
                 <table>
-                    <thead><tr><th>순번</th><th>아이디</th><th>이름</th><th>사용여부</th><th>등록일</th></tr></thead>
+                    <thead><tr><th>순번</th><th>아이디</th><th>이름</th><th>권한</th><th>사용여부</th><th>등록일</th><th>수정일</th></tr></thead>
                     <tbody>
                     <tr th:each="admin, stat : ${admins}">
                         <td th:text="${stat.count}">1</td>
-                        <td><a th:href="@{/admin/management/{id}(id=${admin.id})}" th:text="${admin.username}">admin</a></td>
+                        <td th:text="${admin.loginId}">admin</td>
                         <td th:text="${admin.name}">관리자</td>
-                        <td><span class="badge" th:classappend="${admin.enabled} ? ' badge-success' : ' badge-muted'" th:text="${admin.enabled} ? '사용' : '미사용'">사용</span></td>
-                        <td th:text="${admin.createdDate}">2026-05-23</td>
+                        <td th:text="${admin.role == 'super' ? '최고관리자' : '관리자'}">관리자</td>
+                        <td><span class="badge" th:classappend="${admin.status == 'active'} ? ' badge-success' : ' badge-muted'" th:text="${admin.status == 'active'} ? '사용중' : '미사용'">사용중</span></td>
+                        <td th:text="${admin.registeredDate}">2026-05-23</td>
+                        <td th:text="${admin.updatedDate}">2026-05-23</td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(admins)}"><td colspan="5" class="empty">관리자 계정이 없습니다.</td></tr>
+                    <tr th:if="${#lists.isEmpty(admins)}"><td colspan="7" class="empty">현재 등록된 내용이 없습니다.</td></tr>
                     </tbody>
                 </table>
             </div>

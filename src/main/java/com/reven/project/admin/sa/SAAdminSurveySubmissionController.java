@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -37,7 +37,7 @@ public class SAAdminSurveySubmissionController {
     /**
      * 설문 이력 관리 목록 화면을 조회한다.
      */
-    @GetMapping("/admin/survey-submissions")
+    @GetMapping("/admin/survey-submissions/list.do")
     public String list(@ModelAttribute SADto.SubmissionSearchRequest request, Model model) {
         List<SADto.SubmissionListItem> submissions = submitService.findSubmissions(request);
         model.addAttribute("submissions", submissions);
@@ -52,8 +52,8 @@ public class SAAdminSurveySubmissionController {
     /**
      * 제출 당시 저장된 snapshot 기준으로 설문 이력 상세를 조회한다.
      */
-    @GetMapping("/admin/survey-submissions/{submitUid}")
-    public String detail(@PathVariable String submitUid, Model model) {
+    @GetMapping("/admin/survey-submissions/detail.do")
+    public String detail(@RequestParam String submitUid, Model model) {
         model.addAttribute("submission", submitService.findSubmission(submitUid));
         return "admin/survey/history-detail";
     }
@@ -61,7 +61,7 @@ public class SAAdminSurveySubmissionController {
     /**
      * 현재 검색 조건에 맞는 설문 이력을 CSV 파일로 내려준다.
      */
-    @GetMapping("/admin/survey-submissions.csv")
+    @GetMapping("/admin/survey-submissions/download.do")
     public ResponseEntity<ByteArrayResource> csv(@ModelAttribute SADto.SubmissionSearchRequest request) {
         byte[] csv = csvService.createSubmissionCsv(request);
         return ResponseEntity.ok()
