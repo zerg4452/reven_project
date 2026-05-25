@@ -445,6 +445,29 @@ textarea.form-control {
     resize: vertical;
 }
 
+.management-admin-form {
+    max-width: 620px;
+}
+
+.management-admin-fields {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    align-items: start;
+}
+
+.management-admin-field {
+    display: grid;
+    gap: 8px;
+}
+
+.management-admin-field > label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
 .btn {
     display: inline-flex;
     align-items: center;
@@ -659,6 +682,8 @@ textarea.form-control {
 
 .required {
     color: var(--color-delete);
+    display: inline-block;
+    line-height: 1;
 }
 
 .auth-page {
@@ -822,5 +847,9 @@ textarea.form-control {
     .management-search-submit,
     .management-search-reset {
         width: 100%;
+    }
+
+    .management-admin-form {
+        max-width: none;
     }
 }

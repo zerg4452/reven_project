@@ -14,14 +14,26 @@
     <main class="admin-content">
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 관리', ${adminSeq} != null ? '관리자 상세' : '관리자 등록')}"></div>
         <section class="page-head"><h1 th:text="${adminSeq} != null ? '관리자 상세' : '관리자 등록'">관리자 상세</h1><p>관리자 계정 정보를 편집합니다.</p></section>
-        <form class="form-stack" method="post" th:action="${adminSeq} != null ? @{/admin/management/update.do(adminSeq=${adminSeq})} : @{/admin/management/insert.do}">
+        <form class="form-stack management-admin-form" method="post" th:action="${adminSeq} != null ? @{/admin/management/update.do(adminSeq=${adminSeq})} : @{/admin/management/insert.do}">
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <input type="hidden" name="adminSeq" th:value="${adminSeq}">
-            <section class="content-panel">
-                <label>아이디 <span class="required">*</span><input class="form-control" name="username" th:value="${admin?.username}" required></label>
-                <label>이름 <input class="form-control" name="name" th:value="${admin?.name}"></label>
-                <label>비밀번호 <input class="form-control" type="password" name="password" autocomplete="new-password"></label>
-                <label>사용여부<select class="form-control" name="enabled"><option value="true">사용</option><option value="false">미사용</option></select></label>
+            <section class="content-panel management-admin-fields">
+                <div class="management-admin-field">
+                    <label for="admin-username">아이디 <span class="required">*</span></label>
+                    <input id="admin-username" class="form-control" name="username" th:value="${admin?.username}" required>
+                </div>
+                <div class="management-admin-field">
+                    <label for="admin-name">이름</label>
+                    <input id="admin-name" class="form-control" name="name" th:value="${admin?.name}">
+                </div>
+                <div class="management-admin-field">
+                    <label for="admin-password">비밀번호</label>
+                    <input id="admin-password" class="form-control" type="password" name="password" autocomplete="new-password">
+                </div>
+                <div class="management-admin-field">
+                    <label for="admin-enabled">사용여부</label>
+                    <select id="admin-enabled" class="form-control" name="enabled"><option value="true">사용</option><option value="false">미사용</option></select>
+                </div>
             </section>
             <div class="detail-action-bar">
                 <a class="btn btn-neutral" th:href="@{/admin/management/list.do}">목록</a>
