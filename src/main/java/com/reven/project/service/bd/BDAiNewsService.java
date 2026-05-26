@@ -52,6 +52,27 @@ public class BDAiNewsService {
     }
 
     /**
+     * 사용자 메인 화면에 노출할 게시 상태 AI News 최신 목록을 조회한다.
+     */
+    public List<BDAiNewsDetailResponseDto> findPublishedAiNews(int limit) {
+        return aiNewsMapper.selectPublishedAiNewsList(null, Math.max(1, limit));
+    }
+
+    /**
+     * 사용자 AI News 목록에서 제목과 내용 기준으로 게시 글을 검색한다.
+     */
+    public List<BDAiNewsDetailResponseDto> searchPublishedAiNews(String keyword) {
+        return aiNewsMapper.selectPublishedAiNewsList(keyword, 100);
+    }
+
+    /**
+     * 사용자 AI News 상세에서 게시 상태인 글만 조회한다.
+     */
+    public BDAiNewsDetailResponseDto findPublishedAiNewsDetail(Long newsSeq) {
+        return aiNewsMapper.selectPublishedAiNewsDetail(newsSeq);
+    }
+
+    /**
      * AI News를 등록하거나 기존 원고를 수정한다.
      */
     @Transactional

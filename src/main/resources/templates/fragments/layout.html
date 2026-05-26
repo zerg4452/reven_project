@@ -19,7 +19,29 @@
     </div>
     <div class="gnb-utils">
         <a th:href="@{/surveys/list.do}">사용자 화면</a>
-        <a th:href="@{/admin/logout.do}">로그아웃</a>
+        <form class="gnb-logout-form" th:action="@{/admin/logout.do}" method="post">
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <button class="gnb-logout-btn" type="submit">로그아웃</button>
+        </form>
+    </div>
+</nav>
+
+<nav class="public-gnb" th:fragment="publicGnb(active)">
+    <a class="brand" th:href="@{/main.do}">Reven</a>
+    <button class="nav-toggle" type="button" data-nav-toggle aria-controls="publicGlobalNavigation" aria-expanded="false">메뉴</button>
+    <div class="gnb-links public-gnb-links" id="publicGlobalNavigation">
+        <div class="gnb-menu" th:classappend="${active == 'news'} ? ' is-active'">
+            <a th:href="@{/news/ai/list.do}">뉴스</a>
+            <div class="gnb-dropdown">
+                <a th:href="@{/news/ai/list.do}">AI</a>
+            </div>
+        </div>
+        <div class="gnb-menu" th:classappend="${active == 'survey'} ? ' is-active'">
+            <a th:href="@{/surveys/list.do}">설문</a>
+            <div class="gnb-dropdown">
+                <a th:href="@{/surveys/list.do}">진행중인 설문</a>
+            </div>
+        </div>
     </div>
 </nav>
 

@@ -14,6 +14,12 @@ public interface SASurveyMapper {
     /** 사용자 화면에 노출할 사용 중 설문 목록을 조회한다. */
     List<SADto.SurveyListItem> selectPublicSurveyList();
 
+    /** 사용자 설문 카드 화면에 노출할 삭제되지 않은 설문 목록을 조회한다. */
+    List<SADto.SurveyListItem> selectPublicSurveyCardList();
+
+    /** 사용자 메인 화면에 노출할 사용 중 설문 최신 목록을 조회한다. */
+    List<SADto.SurveyListItem> selectPublicSurveySummaryList(@Param("limit") int limit);
+
     /** 공개 UID 기준으로 설문 마스터를 조회한다. */
     SADto.SurveyDetail selectSurvey(@Param("surveyUid") String surveyUid);
 

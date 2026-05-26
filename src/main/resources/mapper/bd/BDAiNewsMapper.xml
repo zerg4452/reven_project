@@ -58,6 +58,38 @@
         limit #{limit} offset #{offset}
     </select>
 
+    <select id="selectPublishedAiNewsList" resultType="com.reven.project.service.bd.dto.BDAiNewsDetailResponseDto">
+        select
+            news_seq as newsSeq,
+            slug,
+            title,
+            category,
+            summary,
+            content,
+            tags_json as tagsJson,
+            source_url as sourcesJson,
+            status,
+            delete_flg as deleteFlg,
+            date(published_dtm) as publishedDate,
+            null as sourceFile,
+            null as crawlError,
+            reg_dtm as registeredAt,
+            reg_id as registeredBy,
+            mod_dtm as modifiedAt,
+            mod_id as modifiedBy
+        from bd_ai_news_mst
+        where delete_flg = 'N'
+          and status = 'Y'
+        <if test="keyword != null and keyword != ''">
+          and (
+            title like concat('%', #{keyword}, '%')
+            or content like concat('%', #{keyword}, '%')
+          )
+        </if>
+        order by published_dtm desc, news_seq desc
+        limit #{limit}
+    </select>
+
     <select id="selectAiNewsDetail" resultType="com.reven.project.service.bd.dto.BDAiNewsDetailResponseDto">
         select
             news_seq as newsSeq,
@@ -79,6 +111,31 @@
             mod_id as modifiedBy
         from bd_ai_news_mst
         where news_seq = #{newsSeq}
+          and delete_flg = 'N'
+    </select>
+
+    <select id="selectPublishedAiNewsDetail" resultType="com.reven.project.service.bd.dto.BDAiNewsDetailResponseDto">
+        select
+            news_seq as newsSeq,
+            slug,
+            title,
+            category,
+            summary,
+            content,
+            tags_json as tagsJson,
+            source_url as sourcesJson,
+            status,
+            delete_flg as deleteFlg,
+            date(published_dtm) as publishedDate,
+            null as sourceFile,
+            null as crawlError,
+            reg_dtm as registeredAt,
+            reg_id as registeredBy,
+            mod_dtm as modifiedAt,
+            mod_id as modifiedBy
+        from bd_ai_news_mst
+        where news_seq = #{newsSeq}
+          and status = 'Y'
           and delete_flg = 'N'
     </select>
 

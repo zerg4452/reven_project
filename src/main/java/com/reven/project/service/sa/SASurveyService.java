@@ -33,6 +33,20 @@ public class SASurveyService {
     }
 
     /**
+     * 사용자 설문 목록 카드에 표시할 설문을 진행/마감 상태와 함께 조회한다.
+     */
+    public List<SADto.SurveyListItem> findPublicSurveyCards() {
+        return surveyMapper.selectPublicSurveyCardList();
+    }
+
+    /**
+     * 사용자 메인 화면에 노출할 진행중인 설문 최신 목록을 제한 개수만큼 조회한다.
+     */
+    public List<SADto.SurveyListItem> findPublicSurveySummaries(int limit) {
+        return surveyMapper.selectPublicSurveySummaryList(Math.max(1, limit));
+    }
+
+    /**
      * 설문 마스터와 문항/보기 전체 구조를 조회한다.
      */
     public SADto.SurveyDetail findSurvey(String surveyUid) {

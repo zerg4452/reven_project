@@ -3,9 +3,8 @@
 <head th:replace="~{fragments/layout :: head(${survey?.title} ?: '설문 작성')}"></head>
 <body>
 <!-- screen: 설문 작성 / purpose: 사용자가 인적사항과 설문 답변을 제출하는 화면 / created: 2026-05-23 -->
-<header th:replace="~{fragments/layout :: gnb('user')}"></header>
+<header th:replace="~{fragments/layout :: publicGnb('survey')}"></header>
 <main class="public-content">
-    <div th:replace="~{fragments/layout :: breadcrumb('사용자 화면', '설문', '설문 작성')}"></div>
     <section class="page-head"><h1 th:text="${survey?.title} ?: '설문 작성'">설문 작성</h1><p th:text="${survey?.description}">설문 설명</p></section>
     <form class="form-stack" method="post" th:action="@{/surveys/submit.do(surveyUid=${survey?.surveyUid})}">
         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">

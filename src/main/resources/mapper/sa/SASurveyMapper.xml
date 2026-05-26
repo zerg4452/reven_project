@@ -92,6 +92,40 @@
         order by s.reg_dtm desc, s.survey_seq desc
     </select>
 
+    <select id="selectPublicSurveyCardList" resultMap="SurveyListItemMap">
+        select row_number() over (order by case when s.use_yn = 'Y' then 0 else 1 end, s.reg_dtm desc, s.survey_seq desc) as row_no,
+               s.survey_seq,
+               s.survey_uid,
+               s.title,
+               count(f.field_seq) as field_count,
+               s.use_yn,
+               date(s.reg_dtm) as reg_date,
+               date(s.mod_dtm) as mod_date
+        from sa_survey_mst s
+        left join sa_survey_field_dtl f on f.survey_seq = s.survey_seq
+        where s.delete_flg = 'N'
+        group by s.survey_seq, s.survey_uid, s.title, s.use_yn, s.reg_dtm, s.mod_dtm
+        order by case when s.use_yn = 'Y' then 0 else 1 end, s.reg_dtm desc, s.survey_seq desc
+    </select>
+
+    <select id="selectPublicSurveySummaryList" resultMap="SurveyListItemMap">
+        select row_number() over (order by s.reg_dtm desc, s.survey_seq desc) as row_no,
+               s.survey_seq,
+               s.survey_uid,
+               s.title,
+               count(f.field_seq) as field_count,
+               s.use_yn,
+               date(s.reg_dtm) as reg_date,
+               date(s.mod_dtm) as mod_date
+        from sa_survey_mst s
+        left join sa_survey_field_dtl f on f.survey_seq = s.survey_seq
+        where s.use_yn = 'Y'
+          and s.delete_flg = 'N'
+        group by s.survey_seq, s.survey_uid, s.title, s.use_yn, s.reg_dtm, s.mod_dtm
+        order by s.reg_dtm desc, s.survey_seq desc
+        limit #{limit}
+    </select>
+
     <select id="selectSurvey" resultMap="SurveyDetailMap">
         select survey_seq,
                survey_uid,

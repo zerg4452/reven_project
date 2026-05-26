@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${news?.title} ?: 'AI 뉴스 상세')}"></head>
+<body>
+<!-- screen: AI 뉴스 상세 / purpose: 게시 상태 AI 뉴스 본문을 조회하는 화면 / created: 2026-05-26 -->
+<header th:replace="~{fragments/layout :: publicGnb('news')}"></header>
+<main class="public-content">
+    <section class="page-head"><h1 th:text="${news?.title} ?: 'AI 뉴스 상세'">AI 뉴스 상세</h1><p th:text="${news?.publishedDate}">2026-05-26</p></section>
+    <section class="content-panel news-detail-content">
+        <p th:if="${news?.summary}" class="news-summary" th:text="${news.summary}">요약</p>
+        <div th:text="${news?.content}">본문</div>
+    </section>
+    <div class="detail-action-bar"><a class="btn btn-neutral" th:href="@{/news/ai/list.do}">목록</a></div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

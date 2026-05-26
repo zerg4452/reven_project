@@ -33,7 +33,7 @@ public class COSecurityConfig {
                 .userDetailsService(adminUserDetailsService)
                 .authorizeHttpRequests(auth -> auth
                         // 사용자 화면과 정적 리소스는 로그인 없이 접근 가능하다.
-                        .requestMatchers("/", "/index.do", "/surveys/**", "/admin/login.do", "/assets/**", "/common/**", "/admin/js/**", "/client/**").permitAll()
+                        .requestMatchers("/", "/main.do", "/index.do", "/news/**", "/surveys/**", "/admin/login.do", "/assets/**", "/common/**", "/admin/js/**", "/client/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )

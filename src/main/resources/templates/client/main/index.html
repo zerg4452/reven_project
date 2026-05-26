@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('사용자 메인')}"></head>
+<body>
+<!-- screen: 사용자 메인 / purpose: 진행중인 설문과 신규 AI 뉴스를 안내하는 사용자 첫 화면 / created: 2026-05-26 -->
+<header th:replace="~{fragments/layout :: publicGnb('main')}"></header>
+<main class="public-content public-main">
+    <section class="main-hero" aria-label="Reven 메인 이미지">
+        <img th:src="@{/common/images/main-it-placeholder.png}" alt="AI, 노트북, 지구본, 통신을 표현한 IT 이미지">
+    </section>
+
+    <section class="main-feature-grid">
+        <div class="content-panel no-pad main-list-panel">
+            <div class="panel-head"><h2>진행중인 설문</h2><a th:href="@{/surveys/list.do}">더보기</a></div>
+            <div class="main-card-list">
+                <a class="main-survey-card" th:each="survey : ${surveys}" th:href="@{/surveys/detail.do(surveyUid=${survey.surveyUid})}">
+                    <span class="badge badge-success">접수중</span>
+                    <strong th:text="${survey.title}">설문 제목</strong>
+                    <span th:text="|문항 ${survey.fieldCount}개|">문항 3개</span>
+                </a>
+                <p class="empty" th:if="${#lists.isEmpty(surveys)}">현재 등록된 내용이 없습니다.</p>
+            </div>
+        </div>
+
+        <div class="content-panel no-pad main-list-panel">
+            <div class="panel-head"><h2>뉴스 신규 글</h2><a th:href="@{/news/ai/list.do}">더보기</a></div>
+            <div class="main-card-list">
+                <a class="main-news-card" th:each="news : ${newsList}" th:href="@{/news/ai/detail.do(newsSeq=${news.newsSeq})}">
+                    <strong th:text="${news.title}">뉴스 제목</strong>
+                    <span th:text="${news.publishedDate}">2026-05-26</span>
+                </a>
+                <p class="empty" th:if="${#lists.isEmpty(newsList)}">현재 등록된 내용이 없습니다.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="main-pending-section" aria-label="추후 확장 예정 영역">
+        <img th:src="@{/common/images/main-chiori-bottom.png}" alt="침대에 편안히 기대어 있는 치오리풍 일러스트">
+    </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

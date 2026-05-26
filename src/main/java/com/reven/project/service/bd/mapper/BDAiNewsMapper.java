@@ -17,8 +17,14 @@ public interface BDAiNewsMapper {
     /** 검색 조건에 맞는 AI News 목록을 조회한다. */
     List<BDAiNewsListItemResponseDto> selectAiNewsList(BDAiNewsSearchRequestDto requestDto);
 
+    /** 사용자 화면에 게시 상태 AI News 최신 목록을 조회한다. */
+    List<BDAiNewsDetailResponseDto> selectPublishedAiNewsList(@Param("keyword") String keyword, @Param("limit") int limit);
+
     /** AI News 일련번호 기준 상세를 조회한다. */
     BDAiNewsDetailResponseDto selectAiNewsDetail(@Param("newsSeq") Long newsSeq);
+
+    /** 사용자 화면에서 게시 상태 AI News 상세를 조회한다. */
+    BDAiNewsDetailResponseDto selectPublishedAiNewsDetail(@Param("newsSeq") Long newsSeq);
 
     /** slug 중복 확인과 등록 후 재조회에 사용할 상세를 조회한다. */
     BDAiNewsDetailResponseDto selectAiNewsBySlug(@Param("slug") String slug);

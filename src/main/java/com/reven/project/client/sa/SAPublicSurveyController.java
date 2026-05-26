@@ -26,25 +26,9 @@ public class SAPublicSurveyController {
     /**
      * 사용자가 접수 가능한 설문 목록을 조회한다.
      */
-    @GetMapping("/")
-    public String root() {
-        return "redirect:/index.do";
-    }
-
-    /**
-     * 사용자가 접수 가능한 설문 목록을 조회한다.
-     */
-    @GetMapping("/index.do")
-    public String index() {
-        return "redirect:/surveys/list.do";
-    }
-
-    /**
-     * 사용자가 접수 가능한 설문 목록을 조회한다.
-     */
     @GetMapping("/surveys/list.do")
     public String list(Model model) {
-        model.addAttribute("surveys", surveyService.findPublicSurveys());
+        model.addAttribute("surveys", surveyService.findPublicSurveyCards());
         return "client/survey/list";
     }
 
@@ -53,7 +37,11 @@ public class SAPublicSurveyController {
      */
     @GetMapping({"/surveys/detail.do", "/surveys/write.do"})
     public String detail(@RequestParam String surveyUid, Model model) {
-        model.addAttribute("survey", surveyService.findSurvey(surveyUid));
+        var survey = surveyService.findSurvey(surveyUid);
+        if (!survey.isEnabled()) {
+            return "redirect:/surveys/list.do";
+        }
+        model.addAttribute("survey", survey);
         return "client/survey/form";
     }
 
