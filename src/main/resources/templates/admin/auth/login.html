@@ -10,6 +10,7 @@
         <form th:action="@{/admin/login.do}" method="post" class="form-stack">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <div class="alert alert-danger" th:if="${loginError}" th:text="${loginError}">로그인 정보를 확인해 주세요.</div>
+            <div class="alert alert-success" th:if="${message}" th:text="${message}">처리가 완료되었습니다.</div>
             <label>아이디<input class="form-control" type="text" name="loginId" autocomplete="username" required></label>
             <label>비밀번호<input class="form-control" type="password" name="password" autocomplete="current-password" required></label>
             <button class="btn btn-register" type="submit">로그인</button>

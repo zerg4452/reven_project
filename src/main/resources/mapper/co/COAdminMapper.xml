@@ -37,6 +37,21 @@
         </constructor>
     </resultMap>
 
+    <resultMap id="COAdminDetailResultMap" type="com.reven.project.service.co.dto.COAdminDetailResponseDto">
+        <constructor>
+            <idArg column="adm_seq" javaType="java.lang.Long"/>
+            <arg column="login_id" javaType="java.lang.String"/>
+            <arg column="name" javaType="java.lang.String"/>
+            <arg column="role" javaType="java.lang.String"/>
+            <arg column="status" javaType="java.lang.String"/>
+            <arg column="password_hash" javaType="java.lang.String"/>
+            <arg column="reg_dtm" javaType="java.time.LocalDateTime"/>
+            <arg column="reg_id" javaType="java.lang.String"/>
+            <arg column="mod_dtm" javaType="java.time.LocalDateTime"/>
+            <arg column="mod_id" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
     <select id="selectAdminByLoginId" resultMap="COAdminSessionResultMap">
         select
             adm_seq,
@@ -48,6 +63,36 @@
         from co_adm_mst
         where login_id = #{loginId}
           and status = 'active'
+    </select>
+
+    <select id="selectAdminByLoginIdAnyStatus" resultMap="COAdminSessionResultMap">
+        select
+            adm_seq,
+            login_id,
+            password_hash,
+            name,
+            coalesce(role, 'ADMIN') as role_csv,
+            null as last_login_at
+        from co_adm_mst
+        where login_id = #{loginId}
+        limit 1
+    </select>
+
+    <select id="selectAdminBySeq" resultMap="COAdminDetailResultMap">
+        select
+            adm_seq,
+            login_id,
+            name,
+            role,
+            status,
+            password_hash,
+            reg_dtm,
+            reg_id,
+            mod_dtm,
+            mod_id
+        from co_adm_mst
+        where adm_seq = #{adminSeq}
+        limit 1
     </select>
 
     <select id="countAdmins" resultType="long">
@@ -69,4 +114,43 @@
         <include refid="adminSearchWhere"/>
         order by reg_dtm desc, adm_seq desc
     </select>
+
+    <insert id="insertAdmin" parameterType="com.reven.project.service.co.dto.COAdminDetailResponseDto">
+        insert into co_adm_mst (
+            login_id,
+            name,
+            role,
+            status,
+            password_hash,
+            reg_dtm,
+            reg_id,
+            mod_dtm,
+            mod_id
+        ) values (
+            #{loginId},
+            #{name},
+            #{role},
+            #{status},
+            #{passwordHash},
+            #{regDtm},
+            #{regId},
+            #{modDtm},
+            #{modId}
+        )
+    </insert>
+
+    <update id="updateAdmin" parameterType="com.reven.project.service.co.dto.COAdminDetailResponseDto">
+        update co_adm_mst
+        set name = #{name},
+            status = #{status},
+            password_hash = #{passwordHash},
+            mod_dtm = #{modDtm},
+            mod_id = #{modId}
+        where adm_seq = #{adminSeq}
+    </update>
+
+    <delete id="deleteAdmin">
+        delete from co_adm_mst
+        where adm_seq = #{adminSeq}
+    </delete>
 </mapper>

@@ -15,6 +15,7 @@
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 관리', '관리자 목록')}"></div>
         <section class="page-head"><h1>관리자 관리</h1><p>관리자 계정과 사용 상태를 확인합니다.</p></section>
         <div class="alert" th:if="${error}" th:text="${error}">오류가 발생했습니다.</div>
+        <div class="alert alert-success" th:if="${message}" th:text="${message}">처리가 완료되었습니다.</div>
         <form class="search-panel news-search-panel" method="get" th:action="@{/admin/management/list.do}">
             <div class="news-search-row">
                 <span class="search-label">등록일자</span>

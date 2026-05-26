@@ -1,5 +1,6 @@
 package com.reven.project.admin.co;
 
+import com.reven.project.service.co.dto.COAdminDetailResponseDto;
 import com.reven.project.service.co.dto.COAccessLogSearchRequestDto;
 import com.reven.project.service.co.COAccessLogService;
 import com.reven.project.service.co.COAdminHomeService;
@@ -7,6 +8,7 @@ import com.reven.project.service.co.COAdminManagementService;
 import com.reven.project.service.co.COAdminMenuService;
 import com.reven.project.service.co.dto.COAdminManagementSearchRequestDto;
 import com.reven.project.service.co.dto.COAdminMenuSaveRequestDto;
+import com.reven.project.service.co.dto.COAdminWriteRequestDto;
 import java.security.Principal;
 import java.time.LocalDate;
 import org.springframework.stereotype.Controller;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -77,39 +81,70 @@ public class COAdminManagementController {
     }
 
     /**
-     * 관리자 등록/수정 화면을 표시한다. 현재는 화면 연결만 유지한다.
+     * 관리자 등록/수정 화면을 표시한다.
      */
     @GetMapping("/write.do")
     public String writeAdmin(@RequestParam(required = false) Long adminSeq, Model model) {
-        model.addAttribute("admin", null);
         model.addAttribute("adminSeq", adminSeq);
+        COAdminDetailResponseDto admin = adminManagementService.findAdmin(adminSeq);
+        if (adminSeq != null && (admin == null || "super".equalsIgnoreCase(admin.role()))) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        model.addAttribute("admin", admin);
         return "admin/management/edit";
     }
 
     /**
-     * 관리자 등록 요청을 임시로 수신한다.
+     * 관리자 등록 요청을 수신한다.
      */
     @PostMapping("/insert.do")
-    public String saveAdmin(RedirectAttributes redirectAttributes) {
-        redirectAttributes.addFlashAttribute("error", "관리자 저장 기능은 다음 단계에서 연결합니다.");
-        return "redirect:/admin/management/list.do";
+    public String saveAdmin(
+            @ModelAttribute COAdminWriteRequestDto adminForm,
+            Principal principal,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            adminManagementService.saveAdmin(adminForm, principal == null ? "system" : principal.getName());
+            redirectAttributes.addFlashAttribute("message", "관리자를 등록했습니다.");
+            return "redirect:/admin/management/list.do";
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/management/write.do";
+        }
     }
 
     /**
-     * 관리자 수정 요청을 임시로 수신한다.
+     * 관리자 수정 요청을 수신한다.
      */
     @PostMapping("/update.do")
-    public String updateAdmin(RedirectAttributes redirectAttributes) {
-        redirectAttributes.addFlashAttribute("error", "관리자 수정 기능은 다음 단계에서 연결합니다.");
-        return "redirect:/admin/management/list.do";
+    public String updateAdmin(
+            @ModelAttribute COAdminWriteRequestDto adminForm,
+            Principal principal,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            adminManagementService.saveAdmin(adminForm, principal == null ? "system" : principal.getName());
+            redirectAttributes.addFlashAttribute("message", "관리자를 수정했습니다.");
+            return "redirect:/admin/management/list.do";
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return adminForm.adminSeq() == null
+                    ? "redirect:/admin/management/write.do"
+                    : "redirect:/admin/management/write.do?adminSeq=" + adminForm.adminSeq();
+        }
     }
 
     /**
-     * 관리자 삭제 요청을 임시로 수신한다.
+     * 관리자 삭제 요청을 수신한다.
      */
     @PostMapping("/delete.do")
-    public String deleteAdmin(RedirectAttributes redirectAttributes) {
-        redirectAttributes.addFlashAttribute("error", "관리자 삭제 기능은 다음 단계에서 연결합니다.");
+    public String deleteAdmin(@RequestParam Long adminSeq, RedirectAttributes redirectAttributes) {
+        try {
+            adminManagementService.deleteAdmin(adminSeq);
+            redirectAttributes.addFlashAttribute("message", "관리자를 삭제했습니다.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/admin/management/list.do";
     }
 
@@ -117,8 +152,13 @@ public class COAdminManagementController {
      * HiddenHttpMethodFilter가 비활성인 환경에서도 삭제 버튼을 수신한다.
      */
     @PostMapping(value = "/write.do", params = "_method=delete")
-    public String deleteAdminAsPost(RedirectAttributes redirectAttributes) {
-        redirectAttributes.addFlashAttribute("error", "관리자 삭제 기능은 다음 단계에서 연결합니다.");
+    public String deleteAdminAsPost(@RequestParam Long adminSeq, RedirectAttributes redirectAttributes) {
+        try {
+            adminManagementService.deleteAdmin(adminSeq);
+            redirectAttributes.addFlashAttribute("message", "관리자를 삭제했습니다.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/admin/management/list.do";
     }
 
