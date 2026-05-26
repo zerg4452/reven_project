@@ -100,3 +100,75 @@ INSERT INTO co_dashboard_panel_mst (
 )
 SELECT 'ai_news', 'AI News', 'Y', 5, 10, NOW(), 'system', NOW(), 'system'
 WHERE NOT EXISTS (SELECT 1 FROM co_dashboard_panel_mst WHERE board_key = 'ai_news');
+
+UPDATE co_adm_menu_mst
+SET menu_url = '/admin/home.do',
+    match_urls_json = '["/admin/home.do"]',
+    mod_dtm = NOW(),
+    mod_id = 'system'
+WHERE menu_cd = 'admin_home'
+  AND menu_url = '/admin';
+
+UPDATE co_adm_menu_mst
+SET menu_url = '/admin/management/list.do',
+    match_urls_json = '["/admin/management"]',
+    mod_dtm = NOW(),
+    mod_id = 'system'
+WHERE menu_cd = 'management'
+  AND menu_url = '/admin/management';
+
+UPDATE co_adm_menu_mst
+SET menu_url = '/admin/management/list.do',
+    match_urls_json = '["/admin/management"]',
+    mod_dtm = NOW(),
+    mod_id = 'system'
+WHERE menu_cd = 'management_admins'
+  AND menu_url = '/admin/management';
+
+UPDATE co_adm_menu_mst
+SET menu_url = '/admin/management/menus/list.do',
+    match_urls_json = '["/admin/management/menus"]',
+    mod_dtm = NOW(),
+    mod_id = 'system'
+WHERE menu_cd = 'management_menus'
+  AND menu_url = '/admin/management/menus';
+
+UPDATE co_adm_menu_mst
+SET menu_url = '/admin/management/access-logs/list.do',
+    match_urls_json = '["/admin/management/access-logs"]',
+    mod_dtm = NOW(),
+    mod_id = 'system'
+WHERE menu_cd = 'management_access_logs'
+  AND menu_url = '/admin/management/access-logs';
+
+UPDATE co_adm_menu_mst
+SET menu_url = '/admin/news/list.do',
+    match_urls_json = '["/admin/news"]',
+    mod_dtm = NOW(),
+    mod_id = 'system'
+WHERE menu_cd in ('news', 'news_ai_news')
+  AND menu_url = '/admin/news/ai-news';
+
+UPDATE co_adm_menu_mst
+SET menu_url = '/admin/surveys/list.do',
+    match_urls_json = '["/admin/surveys","/admin/survey-submissions"]',
+    mod_dtm = NOW(),
+    mod_id = 'system'
+WHERE menu_cd = 'survey_operation'
+  AND menu_url = '/admin/surveys';
+
+UPDATE co_adm_menu_mst
+SET menu_url = '/admin/surveys/list.do',
+    match_urls_json = '["/admin/surveys"]',
+    mod_dtm = NOW(),
+    mod_id = 'system'
+WHERE menu_cd = 'survey_manage'
+  AND menu_url = '/admin/surveys';
+
+UPDATE co_adm_menu_mst
+SET menu_url = '/admin/survey-submissions/list.do',
+    match_urls_json = '["/admin/survey-submissions"]',
+    mod_dtm = NOW(),
+    mod_id = 'system'
+WHERE menu_cd = 'survey_history'
+  AND menu_url = '/admin/survey-submissions';

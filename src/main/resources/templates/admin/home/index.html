@@ -5,10 +5,7 @@
 <!-- screen: 관리자 홈 / purpose: 설문 운영 현황을 요약하는 관리자 첫 화면 / created: 2026-05-23 -->
 <header th:replace="~{fragments/layout :: gnb('home')}"></header>
 <div class="admin-shell">
-    <aside class="admin-lnb" aria-label="관리자 홈 메뉴">
-        <div class="lnb-group">관리자 홈</div>
-        <a class="is-active" th:href="@{/admin/home.do}">대시보드</a>
-    </aside>
+    <aside th:replace="~{fragments/layout :: lnb('home')}"></aside>
     <main class="admin-content">
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 홈', '대시보드')}"></div>
         <section class="page-head">

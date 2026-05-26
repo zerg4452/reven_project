@@ -68,14 +68,26 @@ a:hover {
     z-index: 20;
     display: flex;
     align-items: center;
-    gap: 22px;
-    min-height: 58px;
-    padding: 0 24px;
+    gap: 26px;
+    min-height: 70px;
+    padding: 0 34px;
     background:
-        linear-gradient(90deg, rgba(201, 154, 66, 0.16), transparent 34%, rgba(159, 47, 43, 0.2)),
+        radial-gradient(circle at 12% 50%, rgba(201, 154, 66, 0.22), transparent 20%),
+        linear-gradient(90deg, rgba(201, 154, 66, 0.18), transparent 38%, rgba(159, 47, 43, 0.24)),
         var(--public-ink);
     color: #fff;
-    box-shadow: 0 4px 18px rgba(33, 24, 24, 0.16);
+    border-bottom: 2px solid rgba(201, 154, 66, 0.72);
+    box-shadow: 0 10px 28px rgba(33, 24, 24, 0.2);
+}
+
+.public-gnb::after {
+    position: absolute;
+    right: 34px;
+    bottom: -2px;
+    left: 34px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 232, 184, 0.95), transparent);
+    content: "";
 }
 
 .brand,
@@ -94,7 +106,24 @@ a:hover {
 .public-gnb .brand {
     position: relative;
     color: #fff;
+    padding-left: 22px;
+    font-size: 24px;
     letter-spacing: 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+}
+
+.public-gnb .brand::before {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--public-gold);
+    border-radius: 50% 50% 50% 3px;
+    background: var(--public-red);
+    box-shadow: 9px 0 0 -4px #fff0c8;
+    transform: translateY(-50%) rotate(-35deg);
+    content: "";
 }
 
 .public-gnb .brand::after {
@@ -107,6 +136,12 @@ a:hover {
     background: var(--public-red);
     transform: translateY(-50%) rotate(45deg);
     content: "";
+}
+
+.public-gnb .gnb-links {
+    gap: 10px;
+    align-items: center;
+    margin-left: 18px;
 }
 
 .gnb-links {
@@ -136,6 +171,80 @@ a:hover {
     font-weight: 700;
 }
 
+.admin-gnb .gnb-links {
+    gap: 10px;
+    margin-left: 12px;
+}
+
+.admin-gnb-menu {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+}
+
+.admin-gnb-menu > a {
+    display: flex;
+    align-items: center;
+    min-height: 56px;
+    padding: 0 18px;
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.admin-gnb-menu > a::after {
+    margin-left: 8px;
+    color: rgba(219, 234, 254, 0.9);
+    font-size: 10px;
+    content: "▼";
+    transform: scale(0.85);
+}
+
+.admin-gnb-menu:hover > a,
+.admin-gnb-menu.is-active > a {
+    background: #0a2444;
+    color: var(--color-gnb-active);
+    text-decoration: none;
+}
+
+.admin-gnb-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 2;
+    display: none;
+    min-width: 190px;
+    border: 1px solid #b8d5ec;
+    background: #f4faff;
+    box-shadow: 0 10px 24px rgba(16, 47, 87, 0.12);
+}
+
+.admin-gnb-menu:hover .admin-gnb-dropdown,
+.admin-gnb-menu:focus-within .admin-gnb-dropdown {
+    display: block;
+}
+
+.admin-gnb-dropdown a {
+    display: block;
+    padding: 11px 14px;
+    border-top: 1px solid #d8eaf8;
+    color: #24496d;
+    background: var(--color-lnb-item);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.admin-gnb-dropdown a:first-child {
+    border-top: 0;
+}
+
+.admin-gnb-dropdown a.is-active,
+.admin-gnb-dropdown a:hover {
+    background: #ffffff;
+    color: #0b5ba8;
+    text-decoration: none;
+}
+
 .gnb-menu {
     position: relative;
     display: flex;
@@ -145,25 +254,41 @@ a:hover {
 .gnb-menu > a {
     display: flex;
     align-items: center;
-    min-height: 58px;
-    padding: 0 20px;
+    min-height: 42px;
+    padding: 0 18px;
+    border: 1px solid rgba(201, 154, 66, 0.42);
+    border-radius: 999px;
+    background: rgba(255, 250, 241, 0.06);
     color: #fff;
     font-weight: 800;
     text-decoration: none;
-    transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+    box-shadow: inset 0 0 0 1px rgba(255, 232, 184, 0.06);
+    transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
 
 .gnb-menu:hover > a,
 .gnb-menu.is-active > a {
-    background: rgba(201, 154, 66, 0.16);
+    border-color: rgba(201, 154, 66, 0.88);
+    background:
+        linear-gradient(135deg, rgba(159, 47, 43, 0.32), rgba(201, 154, 66, 0.18)),
+        rgba(255, 250, 241, 0.08);
     color: #ffe8b8;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
     transform: translateY(-1px);
 }
 
 .gnb-menu > a::after {
-    margin-left: 7px;
-    font-size: 11px;
-    content: "▼";
+    margin-left: 9px;
+    color: var(--public-gold);
+    font-size: 10px;
+    content: "◆";
+    transform: rotate(45deg);
+    transition: transform 180ms ease;
+}
+
+.gnb-menu:hover > a::after,
+.gnb-menu.is-active > a::after {
+    transform: rotate(90deg);
 }
 
 .gnb-dropdown {
@@ -173,11 +298,25 @@ a:hover {
     display: none;
     min-width: 180px;
     border: 1px solid rgba(201, 154, 66, 0.45);
-    border-radius: 0 0 var(--radius-public-box) var(--radius-public-box);
-    background: #fffaf1;
+    border-radius: var(--radius-public-box);
+    background:
+        linear-gradient(135deg, #fffaf1, #f8ead1);
     box-shadow: var(--public-shadow);
     transform-origin: top center;
     animation: publicMenuDrop 180ms ease both;
+}
+
+.gnb-dropdown::before {
+    position: absolute;
+    top: -6px;
+    left: 24px;
+    width: 10px;
+    height: 10px;
+    border-top: 1px solid rgba(201, 154, 66, 0.45);
+    border-left: 1px solid rgba(201, 154, 66, 0.45);
+    background: #fffaf1;
+    transform: rotate(45deg);
+    content: "";
 }
 
 .gnb-menu:hover .gnb-dropdown,
@@ -188,7 +327,7 @@ a:hover {
 .gnb-dropdown a {
     display: block;
     min-height: 0;
-    padding: 13px 16px;
+    padding: 14px 18px;
     color: var(--public-ink);
     font-weight: 800;
 }
@@ -232,6 +371,14 @@ a:hover {
     border-radius: var(--radius-button);
     background: transparent;
     color: #fff;
+}
+
+.public-gnb .nav-toggle {
+    border-color: rgba(201, 154, 66, 0.72);
+    border-radius: 999px;
+    background: rgba(255, 250, 241, 0.08);
+    color: #ffe8b8;
+    font-weight: 900;
 }
 
 .admin-shell {
@@ -1188,9 +1335,20 @@ textarea.form-control {
 }
 
 @media (max-width: 720px) {
-    .admin-gnb {
+    .admin-gnb,
+    .public-gnb {
         flex-wrap: wrap;
         padding: 10px 16px;
+    }
+
+    .public-gnb {
+        gap: 12px;
+        min-height: 70px;
+    }
+
+    .public-gnb::after {
+        right: 16px;
+        left: 16px;
     }
 
     .nav-toggle {
@@ -1213,19 +1371,42 @@ textarea.form-control {
         width: 100%;
     }
 
+    .admin-gnb-menu {
+        display: block;
+        width: 100%;
+    }
+
+    .admin-gnb-menu > a {
+        min-height: 42px;
+        padding: 0 14px;
+    }
+
+    .admin-gnb-dropdown {
+        position: static;
+        display: block;
+        width: 100%;
+        box-shadow: none;
+    }
+
     .gnb-menu > a {
         min-height: 42px;
-        padding: 0 10px;
+        padding: 0 14px;
+        border-radius: var(--radius-public-box);
     }
 
     .gnb-dropdown {
         position: static;
         display: block;
         width: 100%;
-        border: 0;
+        margin-top: 0;
+        border: 1px solid rgba(201, 154, 66, 0.28);
         background: var(--public-cream);
         box-shadow: none;
         animation: none;
+    }
+
+    .gnb-dropdown::before {
+        display: none;
     }
 
     .gnb-dropdown a {

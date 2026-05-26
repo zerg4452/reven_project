@@ -5,12 +5,7 @@
 <!-- screen: 관리자 접속이력 / purpose: 관리자 접속 경로와 시각을 확인하는 화면 / created: 2026-05-23 -->
 <header th:replace="~{fragments/layout :: gnb('management')}"></header>
 <div class="admin-shell">
-    <aside class="admin-lnb" aria-label="관리자 관리 메뉴">
-        <div class="lnb-group">관리자 관리</div>
-        <a th:href="@{/admin/management/list.do}">관리자 목록</a>
-        <a th:href="@{/admin/management/menus/list.do}">메뉴 관리</a>
-        <a class="is-active" th:href="@{/admin/management/access-logs/list.do}">관리자 접속이력</a>
-    </aside>
+    <aside th:replace="~{fragments/layout :: lnb('management')}"></aside>
     <main class="admin-content">
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 관리', '관리자 접속이력')}"></div>
         <section class="page-head"><h1>관리자 접속이력</h1><p>관리자 접속 메뉴와 시각을 확인합니다.</p></section>

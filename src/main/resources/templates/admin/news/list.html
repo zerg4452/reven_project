@@ -5,7 +5,7 @@
 <!-- screen: 뉴스 관리 / purpose: 뉴스 원고를 검색하고 목록으로 관리하는 화면 / created: 2026-05-23 -->
 <header th:replace="~{fragments/layout :: gnb('news')}"></header>
 <div class="admin-shell">
-    <aside class="admin-lnb"><div class="lnb-group">뉴스</div><a class="is-active" th:href="@{/admin/news/list.do}">뉴스 관리</a></aside>
+    <aside th:replace="~{fragments/layout :: lnb('news')}"></aside>
     <main class="admin-content">
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '뉴스', '뉴스 관리')}"></div>
         <section class="page-head"><h1>뉴스 관리</h1><p>뉴스 원고와 게시 상태를 관리합니다.</p></section>

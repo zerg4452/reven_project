@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.reven.project.service.co.dto.COAdminMenuResponseDto;
 import com.reven.project.service.co.dto.COAdminMenuSaveRequestDto;
 import com.reven.project.service.co.dto.COAdminMenuTreeItemDto;
+import com.reven.project.service.co.dto.COAdminNavigationItemDto;
+import com.reven.project.service.co.dto.COAdminNavigationResponseDto;
 import com.reven.project.service.co.mapper.COAdminMenuMapper;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -82,6 +84,39 @@ public class COAdminMenuService {
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("메뉴 트리 JSON을 생성할 수 없습니다.", e);
         }
+    }
+
+    /**
+     * 메뉴 관리에 등록된 사용 메뉴 기준으로 관리자 GNB/LNB를 만든다.
+     */
+    public COAdminNavigationResponseDto adminNavigation(String requestUri) {
+        List<COAdminMenuResponseDto> menus = adminMenuMapper.selectAdminMenus().stream()
+                .filter(menu -> "Y".equalsIgnoreCase(menu.useYn()))
+                .toList();
+        Map<String, List<COAdminMenuResponseDto>> childrenByParent = menus.stream()
+                .collect(Collectors.groupingBy(menu -> firstText(menu.parentMenuCode())));
+        Comparator<COAdminMenuResponseDto> menuOrder = Comparator
+                .comparing((COAdminMenuResponseDto menu) -> menu.sortOrder() == null ? 0 : menu.sortOrder())
+                .thenComparing(menu -> menu.adminMenuSeq() == null ? 0L : menu.adminMenuSeq());
+        childrenByParent.values().forEach(children -> children.sort(menuOrder));
+
+        COAdminMenuResponseDto activeMenu = activeMenu(menus, requestUri);
+        COAdminMenuResponseDto activeRoot = activeRoot(activeMenu, menus);
+        List<COAdminNavigationItemDto> gnbItems = childrenByParent.getOrDefault("", List.of()).stream()
+                .sorted(menuOrder)
+                .map(menu -> navigationItem(menu, childrenByParent, activeRoot, activeMenu))
+                .toList();
+        List<COAdminNavigationItemDto> lnbItems = activeRoot == null
+                ? List.of()
+                : childrenByParent.getOrDefault(activeRoot.menuCode(), List.of()).stream()
+                        .map(menu -> navigationItem(menu, childrenByParent, activeRoot, activeMenu))
+                        .toList();
+
+        return new COAdminNavigationResponseDto(
+                gnbItems,
+                activeRoot == null ? null : navigationItem(activeRoot, childrenByParent, activeRoot, activeMenu),
+                lnbItems
+        );
     }
 
     /**
@@ -250,6 +285,118 @@ public class COAdminMenuService {
         for (COAdminMenuResponseDto child : childrenByParent.getOrDefault(menu.menuCode(), List.of())) {
             appendTreeItem(tree, child, childrenByParent, seqByCode, selectedSeq);
         }
+    }
+
+    private COAdminMenuResponseDto activeMenu(List<COAdminMenuResponseDto> menus, String requestUri) {
+        String currentUri = firstText(requestUri, "");
+        return menus.stream()
+                .filter(menu -> bestMatchLength(menu, currentUri) > 0)
+                .max(Comparator
+                        .comparingInt((COAdminMenuResponseDto menu) -> bestMatchLength(menu, currentUri))
+                        .thenComparing(menu -> menu.depthNo() == null ? 0 : menu.depthNo()))
+                .orElse(null);
+    }
+
+    private COAdminMenuResponseDto activeRoot(COAdminMenuResponseDto activeMenu, List<COAdminMenuResponseDto> menus) {
+        if (activeMenu == null) {
+            return null;
+        }
+        COAdminMenuResponseDto current = activeMenu;
+        while (current.parentMenuCode() != null && !current.parentMenuCode().isBlank()) {
+            String parentCode = current.parentMenuCode();
+            COAdminMenuResponseDto parent = menus.stream()
+                    .filter(menu -> parentCode.equals(menu.menuCode()))
+                    .findFirst()
+                    .orElse(null);
+            if (parent == null) {
+                break;
+            }
+            current = parent;
+        }
+        return current;
+    }
+
+    private COAdminNavigationItemDto navigationItem(
+            COAdminMenuResponseDto menu,
+            Map<String, List<COAdminMenuResponseDto>> childrenByParent,
+            COAdminMenuResponseDto activeRoot,
+            COAdminMenuResponseDto activeMenu
+    ) {
+        List<COAdminNavigationItemDto> children = childrenByParent.getOrDefault(menu.menuCode(), List.of()).stream()
+                .map(child -> navigationItem(child, childrenByParent, activeRoot, activeMenu))
+                .toList();
+        boolean active = (activeRoot != null && activeRoot.menuCode().equals(menu.menuCode()))
+                || (activeMenu != null && activeMenu.menuCode().equals(menu.menuCode()));
+        return new COAdminNavigationItemDto(
+                menu.menuCode(),
+                menu.parentMenuCode(),
+                menu.depthNo(),
+                menu.menuName(),
+                navigationHref(menu.menuUrl()),
+                active,
+                children
+        );
+    }
+
+    private int bestMatchLength(COAdminMenuResponseDto menu, String requestUri) {
+        List<String> candidates = new ArrayList<>();
+        candidates.add(menu.menuUrl());
+        candidates.addAll(matchUrls(menu.matchUrlsJson()));
+        return candidates.stream()
+                .map(this::normalizePath)
+                .filter(path -> !path.isBlank())
+                .filter(path -> pathMatches(path, requestUri))
+                .mapToInt(String::length)
+                .max()
+                .orElse(0);
+    }
+
+    private boolean pathMatches(String path, String requestUri) {
+        String currentUri = normalizePath(requestUri);
+        if (path.isBlank() || currentUri.isBlank()) {
+            return false;
+        }
+        return currentUri.equals(path)
+                || currentUri.startsWith(path + "/")
+                || currentUri.startsWith(path + "?");
+    }
+
+    private List<String> matchUrls(String matchUrlsJson) {
+        if (matchUrlsJson == null || matchUrlsJson.isBlank()) {
+            return List.of();
+        }
+        try {
+            return objectMapper.readValue(matchUrlsJson, new TypeReference<List<String>>() {
+            });
+        } catch (JsonProcessingException e) {
+            return List.of();
+        }
+    }
+
+    private String navigationHref(String menuUrl) {
+        String normalized = normalizePath(menuUrl);
+        if (normalized.equals("/admin")) {
+            return "/admin/home.do";
+        }
+        if (normalized.startsWith("/admin/") && !normalized.endsWith(".do")) {
+            return normalized + "/list.do";
+        }
+        return normalized.isBlank() ? "#" : normalized;
+    }
+
+    private String normalizePath(String path) {
+        if (path == null || path.isBlank()) {
+            return "";
+        }
+        String normalized = path.trim();
+        int queryIndex = normalized.indexOf('?');
+        if (queryIndex >= 0) {
+            normalized = normalized.substring(0, queryIndex);
+        }
+        while (normalized.length() > 1 && normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        return normalized;
     }
 
     private COAdminMenuResponseDto withMatchUrlsText(COAdminMenuResponseDto menu) {

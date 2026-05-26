@@ -12,10 +12,17 @@
     <a class="brand" th:href="@{/admin/home.do}">Reven Admin</a>
     <button class="nav-toggle" type="button" data-nav-toggle aria-controls="globalNavigation" aria-expanded="false">메뉴</button>
     <div class="gnb-links" id="globalNavigation">
-        <a th:classappend="${active == 'home'} ? 'is-active'" th:href="@{/admin/home.do}">관리자 홈</a>
-        <a th:classappend="${active == 'management'} ? 'is-active'" th:href="@{/admin/management/list.do}">관리자 관리</a>
-        <a th:classappend="${active == 'news'} ? 'is-active'" th:href="@{/admin/news/list.do}">뉴스</a>
-        <a th:classappend="${active == 'survey'} ? 'is-active'" th:href="@{/admin/surveys/list.do}">설문 운영</a>
+        <div th:each="item : ${adminNavigation?.gnbItems()}"
+             class="admin-gnb-menu"
+             th:classappend="${item.active()} ? ' is-active'">
+            <a th:href="@{${item.href()}}" th:text="${item.menuName()}">관리자 메뉴</a>
+            <div class="admin-gnb-dropdown" th:if="${!#lists.isEmpty(item.children())}">
+                <a th:each="child : ${item.children()}"
+                   th:classappend="${child.active()} ? ' is-active'"
+                   th:href="@{${child.href()}}"
+                   th:text="${child.menuName()}">하위 메뉴</a>
+            </div>
+        </div>
     </div>
     <div class="gnb-utils">
         <a th:href="@{/surveys/list.do}">사용자 화면</a>
@@ -45,10 +52,12 @@
     </div>
 </nav>
 
-<aside class="admin-lnb" th:fragment="lnb(active)">
-    <div class="lnb-group">설문 운영</div>
-    <a th:classappend="${active == 'surveys'} ? 'is-active'" th:href="@{/admin/surveys/list.do}">설문 관리</a>
-    <a th:classappend="${active == 'submissions'} ? 'is-active'" th:href="@{/admin/survey-submissions/list.do}">설문 이력 관리</a>
+<aside class="admin-lnb" th:fragment="lnb(active)" th:if="${adminNavigation?.activeRoot() != null}">
+    <div class="lnb-group" th:text="${adminNavigation.activeRoot().menuName()}">설문 운영</div>
+    <a th:each="item : ${adminNavigation.lnbItems()}"
+       th:classappend="${item.active()} ? 'is-active'"
+       th:href="@{${item.href()}}"
+       th:text="${item.menuName()}">설문 관리</a>
 </aside>
 
 <div class="page-breadcrumb" th:fragment="breadcrumb(depth1, depth2, depth3)">
