@@ -1,17 +1,17 @@
 <!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('AI 뉴스')}"></head>
+<head th:replace="~{fragments/layout :: head('AI News')}"></head>
 <body>
-<!-- screen: AI 뉴스 / purpose: 게시 상태 AI 뉴스를 아코디언 목록으로 조회하는 화면 / created: 2026-05-26 -->
-<header th:replace="~{fragments/layout :: publicGnb('news')}"></header>
+<!-- screen: AI News / purpose: 게시 상태 AI News를 아코디언 목록으로 조회하는 화면 / created: 2026-05-26 -->
+<header th:replace="~{fragments/layout :: publicGnb('board')}"></header>
 <main class="public-content">
-    <section class="page-head"><h1>AI 뉴스</h1><p>게시된 AI 뉴스를 확인합니다.</p></section>
+    <section class="page-head"><h1>AI News</h1><p>게시된 AI News를 확인합니다.</p></section>
 
-    <form class="search-panel public-news-search" method="get" th:action="@{/news/ai/list.do}">
+    <form class="search-panel public-news-search" method="get" th:action="@{/board/ai-news/list.do}">
         <label class="search-label" for="keyword">검색어</label>
         <input class="form-control" id="keyword" name="keyword" th:value="${keyword}" placeholder="제목 또는 내용">
         <button class="btn btn-register btn-sm" type="submit">검색</button>
-        <a class="btn btn-neutral btn-sm" th:href="@{/news/ai/list.do}">초기화</a>
+        <a class="btn btn-neutral btn-sm" th:href="@{/board/ai-news/list.do}">초기화</a>
     </form>
 
     <section class="content-panel no-pad">
@@ -24,7 +24,7 @@
                 </summary>
                 <div class="accordion-body">
                     <p th:text="${news.content}">뉴스 본문</p>
-                    <a class="btn btn-register btn-sm" th:href="@{/news/ai/detail.do(newsSeq=${news.newsSeq})}">상세보기</a>
+                    <a class="btn btn-register btn-sm" th:href="@{/board/ai-news/detail.do(newsSeq=${news.newsSeq})}">상세보기</a>
                 </div>
             </details>
             <p class="empty" th:if="${#lists.isEmpty(newsList)}">현재 등록된 내용이 없습니다.</p>

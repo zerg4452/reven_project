@@ -224,7 +224,11 @@ a:hover {
     display: block;
 }
 
-.admin-gnb-dropdown a {
+.admin-gnb-dropdown-item {
+    display: block;
+}
+
+.admin-gnb-dropdown-item > a {
     display: block;
     padding: 11px 14px;
     border-top: 1px solid #d8eaf8;
@@ -234,15 +238,31 @@ a:hover {
     text-decoration: none;
 }
 
-.admin-gnb-dropdown a:first-child {
+.admin-gnb-dropdown-item:first-child > a {
     border-top: 0;
 }
 
-.admin-gnb-dropdown a.is-active,
-.admin-gnb-dropdown a:hover {
+.admin-gnb-dropdown-item > a.is-active,
+.admin-gnb-dropdown-item > a:hover {
     background: #ffffff;
     color: #0b5ba8;
     text-decoration: none;
+}
+
+.admin-gnb-dropdown-item.has-children > a::after {
+    float: right;
+    color: #7a97b8;
+    font-size: 10px;
+    content: "▶";
+}
+
+.admin-gnb-dropdown-nested {
+    position: static;
+    display: block;
+    margin-left: 10px;
+    border-top: 0;
+    border-left: 1px solid #d8eaf8;
+    box-shadow: none;
 }
 
 .gnb-menu {
@@ -811,6 +831,178 @@ a:hover {
     font-weight: 800;
 }
 
+.board-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.board-hub-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 24px;
+    border: 1px solid #c4d6e6;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+    color: var(--color-text);
+    text-decoration: none;
+    box-shadow: var(--shadow-soft);
+}
+
+.board-hub-card strong {
+    font-size: 20px;
+}
+
+.board-hub-card span {
+    color: var(--color-muted);
+    line-height: 1.5;
+}
+
+.photo-file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.photo-files-panel .photo-file-grid {
+    grid-template-columns: 1fr;
+}
+
+.photo-file-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+    border: 1px solid #d7e1ea;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.photo-files-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.photo-file-scroll {
+    max-height: 72vh;
+    overflow: auto;
+    padding-right: 4px;
+}
+
+.photo-file-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 440px;
+    padding: 12px;
+    border: 1px solid #e2e9ef;
+    border-radius: 4px;
+    background: #f8fbfe;
+    overflow: hidden;
+}
+
+.photo-preview-trigger {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-in;
+}
+
+.photo-preview-trigger img {
+    display: block;
+}
+
+.photo-file-preview img,
+.photo-file-preview video {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 68vh;
+    object-fit: contain;
+    background: #f8fbfe;
+}
+
+.photo-file-card > strong {
+    font-size: 16px;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.photo-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.photo-modal.is-open {
+    display: flex;
+}
+
+.photo-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(12, 18, 28, 0.78);
+}
+
+.photo-modal-dialog {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: min(96vw, 1600px);
+    max-height: 92vh;
+}
+
+.photo-modal-image {
+    display: block;
+    max-width: 96vw;
+    max-height: 92vh;
+    width: auto;
+    height: auto;
+    border-radius: 6px;
+    background: #0f1720;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+}
+
+.photo-modal-close {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    z-index: 2;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #1c2430;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
+body.has-photo-modal {
+    overflow: hidden;
+}
+
+.form-hint {
+    margin: 8px 0 0;
+    color: var(--color-muted);
+    font-size: 13px;
+}
+
 @keyframes publicMenuDrop {
     from {
         opacity: 0;
@@ -1251,6 +1443,11 @@ textarea.form-control {
     gap: 8px;
 }
 
+.inline-form {
+    display: inline-flex;
+    margin: 0;
+}
+
 .required {
     color: var(--color-delete);
     display: inline-block;
@@ -1386,6 +1583,10 @@ textarea.form-control {
         display: block;
         width: 100%;
         box-shadow: none;
+    }
+
+    .admin-gnb-dropdown-nested {
+        margin-left: 8px;
     }
 
     .gnb-menu > a {

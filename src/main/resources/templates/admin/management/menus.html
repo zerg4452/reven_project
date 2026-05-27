@@ -49,7 +49,7 @@
                             <input class="form-control" type="number" name="sortOrder" th:value="${menu?.sortOrder}">
                         </label>
                         <label>메뉴 코드 <span class="required">*</span>
-                            <input class="form-control" name="menuCode" th:value="${menu?.menuCode}" required>
+                            <input class="form-control" name="menuCode" th:value="${menu?.menuCode}" th:readonly="${menu?.adminMenuSeq != null}" required>
                         </label>
                         <label>메뉴명 <span class="required">*</span>
                             <input class="form-control" name="menuName" th:value="${menu?.menuName}" required>

@@ -2,6 +2,7 @@ package com.reven.project.service.co;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.reven.project.service.co.dto.COAdminMenuResponseDto;
+import com.reven.project.service.co.dto.COAdminMenuSaveRequestDto;
 import com.reven.project.service.co.mapper.COAdminMenuMapper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -9,7 +10,10 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class COAdminMenuServiceTest {
@@ -46,6 +50,65 @@ class COAdminMenuServiceTest {
                 .extracting("menuCode")
                 .containsExactly("news_ai_news");
         assertThat(newsNavigation.gnbItems().get(2).children().get(0).active()).isTrue();
+    }
+
+    @Test
+    void adminNavigationKeepsNestedTreeNodesInTheReturnedStructure() {
+        COAdminMenuMapper mapper = mock(COAdminMenuMapper.class);
+        when(mapper.selectAdminMenus()).thenReturn(List.of(
+                menu("survey_operation", "", 1, "설문 운영", "/admin/surveys/list.do", "[\"/admin/surveys\"]", "group", "Y", 30),
+                menu("survey_manage", "survey_operation", 2, "설문 관리", "/admin/surveys/list.do", "[\"/admin/surveys\"]", "page", "Y", 10),
+                menu("survey_manage_detail", "survey_manage", 3, "설문 상세", "/admin/surveys/detail.do", "[\"/admin/surveys/detail.do\"]", "page", "Y", 10)
+        ));
+        COAdminMenuService service = new COAdminMenuService(mapper, new ObjectMapper());
+
+        var navigation = service.adminNavigation("/admin/surveys/detail.do");
+
+        assertThat(navigation.gnbItems())
+                .extracting("menuCode")
+                .containsExactly("survey_operation");
+        assertThat(navigation.gnbItems().get(0).children())
+                .extracting("menuCode")
+                .containsExactly("survey_manage");
+        assertThat(navigation.gnbItems().get(0).children().get(0).children())
+                .extracting("menuCode")
+                .containsExactly("survey_manage_detail");
+    }
+
+    @Test
+    void saveMenuRejectsMenuCodeChangesForExistingMenus() {
+        COAdminMenuMapper mapper = mock(COAdminMenuMapper.class);
+        when(mapper.selectAdminMenuBySeq(10L)).thenReturn(menu(
+                "survey_manage",
+                "survey_operation",
+                2,
+                "설문 관리",
+                "/admin/surveys/list.do",
+                "[\"/admin/surveys\"]",
+                "page",
+                "Y",
+                10
+        ));
+        COAdminMenuService service = new COAdminMenuService(mapper, new ObjectMapper());
+
+        COAdminMenuSaveRequestDto request = new COAdminMenuSaveRequestDto(
+                10L,
+                "survey_manage_v2",
+                "survey_operation",
+                "설문 관리",
+                "/admin/surveys/list.do",
+                "[\"/admin/surveys\"]",
+                "page",
+                "",
+                "Y",
+                10,
+                "system"
+        );
+
+        assertThatThrownBy(() -> service.saveMenu(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("메뉴 코드는 수정할 수 없습니다.");
+        verify(mapper, never()).updateAdminMenu(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyInt(), org.mockito.ArgumentMatchers.anyString());
     }
 
     private COAdminMenuResponseDto menu(

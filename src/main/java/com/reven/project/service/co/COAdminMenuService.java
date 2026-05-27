@@ -49,11 +49,10 @@ public class COAdminMenuService {
         Comparator<COAdminMenuResponseDto> menuOrder = Comparator
                 .comparing((COAdminMenuResponseDto menu) -> menu.sortOrder() == null ? 0 : menu.sortOrder())
                 .thenComparing(menu -> menu.adminMenuSeq() == null ? 0L : menu.adminMenuSeq());
-        childrenByParent.values().forEach(children -> children.sort(menuOrder));
+        childrenByParent.replaceAll((parentCode, children) -> dedupeMenus(children, menuOrder));
 
         List<COAdminMenuTreeItemDto> tree = new ArrayList<>();
-        List<COAdminMenuResponseDto> roots = new ArrayList<>(childrenByParent.getOrDefault("", List.of()));
-        roots.sort(menuOrder);
+        List<COAdminMenuResponseDto> roots = dedupeMenus(childrenByParent.getOrDefault("", List.of()), menuOrder);
         for (COAdminMenuResponseDto root : roots) {
             appendTreeItem(tree, root, childrenByParent, seqByCode, selectedSeq);
         }
@@ -98,17 +97,16 @@ public class COAdminMenuService {
         Comparator<COAdminMenuResponseDto> menuOrder = Comparator
                 .comparing((COAdminMenuResponseDto menu) -> menu.sortOrder() == null ? 0 : menu.sortOrder())
                 .thenComparing(menu -> menu.adminMenuSeq() == null ? 0L : menu.adminMenuSeq());
-        childrenByParent.values().forEach(children -> children.sort(menuOrder));
+        childrenByParent.replaceAll((parentCode, children) -> dedupeMenus(children, menuOrder));
 
         COAdminMenuResponseDto activeMenu = activeMenu(menus, requestUri);
         COAdminMenuResponseDto activeRoot = activeRoot(activeMenu, menus);
-        List<COAdminNavigationItemDto> gnbItems = childrenByParent.getOrDefault("", List.of()).stream()
-                .sorted(menuOrder)
+        List<COAdminNavigationItemDto> gnbItems = dedupeMenus(childrenByParent.getOrDefault("", List.of()), menuOrder).stream()
                 .map(menu -> navigationItem(menu, childrenByParent, activeRoot, activeMenu))
                 .toList();
         List<COAdminNavigationItemDto> lnbItems = activeRoot == null
                 ? List.of()
-                : childrenByParent.getOrDefault(activeRoot.menuCode(), List.of()).stream()
+                : dedupeMenus(childrenByParent.getOrDefault(activeRoot.menuCode(), List.of()), menuOrder).stream()
                         .map(menu -> navigationItem(menu, childrenByParent, activeRoot, activeMenu))
                         .toList();
 
@@ -152,6 +150,12 @@ public class COAdminMenuService {
     @Transactional
     public Long saveMenu(COAdminMenuSaveRequestDto requestDto) {
         COAdminMenuSaveRequestDto normalized = normalize(requestDto);
+        COAdminMenuResponseDto existingBySeq = normalized.adminMenuSeq() == null
+                ? null
+                : adminMenuMapper.selectAdminMenuBySeq(normalized.adminMenuSeq());
+        if (existingBySeq != null && !existingBySeq.menuCode().equals(normalized.menuCode())) {
+            throw new IllegalArgumentException("메뉴 코드는 수정할 수 없습니다.");
+        }
         COAdminMenuResponseDto existingByCode = adminMenuMapper.selectAdminMenuByCode(normalized.menuCode());
         if (existingByCode != null && !existingByCode.adminMenuSeq().equals(normalized.adminMenuSeq())) {
             throw new IllegalArgumentException("이미 사용 중인 메뉴 코드입니다.");
@@ -464,5 +468,24 @@ public class COAdminMenuService {
             }
         }
         return "";
+    }
+
+    private List<COAdminMenuResponseDto> dedupeMenus(List<COAdminMenuResponseDto> menus, Comparator<COAdminMenuResponseDto> menuOrder) {
+        return menus.stream()
+                .sorted(menuOrder)
+                .collect(Collectors.toMap(
+                        this::menuIdentityKey,
+                        menu -> menu,
+                        (left, right) -> left,
+                        LinkedHashMap::new
+                ))
+                .values()
+                .stream()
+                .toList();
+    }
+
+    private String menuIdentityKey(COAdminMenuResponseDto menu) {
+        String normalizedUrl = normalizePath(menu.menuUrl());
+        return normalizedUrl.isBlank() ? firstText(menu.menuCode()) : normalizedUrl;
     }
 }

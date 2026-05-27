@@ -37,5 +37,47 @@
                 }
             });
         });
+
+        const modal = document.querySelector('[data-photo-modal]');
+        const modalImage = modal ? modal.querySelector('[data-photo-modal-image]') : null;
+        const closeSelectors = modal ? modal.querySelectorAll('[data-photo-modal-close]') : [];
+
+        function closePhotoModal() {
+            if (!modal || !modalImage) {
+                return;
+            }
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+            modalImage.removeAttribute('src');
+            modalImage.setAttribute('alt', '');
+            document.body.classList.remove('has-photo-modal');
+        }
+
+        function openPhotoModal(src, alt) {
+            if (!modal || !modalImage) {
+                return;
+            }
+            modalImage.src = src;
+            modalImage.alt = alt || '';
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('has-photo-modal');
+        }
+
+        document.querySelectorAll('[data-photo-preview]').forEach(function (trigger) {
+            trigger.addEventListener('click', function () {
+                openPhotoModal(trigger.getAttribute('data-photo-src'), trigger.getAttribute('data-photo-alt'));
+            });
+        });
+
+        closeSelectors.forEach(function (control) {
+            control.addEventListener('click', closePhotoModal);
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closePhotoModal();
+            }
+        });
     });
 })();

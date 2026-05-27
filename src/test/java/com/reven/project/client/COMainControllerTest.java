@@ -50,7 +50,7 @@ class COMainControllerTest {
 
         MockMvc mvc = MockMvcBuilders.standaloneSetup(new BDAiNewsPublicController(newsService)).build();
 
-        mvc.perform(get("/news/ai/list.do").param("keyword", "AI"))
+        mvc.perform(get("/board/ai-news/list.do").param("keyword", "AI"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("client/news/ai-list"))
                 .andExpect(model().attributeExists("newsList", "keyword"));
@@ -68,7 +68,7 @@ class COMainControllerTest {
 
         MockMvc mvc = MockMvcBuilders.standaloneSetup(new BDAiNewsPublicController(newsService)).build();
 
-        mvc.perform(get("/news/ai/detail.do").param("newsSeq", "7"))
+        mvc.perform(get("/board/ai-news/detail.do").param("newsSeq", "7"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("client/news/ai-detail"))
                 .andExpect(model().attributeExists("news"));

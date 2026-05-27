@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${photo?.title} ?: '포토게시판 상세')}"></head>
+<body>
+<!-- screen: 포토게시판 상세 / purpose: 사진 게시글과 첨부 파일을 읽기 전용으로 확인하는 화면 / created: 2026-05-27 -->
+<header th:replace="~{fragments/layout :: gnb('board')}"></header>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: lnb('board')}"></aside>
+    <main class="admin-content">
+        <div th:replace="~{fragments/layout :: breadcrumb('관리자', '게시판', '포토게시판 상세')}"></div>
+        <section class="page-head">
+            <h1 th:text="${photo?.title} ?: '포토게시판 상세'">포토게시판 상세</h1>
+            <p th:text="${photo?.registeredAt != null ? #temporals.format(photo.registeredAt, 'yyyy-MM-dd') : '2026-05-27'}">2026-05-27</p>
+        </section>
+        <section class="content-panel">
+            <dl class="detail-list">
+                <dt>제목</dt><dd th:text="${photo?.title}">제목</dd>
+                <dt>게시여부</dt><dd th:text="${photo?.publishText()}">게시</dd>
+                <dt>첨부수</dt><dd th:text="${#lists.size(photoFiles)}">0</dd>
+                <dt>등록일</dt><dd th:text="${photo?.registeredAt != null ? #temporals.format(photo.registeredAt, 'yyyy-MM-dd') : '2026-05-27'}">2026-05-27</dd>
+                <dt>수정일</dt><dd th:text="${photo?.modifiedAt != null ? #temporals.format(photo.modifiedAt, 'yyyy-MM-dd') : '2026-05-27'}">2026-05-27</dd>
+            </dl>
+        </section>
+        <section class="content-panel photo-files-panel">
+            <div class="panel-head"><h2>첨부 파일</h2><span th:text="|${#lists.size(photoFiles)}개|">0개</span></div>
+            <div class="photo-file-scroll">
+                <div class="photo-file-grid">
+                    <article class="photo-file-card" th:each="file : ${photoFiles}">
+                        <div class="photo-file-preview">
+                            <button th:if="${file.contentType != null and file.contentType.startsWith('image/')}"
+                                    type="button"
+                                    class="photo-preview-trigger"
+                                    th:attr="data-photo-preview='true',data-photo-src=${file.fileUrl},data-photo-alt=${file.originalFileName}">
+                                <img th:src="${file.fileUrl}" th:alt="${file.originalFileName}">
+                            </button>
+                            <video th:if="${file.contentType == 'video/mp4'}" th:src="${file.fileUrl}" controls></video>
+                            <a th:if="${file.contentType == null or (!file.contentType.startsWith('image/') and file.contentType != 'video/mp4')}"
+                               class="btn btn-neutral btn-sm"
+                               th:href="@{/admin/board/photo/download.do(photoFileSeq=${file.photoFileSeq})}">다운로드</a>
+                        </div>
+                        <strong th:text="${file.originalFileName}">파일명</strong>
+                        <span th:text="${file.displayFileSizeKb()}">1 KB</span>
+                        <a class="btn btn-neutral btn-sm"
+                           th:href="@{/admin/board/photo/download.do(photoFileSeq=${file.photoFileSeq})}">원본 다운로드</a>
+                    </article>
+                </div>
+            </div>
+            <p class="empty" th:if="${#lists.isEmpty(photoFiles)}">등록된 첨부 파일이 없습니다.</p>
+        </section>
+        <div class="detail-action-bar">
+            <a class="btn btn-neutral" th:href="@{/admin/board/photo/list.do}">목록</a>
+            <div>
+                <form class="inline-form" method="post" th:action="@{/admin/board/photo/delete.do(photoSeq=${photo?.photoSeq})}">
+                    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button class="btn btn-delete" type="submit" onclick="return confirm('이 사진 게시글을 삭제하시겠습니까?');">삭제</button>
+                </form>
+                <a class="btn btn-edit" th:href="@{/admin/board/photo/write.do(photoSeq=${photo?.photoSeq})}">수정</a>
+            </div>
+        </div>
+    </main>
+</div>
+<div class="photo-modal" data-photo-modal aria-hidden="true">
+    <div class="photo-modal-backdrop" data-photo-modal-close></div>
+    <div class="photo-modal-dialog" role="dialog" aria-modal="true" aria-label="이미지 확대 보기">
+        <button type="button" class="photo-modal-close" data-photo-modal-close aria-label="닫기">×</button>
+        <img class="photo-modal-image" data-photo-modal-image alt="">
+    </div>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

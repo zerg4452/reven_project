@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/admin/news")
+@RequestMapping("/admin/board/ai-news")
 public class BDAiNewsAdminController {
 
     private final BDAiNewsService aiNewsService;
@@ -63,7 +63,7 @@ public class BDAiNewsAdminController {
     /**
      * AI News 신규 등록 또는 수정 화면을 표시한다.
      */
-    @GetMapping({"/write.do", "/detail.do"})
+    @GetMapping("/write.do")
     public String writeForm(@RequestParam(required = false) Long newsSeq, Model model) {
         model.addAttribute("news", newsSeq == null ? null : aiNewsService.findAiNews(newsSeq));
         return "admin/news/edit";
@@ -90,7 +90,7 @@ public class BDAiNewsAdminController {
                 requestDto.status(),
                 requestDto.actorId()
         ), principal));
-        return "redirect:/admin/news/write.do?newsSeq=" + savedSeq;
+        return "redirect:/admin/board/ai-news/write.do?newsSeq=" + savedSeq;
     }
 
     /**
@@ -115,7 +115,7 @@ public class BDAiNewsAdminController {
                 requestDto.status(),
                 requestDto.actorId()
         ), principal));
-        return "redirect:/admin/news/write.do?newsSeq=" + savedSeq;
+        return "redirect:/admin/board/ai-news/write.do?newsSeq=" + savedSeq;
     }
 
     /**
@@ -133,7 +133,7 @@ public class BDAiNewsAdminController {
     @PostMapping("/delete.do")
     public String delete(@RequestParam Long newsSeq) {
         aiNewsService.deleteAiNews(newsSeq);
-        return "redirect:/admin/news/list.do";
+        return "redirect:/admin/board/ai-news/list.do";
     }
 
     /**
@@ -144,7 +144,7 @@ public class BDAiNewsAdminController {
         String actorId = principal == null ? "system" : principal.getName();
         BDAiNewsCrawlResultDto result = aiNewsService.crawlLegacyJsonFiles(actorId);
         redirectAttributes.addFlashAttribute("message", result.message());
-        return "redirect:/admin/news/list.do";
+        return "redirect:/admin/board/ai-news/list.do";
     }
 
     /**

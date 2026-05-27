@@ -81,8 +81,8 @@ INSERT INTO co_adm_menu_mst (
     menu_cd, parent_menu_cd, depth_no, menu_nm, menu_url, match_urls_json,
     menu_type, board_key, use_yn, delete_flg, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id
 )
-SELECT 'news', '', 1, '뉴스', '/admin/news/ai-news',
-       '["/admin/news","/admin/news/ai-news"]',
+SELECT 'news', '', 1, '게시판', '/admin/board',
+       '["/admin/board"]',
        'group', '', 'Y', 'N', 30, NOW(), 'system', NOW(), 'system'
 WHERE NOT EXISTS (SELECT 1 FROM co_adm_menu_mst WHERE menu_cd = 'news');
 
@@ -90,10 +90,19 @@ INSERT INTO co_adm_menu_mst (
     menu_cd, parent_menu_cd, depth_no, menu_nm, menu_url, match_urls_json,
     menu_type, board_key, use_yn, delete_flg, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id
 )
-SELECT 'news_ai_news', 'news', 2, 'AI News', '/admin/news/ai-news',
-       '["/admin/news","/admin/news/ai-news"]',
+SELECT 'news_ai_news', 'news', 2, 'AI News', '/admin/board/ai-news',
+       '["/admin/board/ai-news"]',
        'board', 'ai_news', 'Y', 'N', 10, NOW(), 'system', NOW(), 'system'
 WHERE NOT EXISTS (SELECT 1 FROM co_adm_menu_mst WHERE menu_cd = 'news_ai_news');
+
+INSERT INTO co_adm_menu_mst (
+    menu_cd, parent_menu_cd, depth_no, menu_nm, menu_url, match_urls_json,
+    menu_type, board_key, use_yn, delete_flg, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id
+)
+SELECT 'news_photo_board', 'news', 2, '포토게시판', '/admin/board/photo',
+       '["/admin/board/photo"]',
+       'board', 'photo_board', 'Y', 'N', 20, NOW(), 'system', NOW(), 'system'
+WHERE NOT EXISTS (SELECT 1 FROM co_adm_menu_mst WHERE menu_cd = 'news_photo_board');
 
 INSERT INTO co_dashboard_panel_mst (
     board_key, panel_title, use_yn, item_limit, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id
@@ -142,12 +151,26 @@ WHERE menu_cd = 'management_access_logs'
   AND menu_url = '/admin/management/access-logs';
 
 UPDATE co_adm_menu_mst
-SET menu_url = '/admin/news/list.do',
-    match_urls_json = '["/admin/news"]',
+SET menu_nm = '게시판',
+    menu_url = '/admin/board',
+    match_urls_json = '["/admin/board"]',
     mod_dtm = NOW(),
     mod_id = 'system'
-WHERE menu_cd in ('news', 'news_ai_news')
-  AND menu_url = '/admin/news/ai-news';
+WHERE menu_cd = 'news';
+
+UPDATE co_adm_menu_mst
+SET menu_url = '/admin/board/ai-news',
+    match_urls_json = '["/admin/board/ai-news"]',
+    mod_dtm = NOW(),
+    mod_id = 'system'
+WHERE menu_cd = 'news_ai_news';
+
+UPDATE co_adm_menu_mst
+SET menu_url = '/admin/board/photo',
+    match_urls_json = '["/admin/board/photo"]',
+    mod_dtm = NOW(),
+    mod_id = 'system'
+WHERE menu_cd = 'news_photo_board';
 
 UPDATE co_adm_menu_mst
 SET menu_url = '/admin/surveys/list.do',

@@ -17,10 +17,19 @@
              th:classappend="${item.active()} ? ' is-active'">
             <a th:href="@{${item.href()}}" th:text="${item.menuName()}">관리자 메뉴</a>
             <div class="admin-gnb-dropdown" th:if="${!#lists.isEmpty(item.children())}">
-                <a th:each="child : ${item.children()}"
-                   th:classappend="${child.active()} ? ' is-active'"
-                   th:href="@{${child.href()}}"
-                   th:text="${child.menuName()}">하위 메뉴</a>
+                <div th:each="child : ${item.children()}" class="admin-gnb-dropdown-item"
+                     th:classappend="${!#lists.isEmpty(child.children())} ? ' has-children'">
+                    <a th:href="@{${child.href()}}"
+                       th:classappend="${child.active()} ? ' is-active'"
+                       th:text="${child.menuName()}">하위 메뉴</a>
+                    <div class="admin-gnb-dropdown admin-gnb-dropdown-nested" th:if="${!#lists.isEmpty(child.children())}">
+                        <div th:each="grandChild : ${child.children()}" class="admin-gnb-dropdown-item">
+                            <a th:href="@{${grandChild.href()}}"
+                               th:classappend="${grandChild.active()} ? ' is-active'"
+                               th:text="${grandChild.menuName()}">하위 메뉴</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -37,10 +46,10 @@
     <a class="brand" th:href="@{/main.do}">Reven</a>
     <button class="nav-toggle" type="button" data-nav-toggle aria-controls="publicGlobalNavigation" aria-expanded="false">메뉴</button>
     <div class="gnb-links public-gnb-links" id="publicGlobalNavigation">
-        <div class="gnb-menu" th:classappend="${active == 'news'} ? ' is-active'">
-            <a th:href="@{/news/ai/list.do}">뉴스</a>
+        <div class="gnb-menu" th:classappend="${active == 'board'} ? ' is-active'">
+            <a th:href="@{/board/ai-news/list.do}">게시판</a>
             <div class="gnb-dropdown">
-                <a th:href="@{/news/ai/list.do}">AI</a>
+                <a th:href="@{/board/ai-news/list.do}">AI News</a>
             </div>
         </div>
         <div class="gnb-menu" th:classappend="${active == 'survey'} ? ' is-active'">

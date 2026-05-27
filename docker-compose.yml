@@ -13,6 +13,8 @@ services:
       DB_USER: survey_user
       DB_PASSWORD: survey_pass
       TZ: Asia/Seoul
+    volumes:
+      - ./storage:/app/storage
     depends_on:
       mariadb:
         condition: service_healthy
@@ -31,6 +33,7 @@ services:
       TZ: Asia/Seoul
     volumes:
       - reven_mariadb_data:/var/lib/mysql
+      - ./storage:/app/storage
     healthcheck:
       test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p$$MARIADB_ROOT_PASSWORD"]
       interval: 5s

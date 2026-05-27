@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reven.project.service.bd.mapper.BDPhotoBoardMapper">
+
+    <select id="selectPhotoBoardList" resultType="com.reven.project.service.bd.dto.BDPhotoBoardListItemResponseDto">
+        select
+            m.photo_seq as photoSeq,
+            m.title,
+            (
+                select count(*)
+                from bd_photo_board_file_dtl f
+                where f.photo_seq = m.photo_seq
+                  and f.delete_flg = 'N'
+            ) as fileCount,
+            m.publish_yn as publishYn,
+            date(m.reg_dtm) as registeredDate,
+            date(m.mod_dtm) as updatedDate
+        from bd_photo_board_mst m
+        where m.delete_flg = 'N'
+        order by m.photo_seq desc
+    </select>
+
+    <select id="selectPhotoBoardDetail" resultType="com.reven.project.service.bd.dto.BDPhotoBoardDetailResponseDto">
+        select
+            photo_seq as photoSeq,
+            title,
+            publish_yn as publishYn,
+            delete_flg as deleteFlg,
+            reg_dtm as registeredAt,
+            reg_id as registeredBy,
+            mod_dtm as modifiedAt,
+            mod_id as modifiedBy
+        from bd_photo_board_mst
+        where photo_seq = #{photoSeq}
+          and delete_flg = 'N'
+    </select>
+
+    <select id="selectPhotoBoardFiles" resultType="com.reven.project.service.bd.dto.BDPhotoBoardFileResponseDto">
+        select
+            photo_file_seq as photoFileSeq,
+            photo_seq as photoSeq,
+            original_file_name as originalFileName,
+            stored_file_name as storedFileName,
+            stored_path as storedPath,
+            content_type as contentType,
+            file_size as fileSize,
+            sort_ord as sortOrder,
+            delete_flg as deleteFlg,
+            reg_dtm as registeredAt,
+            reg_id as registeredBy,
+            mod_dtm as modifiedAt,
+            mod_id as modifiedBy,
+            null as fileUrl
+        from bd_photo_board_file_dtl
+        where photo_seq = #{photoSeq}
+          and delete_flg = 'N'
+        order by sort_ord asc, photo_file_seq asc
+    </select>
+
+    <select id="selectPhotoBoardFile" resultType="com.reven.project.service.bd.dto.BDPhotoBoardFileResponseDto">
+        select
+            photo_file_seq as photoFileSeq,
+            photo_seq as photoSeq,
+            original_file_name as originalFileName,
+            stored_file_name as storedFileName,
+            stored_path as storedPath,
+            content_type as contentType,
+            file_size as fileSize,
+            sort_ord as sortOrder,
+            delete_flg as deleteFlg,
+            reg_dtm as registeredAt,
+            reg_id as registeredBy,
+            mod_dtm as modifiedAt,
+            mod_id as modifiedBy,
+            null as fileUrl
+        from bd_photo_board_file_dtl
+        where photo_file_seq = #{photoFileSeq}
+          and delete_flg = 'N'
+    </select>
+
+    <insert id="insertPhotoBoard">
+        <selectKey keyProperty="photoSeq" resultType="long" order="AFTER">
+            select last_insert_id()
+        </selectKey>
+        insert into bd_photo_board_mst (
+            title,
+            publish_yn,
+            delete_flg,
+            reg_dtm,
+            reg_id,
+            mod_dtm,
+            mod_id
+        ) values (
+            #{title},
+            #{publishYn},
+            'N',
+            current_timestamp,
+            #{actorId},
+            current_timestamp,
+            #{actorId}
+        )
+    </insert>
+
+    <update id="updatePhotoBoard">
+        update bd_photo_board_mst
+        set title = #{title},
+            publish_yn = #{publishYn},
+            mod_dtm = current_timestamp,
+            mod_id = #{actorId}
+        where photo_seq = #{photoSeq}
+          and delete_flg = 'N'
+    </update>
+
+    <update id="deletePhotoBoard">
+        update bd_photo_board_mst
+        set delete_flg = 'Y',
+            mod_dtm = current_timestamp,
+            mod_id = #{actorId}
+        where photo_seq = #{photoSeq}
+          and delete_flg = 'N'
+    </update>
+
+    <insert id="insertPhotoBoardFile">
+        <selectKey keyProperty="photoFileSeq" resultType="long" order="AFTER">
+            select last_insert_id()
+        </selectKey>
+        insert into bd_photo_board_file_dtl (
+            photo_seq,
+            original_file_name,
+            stored_file_name,
+            stored_path,
+            content_type,
+            file_size,
+            sort_ord,
+            delete_flg,
+            reg_dtm,
+            reg_id,
+            mod_dtm,
+            mod_id
+        ) values (
+            #{photoSeq},
+            #{originalFileName},
+            #{storedFileName},
+            #{storedPath},
+            #{contentType},
+            #{fileSize},
+            #{sortOrder},
+            'N',
+            current_timestamp,
+            #{actorId},
+            current_timestamp,
+            #{actorId}
+        )
+    </insert>
+
+    <update id="deletePhotoBoardFiles">
+        update bd_photo_board_file_dtl
+        set delete_flg = 'Y',
+            mod_dtm = current_timestamp,
+            mod_id = #{actorId}
+        where photo_seq = #{photoSeq}
+          and delete_flg = 'N'
+    </update>
+
+    <update id="deletePhotoBoardFile">
+        update bd_photo_board_file_dtl
+        set delete_flg = 'Y',
+            mod_dtm = current_timestamp,
+            mod_id = #{actorId}
+        where photo_file_seq = #{photoFileSeq}
+          and delete_flg = 'N'
+    </update>
+</mapper>

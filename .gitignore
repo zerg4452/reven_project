@@ -39,3 +39,4 @@ target/
 
 legacy-php-source/data/*.json
 !legacy-php-source/data/.gitkeep
+storage/

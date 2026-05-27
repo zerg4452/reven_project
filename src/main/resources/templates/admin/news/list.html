@@ -1,16 +1,16 @@
 <!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('뉴스 관리')}"></head>
+<head th:replace="~{fragments/layout :: head('AI News 관리')}"></head>
 <body>
-<!-- screen: 뉴스 관리 / purpose: 뉴스 원고를 검색하고 목록으로 관리하는 화면 / created: 2026-05-23 -->
-<header th:replace="~{fragments/layout :: gnb('news')}"></header>
+<!-- screen: AI News 관리 / purpose: AI News 원고를 검색하고 목록으로 관리하는 화면 / created: 2026-05-23 -->
+<header th:replace="~{fragments/layout :: gnb('board')}"></header>
 <div class="admin-shell">
-    <aside th:replace="~{fragments/layout :: lnb('news')}"></aside>
+    <aside th:replace="~{fragments/layout :: lnb('board')}"></aside>
     <main class="admin-content">
-        <div th:replace="~{fragments/layout :: breadcrumb('관리자', '뉴스', '뉴스 관리')}"></div>
-        <section class="page-head"><h1>뉴스 관리</h1><p>뉴스 원고와 게시 상태를 관리합니다.</p></section>
+        <div th:replace="~{fragments/layout :: breadcrumb('관리자', '게시판', 'AI News 관리')}"></div>
+        <section class="page-head"><h1>AI News 관리</h1><p>AI News 원고와 게시 상태를 관리합니다.</p></section>
         <div class="alert alert-success" th:if="${message}" th:text="${message}">크롤링 완료 메시지</div>
-        <form class="search-panel news-search-panel" method="get" th:action="@{/admin/news/list.do}">
+        <form class="search-panel news-search-panel" method="get" th:action="@{/admin/board/ai-news/list.do}">
             <div class="news-search-row">
                 <span class="search-label">게시일자</span>
                 <div class="news-search-range">
@@ -40,26 +40,26 @@
                 <input class="form-control news-search-keyword" id="newsKeyword" name="keyword" th:value="${keyword}">
                 <div class="news-search-actions">
                     <button class="btn btn-register btn-sm news-search-submit" type="submit">검색</button>
-                    <a class="btn btn-neutral btn-sm news-search-reset" th:href="@{/admin/news/list.do}">초기화</a>
+                    <a class="btn btn-neutral btn-sm news-search-reset" th:href="@{/admin/board/ai-news/list.do}">초기화</a>
                 </div>
             </div>
         </form>
         <div class="list-action-bar">
-            <form class="crawl-form" method="post" th:action="@{/admin/news/crawl.do}">
+            <form class="crawl-form" method="post" th:action="@{/admin/board/ai-news/crawl.do}">
                 <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <button class="btn btn-neutral btn-sm" type="submit" onclick="return confirm('레거시 JSON 파일을 읽어 AI News를 DB에 반영하시겠습니까?');">크롤링</button>
             </form>
-            <a class="btn btn-register" th:href="@{/admin/news/write.do}">뉴스 등록</a>
+            <a class="btn btn-register" th:href="@{/admin/board/ai-news/write.do}">AI News 등록</a>
         </div>
         <section class="content-panel no-pad">
-            <div class="panel-head"><h2>뉴스 목록</h2><span th:text="|${totalCount ?: 0}개|">0개</span></div>
+            <div class="panel-head"><h2>AI News 목록</h2><span th:text="|${totalCount ?: 0}개|">0개</span></div>
             <div class="table-scroll">
                 <table>
                     <thead><tr><th>순번</th><th>제목</th><th>상태</th><th>게시일</th><th>수정일</th></tr></thead>
                     <tbody>
                     <tr th:each="news, stat : ${newsList}">
                         <td th:text="${stat.count}">1</td>
-                        <td><a th:href="@{/admin/news/write.do(newsSeq=${news.id})}" th:text="${news.title}">제목</a></td>
+                        <td><a th:href="@{/admin/board/ai-news/write.do(newsSeq=${news.id})}" th:text="${news.title}">제목</a></td>
                         <td><span class="badge badge-info" th:text="${news.statusText}">게시</span></td>
                         <td th:text="${news.publishedDate}">2026-05-23</td>
                         <td th:text="${news.updatedDate}">2026-05-23</td>

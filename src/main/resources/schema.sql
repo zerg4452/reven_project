@@ -191,3 +191,35 @@ CREATE TABLE IF NOT EXISTS bd_ai_news_mst (
     UNIQUE KEY uq_bd_ai_news_mst_slug (slug),
     KEY idx_bd_ai_news_mst_published_dtm (published_dtm)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI News 마스터';
+
+CREATE TABLE IF NOT EXISTS bd_photo_board_mst (
+    photo_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT '포토 게시판 일련번호',
+    title VARCHAR(300) NOT NULL COMMENT '제목',
+    publish_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '게시 여부',
+    delete_flg CHAR(1) NOT NULL DEFAULT 'N' COMMENT '삭제 여부',
+    reg_dtm DATETIME NOT NULL COMMENT '등록 일시',
+    reg_id VARCHAR(100) NOT NULL COMMENT '등록자 아이디',
+    mod_dtm DATETIME NOT NULL COMMENT '수정 일시',
+    mod_id VARCHAR(100) NOT NULL COMMENT '수정자 아이디',
+    PRIMARY KEY (photo_seq),
+    KEY idx_bd_photo_board_mst_reg_dtm (reg_dtm)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='포토 게시판 마스터';
+
+CREATE TABLE IF NOT EXISTS bd_photo_board_file_dtl (
+    photo_file_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT '포토 게시판 첨부 일련번호',
+    photo_seq BIGINT NOT NULL COMMENT '포토 게시판 일련번호',
+    original_file_name VARCHAR(255) NOT NULL COMMENT '원본 파일명',
+    stored_file_name VARCHAR(255) NOT NULL COMMENT '저장 파일명',
+    stored_path VARCHAR(500) NOT NULL COMMENT '저장 경로',
+    content_type VARCHAR(100) NOT NULL COMMENT 'MIME 타입',
+    file_size BIGINT NOT NULL DEFAULT 0 COMMENT '파일 크기',
+    sort_ord INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
+    delete_flg CHAR(1) NOT NULL DEFAULT 'N' COMMENT '삭제 여부',
+    reg_dtm DATETIME NOT NULL COMMENT '등록 일시',
+    reg_id VARCHAR(100) NOT NULL COMMENT '등록자 아이디',
+    mod_dtm DATETIME NOT NULL COMMENT '수정 일시',
+    mod_id VARCHAR(100) NOT NULL COMMENT '수정자 아이디',
+    PRIMARY KEY (photo_file_seq),
+    KEY idx_bd_photo_board_file_dtl_photo_seq (photo_seq),
+    KEY idx_bd_photo_board_file_dtl_sort_ord (photo_seq, sort_ord)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='포토 게시판 첨부 파일';
