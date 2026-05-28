@@ -1,109 +1,136 @@
-# Project Agents Rules
+# Agent Behavior
 
-This file captures project-specific UI, content, and workflow rules for the Spring Boot + Thymeleaf rebuild of the survey intake site.
-Use these rules only for this repository.
+Cursor loads this file for cross-project agent habits in this repository.
+**Project rules** live in `.cursor/rules/` (e.g. `survey-rebuild-project.mdc`, `java-method-layout.mdc`, `java-record-schema.mdc`).
 
-## Product Terms
+**Tradeoff:** These rules bias toward caution over speed. For trivial tasks (typo, one-line fix), use judgment.
 
-- Use `설문` as the primary term.
-- `설문 운영` is the top-level admin area.
-- `설문 관리` is the survey master management screen.
-- `설문 상세` is the survey master detail/edit screen.
-- `설문 이력 관리` is the submitted survey history screen.
-- `설문 이력 상세` is the read-only submitted survey detail screen.
+---
 
-## Navigation
+## 1. Think Before Coding
 
-- GNB labels must use admin-oriented terms.
-- LNB must show only the relevant second-level section for the current top-level area.
-- The admin GNB hierarchy is:
-  - `설문 운영`
-  - `관리자 홈`
-  - `사용자 화면`
-  - `로그아웃`
-- The admin LNB hierarchy under `설문 운영` is:
-  - `설문 관리`
-  - `설문 이력 관리`
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
 
-## Layout Rules
+Before implementing:
 
-- Main content background must be white.
-- GNB should be the darkest blue layer.
-- LNB should be a lighter blue layer than GNB.
-- LNB depth hierarchy:
-  - 2-depth group label is medium blue.
-  - 3-depth menu items are the lightest blue.
-- LNB items must span full width with no left/right padding gap on the clickable area.
-- Page breadcrumb must appear at the top of every page.
-- Breadcrumb format must follow `1-depth > 2-depth > 3-depth`.
-- List titles must have the filled arrow marker `▶` before the title.
+- State assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them — do not pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what is confusing. Ask.
 
-## Button Rules
+## 2. Simplicity First
 
-- Register button: blue background with white text.
-- Edit button: green background with white text.
-- Delete button: red background with white text.
-- Button text must always be white.
-- Button corners should be slightly rounded more than cards and inputs.
-- Keep buttons filled rather than outline-styled.
-- Place navigation back buttons at the lower left of detail/edit screens.
-- Place action buttons such as save/edit/delete at the lower right of detail/edit screens.
+**Minimum code that solves the problem. Nothing speculative.**
 
-## Card and Border Rules
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No flexibility or configurability that was not requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
 
-- Cards, inputs, tables, and general content containers should feel sharper and less rounded.
-- Buttons may remain slightly softer than other surfaces.
-- LNB and table header sections should feel visually segmented.
-- Table header cells should use a subtle yellow/green-tinted background.
-- List content sections should have no horizontal inner padding where tables need to reach the edges.
+Ask: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-## Search Rules
+## 3. Surgical Changes
 
-- All date values and date display must use `yyyy-mm-dd`.
-- Date inputs should default to:
-  - start date: current date minus 60 days
-  - end date: current date plus 1 day
-- Survey management search:
-  - date is based on registration date
-  - search structure must match the survey history search layout
-  - keyword type options: `전체`, `설문명`
-- Survey history search:
-  - date is based on submission date
-  - keyword type options: `전체`, `설문명`, `작성자명`
-  - `전체` means survey title OR submitter name
+**Touch only what you must. Clean up only your own mess.**
 
-## List Rules
+When editing existing code:
 
-- Survey management list columns:
-  - `순번`, `설문 제목`, `문항 수`, `사용여부`, `등록일`, `수정일`
-- Survey history list columns:
-  - `순번`, `설문명`, `제출자명`, `연락처`, `상태`, `제출일`
-- Survey title in the survey management list should link to the detail screen.
-- Survey title and submitter name in the survey history list should link to the detail screen.
-- Remove separate detail/view buttons from list rows when the column text itself is the link.
+- Do not improve adjacent code, comments, or formatting.
+- Do not refactor things that are not broken.
+- Match existing style, even if you would do it differently.
+- If you notice unrelated dead code, mention it — do not delete it unless asked.
 
-## Date Handling
+When your changes create orphans:
 
-- Store and display dates in `yyyy-mm-dd` format where possible.
-- Use the project timezone `Asia/Seoul`.
+- Remove imports, variables, or functions that **your** changes made unused.
+- Do not remove pre-existing dead code unless asked.
 
-## Data Storage
+Every changed line should trace directly to the user's request.
 
-- The new implementation should use DB storage for 설문 and 설문 이력.
-- Legacy PHP runtime files under `legacy-php-source/data/*.json` are local reference data only and must not be committed.
-- Preserve submitted survey snapshots so past 설문 이력 상세 screens do not change when a survey definition is edited later.
+## 4. Goal-Driven Execution
 
-## HTML Notes
+**Define success criteria. Loop until verified.**
 
-- Every page should include a short HTML comment describing:
-  - the screen name
-  - the feature purpose
-  - the creation date in `yyyy-mm-dd`
+Transform tasks into verifiable goals:
 
-## Current Implementation Notes
+- "Add validation" → tests for invalid inputs, then make them pass
+- "Fix the bug" → test that reproduces it, then make it pass
+- "Refactor X" → tests pass before and after
 
-- This repository is the Spring Boot + Thymeleaf rebuild workspace.
-- The previous PHP implementation is copied under `legacy-php-source/` for reference only.
-- Use `docs/worklog.md` as the longer-running human-readable work log.
-- When a change materially affects layout, navigation, data flow, storage, or overall behavior, update `docs/worklog.md` even if the user did not explicitly ask for a log entry.
-- Before adding new user-facing features, first preserve functional parity for the core 설문 management and submission flow.
+For multi-step tasks, state a brief plan:
+
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") need clarification.
+
+## 5. Korean Output — No Closing Colons
+
+When the user writes in Korean, reply in Korean:
+
+- Do not end sentences with `:` even if the next line is a list or example.
+- Every Korean sentence should end with `.`, `?`, or `!` — not `:`.
+- Colons are fine inside code, key-value pairs, or labels — not as sentence enders.
+
+## 6. File Header Comments (Korean)
+
+**First line of every new source file: a one-line Korean comment stating its role.**
+
+Examples:
+
+- Java: `// 설문 마스터 목록 조회 서비스`
+- HTML / Thymeleaf: `<!-- 설문 이력 상세 읽기 전용 화면 -->`
+- SQL: `-- 제출 설문 스냅샷 저장 테이블`
+- TypeScript: `// 사용자 인증 상태를 관리하는 Context Provider`
+
+Place directly under required directives (`'use client'`, package declaration, etc.).
+Skip config files (`*.config.*`, `package.json`, `application.yml`, Gradle files, etc.).
+
+## 7. Plan, Checklist, and Context Notes
+
+Before any **non-trivial** task, produce three artifacts. Do not start coding without them.
+
+| Artifact | Path | Purpose |
+|----------|------|---------|
+| Plan | Short summary in chat or `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` | What we build and why |
+| Checklist | `docs/checklist.md` | Concrete checkbox tasks; tick as you go |
+| Context notes | `docs/context-notes.md` | Decisions and reasoning; append continuously |
+
+If the user gives only a plan and asks to code, ask whether to create the checklist and context notes first.
+The next session (human or agent) should resume without re-deriving decisions.
+
+Trivial fixes (typo, single obvious line) skip this section.
+
+## 8. Verify Before "Done"
+
+**If you touched code, run verification before claiming completion.**
+
+- Tests: `./gradlew test` (optionally scoped, e.g. `./gradlew test --tests 'com.reven.project.service.bd.*'`)
+- Build: `./gradlew build` when compile or packaging matters
+- Report pass/fail with evidence; if tests fail, fix and re-run
+- Run proactively before the user says "끝", "완료", or "다 됐어"
+- After substantive edits, check lints on touched files when the IDE reports issues
+
+No test setup for a change? At minimum confirm the project compiles.
+
+## 9. Git Commits
+
+**Commit only when the user explicitly asks.**
+
+- Still group work into **logical units** so you can suggest separate commits ("auth fix" vs "UI tweak").
+- Good commit subject: one clear sentence describing why.
+- Bad: one commit mixing unrelated auth, UI, and bugfix — split when the user asks to commit.
+- Do not commit secrets (`.env`, credentials, local DB dumps).
+- Follow repository commit message style from recent `git log`.
+
+## 10. Read Errors, Don't Guess
+
+When something fails:
+
+- Read the full error message and stack trace.
+- Check actual log output, not what you assume it should say.
+- Do not apply a "common fix" before confirming the cause.
+- If unclear, add a log or inspect state — then fix.

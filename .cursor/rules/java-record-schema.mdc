@@ -1,0 +1,62 @@
+---
+description: Java record 컴포넌트 @Schema(한글명·example) 및 컴포넌트 간 빈 줄 2줄
+globs: **/*.java
+alwaysApply: false
+---
+
+# Java Record Layout and Schema
+
+`public record` DTO/응답 타입은 **메서드 시그니처 한 줄 규칙(`java-method-layout.mdc`) 대상이 아니다.** record는 아래 레이아웃을 따른다.
+
+## Record header
+
+- Keep the existing multi-line record form: `public record Name(` … `) {`.
+- Put `) {` on its own line after the last component.
+- First line of every **new** record source file: one-line Korean role comment (`// …`).
+
+## Between components
+
+- Separate **every** record component with **two blank lines** (two line breaks between fields).
+- The last component has **no trailing comma** before `)`.
+
+## @Schema on each component
+
+- Add `io.swagger.v3.oas.annotations.media.Schema` **directly above** each component.
+- `description`: Korean field name / meaning (UI·DB 용어와 맞출 것).
+- `example`: Thymeleaf·폼·API 문서에 쓸 **템플릿 값** (문자열 리터럴).
+- Other parameter annotations (e.g. `@DateTimeFormat`, `@Valid`) stay on the component; place `@Schema` immediately above the type line (after other annotations if present).
+
+```java
+public record COAdminLoginRequestDto(
+
+        @Schema(description = "로그인 아이디", example = "admin")
+        String loginId,
+
+
+        @Schema(description = "비밀번호", example = "password")
+        String password
+) {
+}
+```
+
+## Examples by type
+
+| Type | example guidance |
+|------|------------------|
+| `String` | realistic sample text |
+| `Long` / `Integer` | `"1"` |
+| `long` / `int` | numeric literal in `example` |
+| `boolean` | `"true"` or `"false"` |
+| `LocalDate` | `"2026-05-29"` |
+| `LocalDateTime` | `"2026-05-29T10:00:00"` |
+| `List<…>` | `"[]"` or short JSON array string |
+| nested record/DTO | short descriptive string, e.g. `"검색 조건"` |
+
+## Imports
+
+- `import io.swagger.v3.oas.annotations.media.Schema;` when any component uses `@Schema`.
+
+## Do not
+
+- Collapse record components onto one line for “method signature” formatting.
+- Omit `@Schema` on new record components.

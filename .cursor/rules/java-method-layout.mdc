@@ -1,0 +1,53 @@
+---
+description: Java 메서드 시그니처 한 줄 작성, 블록 줄바꿈·괄호 배치
+globs: **/*.java
+alwaysApply: false
+---
+
+# Java Method Signature and Block Layout
+
+When writing or editing Java methods:
+
+## Method signature
+
+- Write the full method signature on **one line** (modifiers, return type, name, parameters).
+- Put the opening brace `{` on the **same line** as the signature.
+- Put the closing brace `}` on its **own line** after the body.
+
+```java
+public String temp(String a, String b) {
+
+}
+```
+
+## Line breaks inside the method
+
+- Between statements of the **same kind** (same role or repeated pattern): **one** line break only — no blank line.
+- Between blocks with **different meaning** (e.g. setup vs validation vs return): insert **one blank line** before the next block.
+
+## Braces for blocks
+
+For `if`, `for`, `try`, lambdas with blocks, etc.:
+
+- Write the controlling line first, then `{`, then a line break, then the body, then `}` on its own line.
+
+```java
+public String example(String error, Model model) {
+
+    model.addAttribute("screenName", "관리자 로그인");
+    model.addAttribute("purpose", "관리자 인증을 수행합니다.");
+
+    if (error != null) {
+        model.addAttribute("loginError", "아이디 또는 비밀번호가 올바르지 않습니다.");
+    }
+
+    return "admin/auth/login";
+}
+```
+
+Do not split a method signature across multiple lines unless that file already does so and you are making a minimal surgical edit.
+
+## Java `record` types
+
+- **Not** subject to the one-line method signature rule above.
+- Follow `.cursor/rules/java-record-schema.mdc` for component spacing and `@Schema` annotations.
