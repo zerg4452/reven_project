@@ -8,6 +8,7 @@
     <aside th:replace="~{fragments/layout :: lnb('board')}"></aside>
     <main class="admin-content">
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '게시판', '포토게시판 관리')}"></div>
+        <div class="alert" th:if="${error}" th:text="${error}">오류가 발생했습니다.</div>
         <th:block th:if="${photoSavedMessage != null}">
             <script th:inline="javascript">
                 window.addEventListener('DOMContentLoaded', function () {

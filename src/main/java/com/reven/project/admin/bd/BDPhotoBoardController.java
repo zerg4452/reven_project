@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,7 +49,11 @@ public class BDPhotoBoardController {
      */
     @GetMapping("/admin/board/photo/detail.do")
     public String detail(@RequestParam Long photoSeq, Model model) {
-        model.addAttribute("photo", photoBoardService.findPhotoBoard(photoSeq));
+        var photo = photoBoardService.findPhotoBoard(photoSeq);
+        if (photo == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        model.addAttribute("photo", photo);
         model.addAttribute("photoFiles", photoBoardService.findPhotoBoardFiles(photoSeq));
         return "admin/photo/detail";
     }
@@ -59,7 +64,11 @@ public class BDPhotoBoardController {
     @GetMapping("/admin/board/photo/write.do")
     public String writeForm(@RequestParam(required = false) Long photoSeq, Model model) {
         if (photoSeq != null) {
-            model.addAttribute("photo", photoBoardService.findPhotoBoard(photoSeq));
+            var photo = photoBoardService.findPhotoBoard(photoSeq);
+            if (photo == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            }
+            model.addAttribute("photo", photo);
             model.addAttribute("photoFiles", photoBoardService.findPhotoBoardFiles(photoSeq));
         }
         return "admin/photo/edit";
@@ -72,12 +81,18 @@ public class BDPhotoBoardController {
     public String insert(
             @ModelAttribute("photo") BDPhotoBoardSaveRequestDto requestDto,
             @RequestParam(value = "uploadFiles", required = false) List<MultipartFile> uploadFiles,
+            @RequestParam(value = "keepPhotoFileSeqs", required = false) List<Long> keepPhotoFileSeqs,
             Principal principal,
             RedirectAttributes redirectAttributes
     ) {
-        photoBoardService.savePhotoBoard(withActor(requestDto, principal), uploadFiles);
-        redirectAttributes.addFlashAttribute("photoSavedMessage", "저장되었습니다.");
-        return "redirect:/admin/board/photo/list.do";
+        try {
+            photoBoardService.savePhotoBoard(withActor(requestDto, principal), uploadFiles, keepPhotoFileSeqs);
+            redirectAttributes.addFlashAttribute("photoSavedMessage", "저장되었습니다.");
+            return "redirect:/admin/board/photo/list.do";
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            redirectAttributes.addFlashAttribute("error", exception.getMessage());
+            return "redirect:/admin/board/photo/write.do";
+        }
     }
 
     /**
@@ -88,26 +103,41 @@ public class BDPhotoBoardController {
             @RequestParam Long photoSeq,
             @ModelAttribute("photo") BDPhotoBoardSaveRequestDto requestDto,
             @RequestParam(value = "uploadFiles", required = false) List<MultipartFile> uploadFiles,
+            @RequestParam(value = "keepPhotoFileSeqs", required = false) List<Long> keepPhotoFileSeqs,
             Principal principal,
             RedirectAttributes redirectAttributes
     ) {
-        photoBoardService.savePhotoBoard(withActor(new BDPhotoBoardSaveRequestDto(
-                photoSeq,
-                requestDto.title(),
-                requestDto.publishYn(),
-                requestDto.actorId()
-        ), principal), uploadFiles);
-        redirectAttributes.addFlashAttribute("photoSavedMessage", "저장되었습니다.");
-        return "redirect:/admin/board/photo/list.do";
+        try {
+            photoBoardService.savePhotoBoard(withActor(new BDPhotoBoardSaveRequestDto(
+                    photoSeq,
+                    requestDto.title(),
+                    requestDto.publishYn(),
+                    requestDto.actorId()
+            ), principal), uploadFiles, keepPhotoFileSeqs);
+            redirectAttributes.addFlashAttribute("photoSavedMessage", "저장되었습니다.");
+            return "redirect:/admin/board/photo/list.do";
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            redirectAttributes.addFlashAttribute("error", exception.getMessage());
+            return "redirect:/admin/board/photo/write.do?photoSeq=" + photoSeq;
+        }
     }
 
     /**
      * 사진 게시판을 삭제한다.
      */
     @PostMapping("/admin/board/photo/delete.do")
-    public String delete(@RequestParam Long photoSeq, Principal principal) {
-        photoBoardService.deletePhotoBoard(photoSeq, principal == null ? "system" : principal.getName());
-        return "redirect:/admin/board/photo/list.do";
+    public String delete(
+            @RequestParam Long photoSeq,
+            Principal principal,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            photoBoardService.deletePhotoBoard(photoSeq, principal == null ? "system" : principal.getName());
+            return "redirect:/admin/board/photo/list.do";
+        } catch (IllegalArgumentException exception) {
+            redirectAttributes.addFlashAttribute("error", exception.getMessage());
+            return "redirect:/admin/board/photo/list.do";
+        }
     }
 
     /**

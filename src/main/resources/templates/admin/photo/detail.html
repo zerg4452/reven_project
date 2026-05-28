@@ -21,27 +21,33 @@
                 <dt>수정일</dt><dd th:text="${photo?.modifiedAt != null ? #temporals.format(photo.modifiedAt, 'yyyy-MM-dd') : '2026-05-27'}">2026-05-27</dd>
             </dl>
         </section>
-        <section class="content-panel photo-files-panel">
+        <section class="content-panel photo-attachment-panel photo-detail-attachments">
             <div class="panel-head"><h2>첨부 파일</h2><span th:text="|${#lists.size(photoFiles)}개|">0개</span></div>
             <div class="photo-file-scroll">
                 <div class="photo-file-grid">
-                    <article class="photo-file-card" th:each="file : ${photoFiles}">
-                        <div class="photo-file-preview">
-                            <button th:if="${file.contentType != null and file.contentType.startsWith('image/')}"
-                                    type="button"
-                                    class="photo-preview-trigger"
-                                    th:attr="data-photo-preview='true',data-photo-src=${file.fileUrl},data-photo-alt=${file.originalFileName}">
-                                <img th:src="${file.fileUrl}" th:alt="${file.originalFileName}">
-                            </button>
-                            <video th:if="${file.contentType == 'video/mp4'}" th:src="${file.fileUrl}" controls></video>
-                            <a th:if="${file.contentType == null or (!file.contentType.startsWith('image/') and file.contentType != 'video/mp4')}"
-                               class="btn btn-neutral btn-sm"
-                               th:href="@{/admin/board/photo/download.do(photoFileSeq=${file.photoFileSeq})}">다운로드</a>
+                    <article class="photo-file-card photo-readonly-card" th:each="file : ${photoFiles}">
+                        <div class="photo-file-card-body">
+                            <div class="photo-file-card-media">
+                                <div class="photo-file-preview photo-file-preview--detail">
+                                    <button th:if="${file.contentType != null and file.contentType.startsWith('image/')}"
+                                            type="button"
+                                            class="photo-preview-trigger"
+                                            th:attr="data-photo-preview='true',data-photo-src=${file.fileUrl},data-photo-alt=${file.originalFileName}">
+                                        <img th:src="${file.fileUrl}" th:alt="${file.originalFileName}">
+                                    </button>
+                                    <video th:if="${file.contentType == 'video/mp4'}" th:src="${file.fileUrl}" controls></video>
+                                    <span th:if="${file.contentType == null or (!file.contentType.startsWith('image/') and file.contentType != 'video/mp4')}"
+                                          class="photo-file-fallback"
+                                          th:text="${file.originalFileName}">파일</span>
+                                </div>
+                            </div>
+                            <aside class="photo-file-card-meta">
+                                <strong class="photo-file-name" th:text="${file.originalFileName}">파일명</strong>
+                                <span class="photo-file-size" th:text="${file.displayFileSizeKb()}">1 KB</span>
+                                <a class="btn btn-neutral btn-sm"
+                                   th:href="@{/admin/board/photo/download.do(photoFileSeq=${file.photoFileSeq})}">원본 다운로드</a>
+                            </aside>
                         </div>
-                        <strong th:text="${file.originalFileName}">파일명</strong>
-                        <span th:text="${file.displayFileSizeKb()}">1 KB</span>
-                        <a class="btn btn-neutral btn-sm"
-                           th:href="@{/admin/board/photo/download.do(photoFileSeq=${file.photoFileSeq})}">원본 다운로드</a>
                     </article>
                 </div>
             </div>

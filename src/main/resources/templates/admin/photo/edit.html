@@ -8,11 +8,16 @@
     <aside th:replace="~{fragments/layout :: lnb('board')}"></aside>
     <main class="admin-content">
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '게시판', ${photo?.photoSeq} != null ? '포토게시판 수정' : '포토게시판 등록')}"></div>
+        <div class="alert" th:if="${error}" th:text="${error}">오류가 발생했습니다.</div>
         <section class="page-head">
             <h1 th:text="${photo?.photoSeq} != null ? '포토게시판 수정' : '포토게시판 등록'">포토게시판 등록</h1>
             <p>제목, 첨부 파일, 게시 여부만 관리합니다.</p>
         </section>
-        <form class="form-stack" method="post" enctype="multipart/form-data"
+        <form class="form-stack photo-upload-form"
+              method="post"
+              enctype="multipart/form-data"
+              data-photo-upload-form
+              data-photo-max-files="5"
               th:action="${photo?.photoSeq} != null ? @{/admin/board/photo/update.do(photoSeq=${photo.photoSeq})} : @{/admin/board/photo/insert.do}">
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <input type="hidden" name="photoSeq" th:value="${photo?.photoSeq}">
@@ -26,33 +31,74 @@
                         <option value="N" th:selected="${photo?.publishYn == 'N'}">대기</option>
                     </select>
                 </label>
-                <label>첨부 파일
-                    <input class="form-control" type="file" name="uploadFiles" accept="image/*,.gif,.webp,.mp4,video/mp4" multiple>
-                </label>
-                <p class="form-hint">신규 등록 시 최소 1개 이상의 파일이 필요하며, 이미지, GIF, WEBP, MP4 파일만 업로드할 수 있고 최대 5장까지 가능합니다.</p>
             </section>
-            <section class="content-panel" th:if="${photo?.photoSeq != null}">
-                <div class="panel-head"><h2>현재 첨부 파일</h2><span th:text="|${#lists.size(photoFiles)}개|">0개</span></div>
-                <div class="photo-file-grid">
-                    <article class="photo-file-card" th:each="file : ${photoFiles}">
-                        <div class="photo-file-preview">
-                            <img th:if="${file.contentType != null and file.contentType.startsWith('image/')}" th:src="${file.fileUrl}" th:alt="${file.originalFileName}">
-                            <video th:if="${file.contentType == 'video/mp4'}" th:src="${file.fileUrl}" controls></video>
-                            <a th:if="${file.contentType == null or (!file.contentType.startsWith('image/') and file.contentType != 'video/mp4')}"
-                               class="btn btn-neutral btn-sm"
-                               th:href="${file.fileUrl}">다운로드</a>
-                        </div>
-                        <strong th:text="${file.originalFileName}">파일명</strong>
-                    </article>
+            <section class="content-panel photo-attachment-panel">
+                <div class="panel-head photo-attachment-head">
+                    <h2>첨부 파일</h2>
+                    <span class="photo-selection-count" data-photo-selection-count>현재 0/5</span>
                 </div>
+                <p class="photo-selection-notice">체크 해제 시 저장에서 제외됩니다.</p>
+                <section class="photo-existing-section" th:if="${photo?.photoSeq != null}">
+                    <h3 class="photo-section-title">현재 첨부</h3>
+                    <div class="photo-file-grid" data-photo-existing-list>
+                        <article class="photo-file-card photo-select-card" th:each="file : ${photoFiles}">
+                            <div class="photo-file-card-body">
+                                <div class="photo-file-card-media">
+                                    <div class="photo-file-preview photo-file-preview--select">
+                                        <img th:if="${file.contentType != null and file.contentType.startsWith('image/')}"
+                                             th:src="${file.fileUrl}"
+                                             th:alt="${file.originalFileName}">
+                                        <video th:if="${file.contentType == 'video/mp4'}"
+                                               th:src="${file.fileUrl}"
+                                               controls
+                                               muted></video>
+                                        <span th:if="${file.contentType == null or (!file.contentType.startsWith('image/') and file.contentType != 'video/mp4')}"
+                                              class="photo-file-fallback"
+                                              th:text="${file.originalFileName}">파일</span>
+                                    </div>
+                                </div>
+                                <aside class="photo-file-card-meta">
+                                    <label class="photo-file-card-select">
+                                        <input type="checkbox"
+                                               name="keepPhotoFileSeqs"
+                                               th:value="${file.photoFileSeq}"
+                                               checked
+                                               data-photo-existing-checkbox>
+                                        <span>저장 포함</span>
+                                    </label>
+                                    <strong class="photo-file-name" th:text="${file.originalFileName}">파일명</strong>
+                                    <span class="photo-file-size" th:text="${file.displayFileSizeKb()}">1 KB</span>
+                                    <a class="btn btn-neutral btn-sm"
+                                       th:href="@{/admin/board/photo/download.do(photoFileSeq=${file.photoFileSeq})}">원본 다운로드</a>
+                                </aside>
+                            </div>
+                        </article>
+                    </div>
+                    <p class="empty" th:if="${#lists.isEmpty(photoFiles)}">등록된 첨부 파일이 없습니다.</p>
+                </section>
+                <label class="photo-upload-field">추가 첨부
+                    <input class="form-control"
+                           type="file"
+                           name="uploadFiles"
+                           data-photo-upload-input
+                           accept="image/*,.gif,.webp,.mp4,video/mp4"
+                           multiple>
+                </label>
+                <p class="form-hint">이미지, GIF, WEBP, MP4 파일만 업로드할 수 있으며, 유지/추가 합계 최대 5개까지 가능합니다.</p>
+                <div class="photo-file-grid" data-photo-new-list></div>
             </section>
             <div class="detail-action-bar">
                 <a class="btn btn-neutral" th:href="@{/admin/board/photo/list.do}">목록</a>
                 <div>
                     <button class="btn btn-delete" type="submit" th:if="${photo?.photoSeq != null}"
                             th:formaction="@{/admin/board/photo/delete.do(photoSeq=${photo.photoSeq})}"
+                            data-photo-delete-button
                             onclick="return confirm('이 사진 게시글을 삭제하시겠습니까?');">삭제</button>
-                    <button class="btn btn-edit" type="submit" th:text="${photo?.photoSeq != null} ? '수정' : '등록'">저장</button>
+                    <button class="btn"
+                            th:classappend="${photo?.photoSeq != null} ? ' btn-edit' : ' btn-register'"
+                            type="submit"
+                            data-photo-save-button
+                            th:text="${photo?.photoSeq != null} ? '수정' : '등록'">저장</button>
                 </div>
             </div>
         </form>
@@ -60,5 +106,6 @@
 </div>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script th:src="@{/admin/js/photo-edit.js}" defer></script>
 </body>
 </html>

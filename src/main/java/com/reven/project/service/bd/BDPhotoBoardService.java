@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -31,6 +32,8 @@ public class BDPhotoBoardService {
 
     private static final DateTimeFormatter STORAGE_PATH_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif", "mp4");
+    private static final String MAX_UPLOAD_MESSAGE = "최대 업로드 갯수는 5개입니다.";
+    private static final String MIN_UPLOAD_MESSAGE = "첨부 파일을 최소 1개 이상 업로드해 주세요.";
 
     private final BDPhotoBoardMapper photoBoardMapper;
     private final Path rootPath;
@@ -88,10 +91,7 @@ public class BDPhotoBoardService {
         if (file == null) {
             return null;
         }
-        Path directory = file.storedPath() == null || file.storedPath().isBlank()
-                ? rootPath
-                : rootPath.resolve(file.storedPath());
-        return directory.resolve(file.storedFileName()).normalize();
+        return resolveStoredFilePath(file.storedPath(), file.storedFileName());
     }
 
     /**
@@ -99,24 +99,42 @@ public class BDPhotoBoardService {
      */
     @Transactional
     public Long savePhotoBoard(BDPhotoBoardSaveRequestDto requestDto, List<MultipartFile> uploadedFiles) {
+        return savePhotoBoard(requestDto, uploadedFiles, List.of());
+    }
+
+    /**
+     * 사진 게시판을 등록하거나 수정한다.
+     */
+    @Transactional
+    public Long savePhotoBoard(
+            BDPhotoBoardSaveRequestDto requestDto,
+            List<MultipartFile> uploadedFiles,
+            List<Long> keepPhotoFileSeqs
+    ) {
         BDPhotoBoardSaveRequestDto normalized = normalize(requestDto);
-        List<MultipartFile> files = normalizeFiles(uploadedFiles);
-        boolean updating = normalized.photoSeq() != null;
-        BDPhotoBoardDetailResponseDto existing = normalized.photoSeq() == null
+        List<MultipartFile> newFiles = normalizeFiles(uploadedFiles);
+        BDPhotoBoardDetailResponseDto existingPost = normalized.photoSeq() == null
                 ? null
                 : photoBoardMapper.selectPhotoBoardDetail(normalized.photoSeq());
-        if (normalized.photoSeq() != null && existing == null) {
+        if (normalized.photoSeq() != null && existingPost == null) {
             throw new IllegalArgumentException("수정할 사진 게시글을 찾을 수 없습니다.");
         }
+
         List<BDPhotoBoardFileResponseDto> existingFiles = normalized.photoSeq() == null
                 ? List.of()
                 : photoBoardMapper.selectPhotoBoardFiles(normalized.photoSeq());
-        if (normalized.photoSeq() == null && files.isEmpty()) {
-            throw new IllegalArgumentException("첨부 파일을 최소 1개 이상 업로드해 주세요.");
-        }
-        if (!files.isEmpty() && files.size() > maxFiles) {
-            throw new IllegalArgumentException("첨부 파일은 최대 " + maxFiles + "개까지 업로드할 수 있습니다.");
-        }
+        Set<Long> keepSeqs = normalized.photoSeq() == null
+                ? Set.of()
+                : normalizeKeepSeqs(keepPhotoFileSeqs, normalized.photoSeq(), existingFiles);
+
+        List<BDPhotoBoardFileResponseDto> retainedFiles = existingFiles.stream()
+                .filter(file -> keepSeqs.contains(file.photoFileSeq()))
+                .toList();
+        List<BDPhotoBoardFileResponseDto> removedFiles = existingFiles.stream()
+                .filter(file -> !keepSeqs.contains(file.photoFileSeq()))
+                .toList();
+
+        validateAttachmentCounts(retainedFiles.size(), newFiles.size());
 
         BDPhotoBoardSaveCommand saveCommand = toSaveCommand(normalized);
         List<Path> writtenFiles = new ArrayList<>();
@@ -126,22 +144,22 @@ public class BDPhotoBoardService {
                 photoBoardMapper.insertPhotoBoard(saveCommand);
                 normalized = new BDPhotoBoardSaveRequestDto(saveCommand.getPhotoSeq(), normalized.title(), normalized.publishYn(), normalized.actorId());
             } else {
+                for (BDPhotoBoardFileResponseDto removedFile : removedFiles) {
+                    photoBoardMapper.deletePhotoBoardFile(removedFile.photoFileSeq(), normalized.actorId());
+                }
+                if (!removedFiles.isEmpty()) {
+                    schedulePhysicalCleanupAfterCommit(removedFiles);
+                }
                 photoBoardMapper.updatePhotoBoard(saveCommand);
             }
 
-            int sortOrder = 0;
-            for (MultipartFile file : files) {
+            int sortOrder = retainedFiles.stream()
+                    .mapToInt(file -> file.sortOrder() == null ? 0 : file.sortOrder())
+                    .max()
+                    .orElse(0);
+            for (MultipartFile file : newFiles) {
                 sortOrder++;
                 storePhotoFile(normalized.photoSeq(), file, sortOrder, normalized.actorId(), writtenFiles);
-            }
-            if (updating && !files.isEmpty()) {
-                photoBoardMapper.deletePhotoBoardFiles(normalized.photoSeq(), normalized.actorId());
-                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        cleanupStoredFiles(existingFiles);
-                    }
-                });
             }
             return normalized.photoSeq();
         } catch (RuntimeException exception) {
@@ -165,7 +183,7 @@ public class BDPhotoBoardService {
         List<BDPhotoBoardFileResponseDto> files = photoBoardMapper.selectPhotoBoardFiles(photoSeq);
         photoBoardMapper.deletePhotoBoardFiles(photoSeq, firstText(actorId, "system"));
         photoBoardMapper.deletePhotoBoard(photoSeq, firstText(actorId, "system"));
-        cleanupStoredFiles(files);
+        schedulePhysicalCleanupAfterCommit(files);
     }
 
     private BDPhotoBoardSaveRequestDto normalize(BDPhotoBoardSaveRequestDto requestDto) {
@@ -180,6 +198,39 @@ public class BDPhotoBoardService {
                 publishYn,
                 firstText(requestDto.actorId(), "system")
         );
+    }
+
+    private void validateAttachmentCounts(int retainedCount, int newCount) {
+        int total = retainedCount + newCount;
+        if (total > maxFiles) {
+            throw new IllegalArgumentException(MAX_UPLOAD_MESSAGE);
+        }
+        if (total < 1) {
+            throw new IllegalArgumentException(MIN_UPLOAD_MESSAGE);
+        }
+    }
+
+    private Set<Long> normalizeKeepSeqs(
+            List<Long> keepPhotoFileSeqs,
+            Long photoSeq,
+            List<BDPhotoBoardFileResponseDto> existingFiles
+    ) {
+        if (keepPhotoFileSeqs == null || keepPhotoFileSeqs.isEmpty()) {
+            return Set.of();
+        }
+        Set<Long> validSeqs = new HashSet<>();
+        for (BDPhotoBoardFileResponseDto file : existingFiles) {
+            if (photoSeq.equals(file.photoSeq())) {
+                validSeqs.add(file.photoFileSeq());
+            }
+        }
+        Set<Long> keepSeqs = new HashSet<>();
+        for (Long keepSeq : keepPhotoFileSeqs) {
+            if (keepSeq != null && validSeqs.contains(keepSeq)) {
+                keepSeqs.add(keepSeq);
+            }
+        }
+        return keepSeqs;
     }
 
     private List<MultipartFile> normalizeFiles(List<MultipartFile> uploadedFiles) {
@@ -267,12 +318,36 @@ public class BDPhotoBoardService {
         }
     }
 
+    private Path resolveStoredFilePath(String storedPath, String storedFileName) {
+        Path directory = storedPath == null || storedPath.isBlank()
+                ? rootPath
+                : rootPath.resolve(storedPath);
+        Path resolved = directory.resolve(storedFileName).normalize();
+        if (!resolved.startsWith(rootPath)) {
+            return null;
+        }
+        return resolved;
+    }
+
+    private void schedulePhysicalCleanupAfterCommit(List<BDPhotoBoardFileResponseDto> files) {
+        if (files == null || files.isEmpty()) {
+            return;
+        }
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            cleanupStoredFiles(files);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                cleanupStoredFiles(files);
+            }
+        });
+    }
+
     private void cleanupStoredFiles(List<BDPhotoBoardFileResponseDto> files) {
         for (BDPhotoBoardFileResponseDto file : files) {
-            Path directory = file.storedPath() == null || file.storedPath().isBlank()
-                    ? rootPath
-                    : rootPath.resolve(file.storedPath());
-            Path path = directory.resolve(file.storedFileName()).normalize();
+            Path path = resolveStoredFilePath(file.storedPath(), file.storedFileName());
             if (path == null) {
                 continue;
             }

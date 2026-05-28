@@ -861,23 +861,72 @@ a:hover {
 }
 
 .photo-file-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .photo-files-panel .photo-file-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: none;
 }
 
 .photo-file-card {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 18px;
+    padding: 0;
     border: 1px solid #d7e1ea;
     border-radius: 6px;
     background: #fff;
+    overflow: hidden;
+}
+
+.photo-file-card-body {
+    display: flex;
+    align-items: stretch;
+    min-height: 320px;
+}
+
+.photo-file-card-media {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 12px;
+}
+
+.photo-file-card-meta {
+    flex: 0 0 240px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    padding: 20px;
+    border-left: 1px solid #e2e9ef;
+    background: #fbfdff;
+}
+
+.photo-file-name {
+    font-size: 15px;
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+.photo-file-size {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.photo-file-card-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.photo-file-card-select input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
 }
 
 .photo-files-panel {
@@ -887,17 +936,19 @@ a:hover {
 }
 
 .photo-file-scroll {
-    max-height: 72vh;
-    overflow: auto;
-    padding-right: 4px;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
 }
 
 .photo-file-preview {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 440px;
-    padding: 12px;
+    width: 100%;
+    min-height: 300px;
+    height: 100%;
+    padding: 8px;
     border: 1px solid #e2e9ef;
     border-radius: 4px;
     background: #f8fbfe;
@@ -905,8 +956,11 @@ a:hover {
 }
 
 .photo-preview-trigger {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
+    height: 100%;
     padding: 0;
     border: 0;
     background: transparent;
@@ -923,15 +977,23 @@ a:hover {
     width: auto;
     height: auto;
     max-width: 100%;
-    max-height: 68vh;
     object-fit: contain;
     background: #f8fbfe;
 }
 
-.photo-file-card > strong {
-    font-size: 16px;
-    line-height: 1.35;
-    word-break: break-word;
+.photo-file-preview--select img,
+.photo-file-preview--select video {
+    max-height: min(52vh, 480px);
+}
+
+.photo-file-preview--detail img {
+    max-height: min(42vh, 380px);
+    cursor: zoom-in;
+}
+
+.photo-file-preview--detail video {
+    max-height: min(58vh, 540px);
+    width: 100%;
 }
 
 .photo-modal {
@@ -995,6 +1057,42 @@ a:hover {
 
 body.has-photo-modal {
     overflow: hidden;
+}
+
+.photo-attachment-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.photo-attachment-head {
+    align-items: center;
+}
+
+.photo-selection-count {
+    font-weight: 700;
+    color: #1c2430;
+}
+
+.photo-selection-notice {
+    margin: 0;
+    color: #c62828;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.photo-section-title {
+    margin: 0 0 10px;
+    font-size: 15px;
+    color: #334155;
+}
+
+.photo-file-fallback {
+    display: block;
+    padding: 12px;
+    color: #475569;
+    font-size: 13px;
+    word-break: break-word;
 }
 
 .form-hint {

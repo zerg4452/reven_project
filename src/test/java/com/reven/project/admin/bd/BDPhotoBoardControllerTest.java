@@ -17,6 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,7 +46,7 @@ class BDPhotoBoardControllerTest {
         Path downloadPath = tempDir.resolve("sample.jpg");
         Files.write(downloadPath, new byte[] {1, 2, 3});
         when(service.resolvePhotoBoardFilePath(11L)).thenReturn(downloadPath);
-        when(service.savePhotoBoard(any(), any())).thenReturn(1L);
+        when(service.savePhotoBoard(any(), any(), any())).thenReturn(1L);
 
         MockMvc mvc = MockMvcBuilders.standaloneSetup(new BDPhotoBoardController(service)).build();
 
@@ -75,6 +77,7 @@ class BDPhotoBoardControllerTest {
                         .param("photoSeq", "1")
                         .param("title", "수정 포토")
                         .param("publishYn", "N")
+                        .param("keepPhotoFileSeqs", "11")
                         .principal(auth()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/board/photo/list.do"))
@@ -91,6 +94,67 @@ class BDPhotoBoardControllerTest {
                 .andExpect(header().string("Content-Disposition", org.hamcrest.Matchers.containsString("attachment")));
 
         verify(service).deletePhotoBoard(1L, "admin");
+    }
+
+    @Test
+    void insertValidationFailureRedirectsBackToWriteFormWithError() throws Exception {
+        BDPhotoBoardService service = mock(BDPhotoBoardService.class);
+        doThrow(new IllegalArgumentException("제목을 입력해 주세요."))
+                .when(service).savePhotoBoard(any(), any(), any());
+
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new BDPhotoBoardController(service)).build();
+
+        mvc.perform(post("/admin/board/photo/insert.do")
+                        .param("title", "")
+                        .param("publishYn", "Y")
+                        .principal(auth()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/board/photo/write.do"))
+                .andExpect(flash().attribute("error", "제목을 입력해 주세요."));
+    }
+
+    @Test
+    void updateValidationFailureRedirectsBackToWriteFormWithError() throws Exception {
+        BDPhotoBoardService service = mock(BDPhotoBoardService.class);
+        doThrow(new IllegalArgumentException("최대 업로드 갯수는 5개입니다."))
+                .when(service).savePhotoBoard(any(), any(), any());
+
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new BDPhotoBoardController(service)).build();
+
+        mvc.perform(post("/admin/board/photo/update.do")
+                        .param("photoSeq", "1")
+                        .param("title", "수정 포토")
+                        .param("publishYn", "Y")
+                        .principal(auth()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/board/photo/write.do?photoSeq=1"))
+                .andExpect(flash().attribute("error", "최대 업로드 갯수는 5개입니다."));
+    }
+
+    @Test
+    void detailReturnsNotFoundWhenPhotoDoesNotExist() throws Exception {
+        BDPhotoBoardService service = mock(BDPhotoBoardService.class);
+        when(service.findPhotoBoard(999L)).thenReturn(null);
+
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new BDPhotoBoardController(service)).build();
+
+        mvc.perform(get("/admin/board/photo/detail.do").param("photoSeq", "999"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void fileEndpointReturnsInlineAttachment() throws Exception {
+        BDPhotoBoardService service = mock(BDPhotoBoardService.class);
+        when(service.findPhotoBoardFile(11L)).thenReturn(file(11L, 1L, "sample.jpg"));
+        Path filePath = tempDir.resolve("sample.jpg");
+        Files.write(filePath, new byte[] {1, 2, 3});
+        when(service.resolvePhotoBoardFilePath(11L)).thenReturn(filePath);
+
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new BDPhotoBoardController(service)).build();
+
+        mvc.perform(get("/admin/board/photo/file.do").param("photoFileSeq", "11"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", org.hamcrest.Matchers.containsString("inline")));
     }
 
     private UsernamePasswordAuthenticationToken auth() {
