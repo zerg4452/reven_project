@@ -4,7 +4,7 @@ spring:
   servlet:
     multipart:
       max-file-size: 50MB
-      max-request-size: 50MB
+      max-request-size: 260MB
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3307}/${DB_NAME:survey_app}?useUnicode=true&characterEncoding=utf8
@@ -41,3 +41,5 @@ reven:
       root-path: ./storage/photo-board
       base-url: /admin/board/photo/file.do
       max-files: 5
+      max-image-size-mb: 20
+      max-video-size-mb: 50

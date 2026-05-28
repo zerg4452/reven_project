@@ -27,8 +27,9 @@ class COAdminMenuServiceTest {
                 menu("survey_operation", "", 1, "설문 운영", "/admin/surveys/list.do", "[\"/admin/surveys\",\"/admin/survey-submissions\"]", "group", "Y", 30),
                 menu("survey_manage", "survey_operation", 2, "설문 관리", "/admin/surveys/list.do", "[\"/admin/surveys\"]", "page", "Y", 10),
                 menu("survey_history", "survey_operation", 2, "설문 이력 관리", "/admin/survey-submissions/list.do", "[\"/admin/survey-submissions\"]", "page", "Y", 20),
-                menu("news", "", 1, "뉴스", "/admin/news/list.do", "[\"/admin/news\",\"/admin/news/ai-news\"]", "group", "Y", 40),
-                menu("news_ai_news", "news", 2, "AI News", "/admin/news/list.do", "[\"/admin/news\",\"/admin/news/ai-news\"]", "board", "Y", 10)
+                menu("news", "", 1, "게시판", "/admin/board", "[\"/admin/board\"]", "group", "Y", 40),
+                menu("news_ai_news", "news", 2, "AI News", "/admin/board/ai-news/list.do", "[\"/admin/board/ai-news\"]", "board", "Y", 10),
+                menu("news_photo_board", "news", 2, "포토게시판", "/admin/board/photo/list.do", "[\"/admin/board/photo\"]", "board", "Y", 20)
         ));
         COAdminMenuService service = new COAdminMenuService(mapper, new ObjectMapper());
 
@@ -43,13 +44,18 @@ class COAdminMenuServiceTest {
                 .containsExactly("survey_manage", "survey_history");
         assertThat(navigation.lnbItems().get(1).active()).isTrue();
 
-        var newsNavigation = service.adminNavigation("/admin/news/ai-news/detail.do");
-        assertThat(newsNavigation.gnbItems().get(2).menuCode()).isEqualTo("news");
-        assertThat(newsNavigation.gnbItems().get(2).active()).isTrue();
-        assertThat(newsNavigation.gnbItems().get(2).children())
+        var aiNewsNavigation = service.adminNavigation("/admin/board/ai-news/detail.do");
+        assertThat(aiNewsNavigation.gnbItems().get(2).menuCode()).isEqualTo("news");
+        assertThat(aiNewsNavigation.gnbItems().get(2).active()).isTrue();
+        assertThat(aiNewsNavigation.gnbItems().get(2).children())
                 .extracting("menuCode")
-                .containsExactly("news_ai_news");
-        assertThat(newsNavigation.gnbItems().get(2).children().get(0).active()).isTrue();
+                .containsExactly("news_ai_news", "news_photo_board");
+        assertThat(aiNewsNavigation.gnbItems().get(2).children().get(0).active()).isTrue();
+
+        var photoNavigation = service.adminNavigation("/admin/board/photo/list.do");
+        assertThat(photoNavigation.gnbItems().get(2).active()).isTrue();
+        assertThat(photoNavigation.gnbItems().get(2).children().get(1).menuCode()).isEqualTo("news_photo_board");
+        assertThat(photoNavigation.gnbItems().get(2).children().get(1).active()).isTrue();
     }
 
     @Test

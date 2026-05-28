@@ -99,18 +99,20 @@ class BDPhotoBoardControllerTest {
     @Test
     void insertValidationFailureRedirectsBackToWriteFormWithError() throws Exception {
         BDPhotoBoardService service = mock(BDPhotoBoardService.class);
-        doThrow(new IllegalArgumentException("제목을 입력해 주세요."))
+        doThrow(new IllegalArgumentException("첨부 파일을 최소 1개 이상 업로드해 주세요."))
                 .when(service).savePhotoBoard(any(), any(), any());
 
         MockMvc mvc = MockMvcBuilders.standaloneSetup(new BDPhotoBoardController(service)).build();
 
         mvc.perform(post("/admin/board/photo/insert.do")
-                        .param("title", "")
-                        .param("publishYn", "Y")
+                        .param("title", "입력한 제목")
+                        .param("publishYn", "N")
                         .principal(auth()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/board/photo/write.do"))
-                .andExpect(flash().attribute("error", "제목을 입력해 주세요."));
+                .andExpect(flash().attribute("error", "첨부 파일을 최소 1개 이상 업로드해 주세요."))
+                .andExpect(flash().attribute("formTitle", "입력한 제목"))
+                .andExpect(flash().attribute("formPublishYn", "N"));
     }
 
     @Test
@@ -128,7 +130,9 @@ class BDPhotoBoardControllerTest {
                         .principal(auth()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/board/photo/write.do?photoSeq=1"))
-                .andExpect(flash().attribute("error", "최대 업로드 갯수는 5개입니다."));
+                .andExpect(flash().attribute("error", "최대 업로드 갯수는 5개입니다."))
+                .andExpect(flash().attribute("formTitle", "수정 포토"))
+                .andExpect(flash().attribute("formPublishYn", "Y"));
     }
 
     @Test

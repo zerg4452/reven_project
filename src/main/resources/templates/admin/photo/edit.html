@@ -23,12 +23,14 @@
             <input type="hidden" name="photoSeq" th:value="${photo?.photoSeq}">
             <section class="content-panel">
                 <label>제목 <span class="required">*</span>
-                    <input class="form-control" name="title" th:value="${photo?.title}" required>
+                    <input class="form-control" name="title" th:value="${formTitle != null ? formTitle : photo?.title}" required>
                 </label>
                 <label>게시여부
                     <select class="form-control" name="publishYn">
-                        <option value="Y" th:selected="${photo?.publishYn == null or photo?.publishYn == 'Y'}">게시</option>
-                        <option value="N" th:selected="${photo?.publishYn == 'N'}">대기</option>
+                        <option value="Y"
+                                th:selected="${(formPublishYn != null ? formPublishYn : photo?.publishYn) == null or (formPublishYn != null ? formPublishYn : photo?.publishYn) == 'Y'}">게시</option>
+                        <option value="N"
+                                th:selected="${(formPublishYn != null ? formPublishYn : photo?.publishYn) == 'N'}">대기</option>
                     </select>
                 </label>
             </section>
@@ -84,7 +86,7 @@
                            accept="image/*,.gif,.webp,.mp4,video/mp4"
                            multiple>
                 </label>
-                <p class="form-hint">이미지, GIF, WEBP, MP4 파일만 업로드할 수 있으며, 유지/추가 합계 최대 5개까지 가능합니다.</p>
+                <p class="form-hint">이미지·GIF·WEBP는 파일당 20MB, MP4는 50MB까지 업로드할 수 있으며, 유지/추가 합계 최대 5개까지 가능합니다.</p>
                 <div class="photo-file-grid" data-photo-new-list></div>
             </section>
             <div class="detail-action-bar">

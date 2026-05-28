@@ -180,6 +180,59 @@ class BDPhotoBoardServiceTest {
     }
 
     @Test
+    void updateIgnoresKeepSeqsFromOtherPosts() {
+        BDPhotoBoardMapper mapper = mock(BDPhotoBoardMapper.class);
+        when(mapper.selectPhotoBoardDetail(2L)).thenReturn(detail(2L, "게시글 B"));
+        when(mapper.selectPhotoBoardFiles(2L)).thenReturn(List.of(file(20L, 2L, "b.png", 1)));
+
+        BDPhotoBoardService service = newService(mapper);
+
+        service.savePhotoBoard(
+                new BDPhotoBoardSaveRequestDto(2L, "게시글 B", "Y", "admin"),
+                List.of(pngFile("new.png")),
+                List.of(10L)
+        );
+
+        verify(mapper).deletePhotoBoardFile(20L, "admin");
+        verify(mapper, never()).deletePhotoBoardFile(eq(10L), any());
+        verify(mapper).insertPhotoBoardFile(any());
+    }
+
+    @Test
+    void rejectsImageLargerThanMaxSize() {
+        BDPhotoBoardMapper mapper = mock(BDPhotoBoardMapper.class);
+        BDPhotoBoardService service = newService(mapper, 5, 1, 50);
+        byte[] oversized = new byte[2 * 1024 * 1024];
+        MockMultipartFile upload = new MockMultipartFile("uploadFiles", "large.png", "image/png", oversized);
+
+        assertThatThrownBy(() -> service.savePhotoBoard(
+                new BDPhotoBoardSaveRequestDto(null, "테스트 포토", "Y", "admin"),
+                List.of(upload)
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("이미지 파일은 1MB 이하만 업로드할 수 있습니다.");
+
+        verify(mapper, never()).insertPhotoBoard(any());
+    }
+
+    @Test
+    void rejectsVideoLargerThanMaxSize() {
+        BDPhotoBoardMapper mapper = mock(BDPhotoBoardMapper.class);
+        BDPhotoBoardService service = newService(mapper, 5, 20, 1);
+        byte[] oversized = new byte[2 * 1024 * 1024];
+        MockMultipartFile upload = new MockMultipartFile("uploadFiles", "large.mp4", "video/mp4", oversized);
+
+        assertThatThrownBy(() -> service.savePhotoBoard(
+                new BDPhotoBoardSaveRequestDto(null, "테스트 포토", "Y", "admin"),
+                List.of(upload)
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("동영상 파일은 1MB 이하만 업로드할 수 있습니다.");
+
+        verify(mapper, never()).insertPhotoBoard(any());
+    }
+
+    @Test
     void rejectsDisallowedExtensionAndMimeType() {
         BDPhotoBoardMapper mapper = mock(BDPhotoBoardMapper.class);
         BDPhotoBoardService service = newService(mapper);
@@ -233,7 +286,18 @@ class BDPhotoBoardServiceTest {
     }
 
     private BDPhotoBoardService newService(BDPhotoBoardMapper mapper, int maxFiles) {
-        return new BDPhotoBoardService(mapper, tempDir.toString(), "/admin/board/photo/file.do", maxFiles);
+        return newService(mapper, maxFiles, 20, 50);
+    }
+
+    private BDPhotoBoardService newService(BDPhotoBoardMapper mapper, int maxFiles, int maxImageMb, int maxVideoMb) {
+        return new BDPhotoBoardService(
+                mapper,
+                tempDir.toString(),
+                "/admin/board/photo/file.do",
+                maxFiles,
+                maxImageMb,
+                maxVideoMb
+        );
     }
 
     private MockMultipartFile pngFile(String fileName) {

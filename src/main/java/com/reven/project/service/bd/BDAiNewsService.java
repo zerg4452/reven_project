@@ -100,7 +100,7 @@ public class BDAiNewsService {
      */
     @Transactional
     public BDAiNewsCrawlResultDto crawlLegacyJsonFiles(String actorId) {
-        Path crawlDirectory = resolveLegacyCrawlDirectory();
+        Path crawlDirectory = resolveCrawlDirectory();
         if (!Files.isDirectory(crawlDirectory)) {
             return new BDAiNewsCrawlResultDto(0, 0, 0);
         }
@@ -238,11 +238,11 @@ public class BDAiNewsService {
     }
 
     /**
-     * 레거시 PHP 프로젝트의 AI News JSON 폴더 위치를 찾는다.
+     * AI News 크롤 JSON 디렉터리(croll/ai-news) 위치를 찾는다.
      */
-    private Path resolveLegacyCrawlDirectory() {
-        Path repositoryPath = Paths.get(System.getProperty("user.dir"), "legacy-php-source", "croll", "ai-news");
-        return Files.exists(repositoryPath) ? repositoryPath : Paths.get("legacy-php-source", "croll", "ai-news");
+    private Path resolveCrawlDirectory() {
+        Path repositoryPath = Paths.get(System.getProperty("user.dir"), "croll", "ai-news");
+        return Files.exists(repositoryPath) ? repositoryPath : Paths.get("croll", "ai-news");
     }
 
     private String text(JsonNode node, String field, String defaultValue) {

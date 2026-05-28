@@ -8,6 +8,6 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 ENV TZ=Asia/Seoul
 COPY --from=build /workspace/build/libs/*.jar app.jar
-COPY legacy-php-source/croll ./legacy-php-source/croll
+COPY croll ./croll
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

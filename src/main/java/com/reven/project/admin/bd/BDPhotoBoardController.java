@@ -90,7 +90,7 @@ public class BDPhotoBoardController {
             redirectAttributes.addFlashAttribute("photoSavedMessage", "저장되었습니다.");
             return "redirect:/admin/board/photo/list.do";
         } catch (IllegalArgumentException | IllegalStateException exception) {
-            redirectAttributes.addFlashAttribute("error", exception.getMessage());
+            flashValidationFailure(redirectAttributes, requestDto, exception.getMessage());
             return "redirect:/admin/board/photo/write.do";
         }
     }
@@ -117,7 +117,7 @@ public class BDPhotoBoardController {
             redirectAttributes.addFlashAttribute("photoSavedMessage", "저장되었습니다.");
             return "redirect:/admin/board/photo/list.do";
         } catch (IllegalArgumentException | IllegalStateException exception) {
-            redirectAttributes.addFlashAttribute("error", exception.getMessage());
+            flashValidationFailure(redirectAttributes, requestDto, exception.getMessage());
             return "redirect:/admin/board/photo/write.do?photoSeq=" + photoSeq;
         }
     }
@@ -154,6 +154,20 @@ public class BDPhotoBoardController {
     @GetMapping("/admin/board/photo/download.do")
     public ResponseEntity<Resource> download(@RequestParam Long photoFileSeq) throws IOException {
         return buildPhotoFileResponse(photoFileSeq, true);
+    }
+
+    private void flashValidationFailure(
+            RedirectAttributes redirectAttributes,
+            BDPhotoBoardSaveRequestDto requestDto,
+            String message
+    ) {
+        redirectAttributes.addFlashAttribute("error", message);
+        if (requestDto.title() != null) {
+            redirectAttributes.addFlashAttribute("formTitle", requestDto.title());
+        }
+        if (requestDto.publishYn() != null) {
+            redirectAttributes.addFlashAttribute("formPublishYn", requestDto.publishYn());
+        }
     }
 
     private BDPhotoBoardSaveRequestDto withActor(BDPhotoBoardSaveRequestDto requestDto, Principal principal) {

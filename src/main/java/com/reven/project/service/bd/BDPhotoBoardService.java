@@ -34,22 +34,31 @@ public class BDPhotoBoardService {
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif", "mp4");
     private static final String MAX_UPLOAD_MESSAGE = "최대 업로드 갯수는 5개입니다.";
     private static final String MIN_UPLOAD_MESSAGE = "첨부 파일을 최소 1개 이상 업로드해 주세요.";
-
     private final BDPhotoBoardMapper photoBoardMapper;
     private final Path rootPath;
     private final String fileBaseUrl;
     private final int maxFiles;
+    private final int maxImageSizeMb;
+    private final int maxVideoSizeMb;
+    private final long maxImageBytes;
+    private final long maxVideoBytes;
 
     public BDPhotoBoardService(
             BDPhotoBoardMapper photoBoardMapper,
             @Value("${reven.upload.photo.root-path}") String rootPath,
             @Value("${reven.upload.photo.base-url}") String fileBaseUrl,
-            @Value("${reven.upload.photo.max-files:5}") int maxFiles
+            @Value("${reven.upload.photo.max-files:5}") int maxFiles,
+            @Value("${reven.upload.photo.max-image-size-mb:20}") int maxImageSizeMb,
+            @Value("${reven.upload.photo.max-video-size-mb:50}") int maxVideoSizeMb
     ) {
         this.photoBoardMapper = photoBoardMapper;
         this.rootPath = Paths.get(rootPath).toAbsolutePath().normalize();
         this.fileBaseUrl = fileBaseUrl;
         this.maxFiles = maxFiles;
+        this.maxImageSizeMb = maxImageSizeMb;
+        this.maxVideoSizeMb = maxVideoSizeMb;
+        this.maxImageBytes = megabytesToBytes(maxImageSizeMb);
+        this.maxVideoBytes = megabytesToBytes(maxVideoSizeMb);
     }
 
     /**
@@ -113,6 +122,7 @@ public class BDPhotoBoardService {
     ) {
         BDPhotoBoardSaveRequestDto normalized = normalize(requestDto);
         List<MultipartFile> newFiles = normalizeFiles(uploadedFiles);
+        validateNewFileSizes(newFiles);
         BDPhotoBoardDetailResponseDto existingPost = normalized.photoSeq() == null
                 ? null
                 : photoBoardMapper.selectPhotoBoardDetail(normalized.photoSeq());
@@ -261,7 +271,6 @@ public class BDPhotoBoardService {
         if (!isAllowedContentType(contentType, extension)) {
             throw new IllegalArgumentException("허용되지 않는 MIME 타입입니다.");
         }
-
         String storedFileName = UUID.randomUUID().toString().replace("-", "") + "." + extension;
         String storedPath = STORAGE_PATH_FORMATTER.format(LocalDate.now());
         Path directory = rootPath.resolve(storedPath).normalize();
@@ -282,6 +291,40 @@ public class BDPhotoBoardService {
         fileCommand.setSortOrder(sortOrder);
         fileCommand.setActorId(actorId);
         photoBoardMapper.insertPhotoBoardFile(fileCommand);
+    }
+
+    private void validateNewFileSizes(List<MultipartFile> newFiles) {
+        for (MultipartFile file : newFiles) {
+            String originalFileName = sanitizeFileName(firstText(file.getOriginalFilename(), "photo"));
+            String extension = fileExtension(originalFileName);
+            validateFileSize(extension, file.getSize());
+        }
+    }
+
+    private void validateFileSize(String extension, long fileSize) {
+        if (fileSize <= 0) {
+            throw new IllegalArgumentException(MIN_UPLOAD_MESSAGE);
+        }
+        if ("mp4".equals(extension)) {
+            if (fileSize > maxVideoBytes) {
+                throw new IllegalArgumentException(
+                        "동영상 파일은 " + maxVideoSizeMb + "MB 이하만 업로드할 수 있습니다."
+                );
+            }
+            return;
+        }
+        if (fileSize > maxImageBytes) {
+            throw new IllegalArgumentException(
+                    "이미지 파일은 " + maxImageSizeMb + "MB 이하만 업로드할 수 있습니다."
+            );
+        }
+    }
+
+    private long megabytesToBytes(int megabytes) {
+        if (megabytes <= 0) {
+            throw new IllegalArgumentException("업로드 용량 제한은 1MB 이상이어야 합니다.");
+        }
+        return megabytes * 1024L * 1024L;
     }
 
     private boolean isAllowedContentType(String contentType, String extension) {
