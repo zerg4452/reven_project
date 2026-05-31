@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.reven.project.service.sa.mapper.SASurveyMapper">
-    <resultMap id="SurveyListItemMap" type="com.reven.project.service.sa.dto.SADto$SurveyListItem">
+    <resultMap id="SurveyListItemMap" type="com.reven.project.service.sa.dto.SASurveyDto$SurveyListItem">
         <id property="surveySeq" column="survey_seq"/>
         <result property="rowNo" column="row_no"/>
         <result property="surveyUid" column="survey_uid"/>
@@ -13,7 +13,7 @@
         <result property="modDate" column="mod_date"/>
     </resultMap>
 
-    <resultMap id="SurveyDetailMap" type="com.reven.project.service.sa.dto.SADto$SurveyDetail">
+    <resultMap id="SurveyDetailMap" type="com.reven.project.service.sa.dto.SASurveyDto$SurveyDetail">
         <id property="surveySeq" column="survey_seq"/>
         <result property="surveyUid" column="survey_uid"/>
         <result property="title" column="title"/>
@@ -23,7 +23,7 @@
         <result property="modDate" column="mod_date"/>
     </resultMap>
 
-    <resultMap id="SurveyFieldMap" type="com.reven.project.service.sa.dto.SADto$SurveyField">
+    <resultMap id="SurveyFieldMap" type="com.reven.project.service.sa.dto.SASurveyDto$SurveyField">
         <id property="fieldSeq" column="field_seq"/>
         <result property="surveySeq" column="survey_seq"/>
         <result property="fieldKey" column="field_key"/>
@@ -33,7 +33,7 @@
         <result property="sortOrd" column="sort_ord"/>
     </resultMap>
 
-    <resultMap id="SurveyOptionMap" type="com.reven.project.service.sa.dto.SADto$SurveyOption">
+    <resultMap id="SurveyOptionMap" type="com.reven.project.service.sa.dto.SASurveyDto$SurveyOption">
         <id property="optionSeq" column="field_opt_seq"/>
         <result property="fieldSeq" column="field_seq"/>
         <result property="optionLabel" column="option_label"/>
@@ -164,13 +164,13 @@
         order by f.sort_ord, o.sort_ord, o.field_opt_seq
     </select>
 
-    <insert id="insertSurvey" parameterType="com.reven.project.service.sa.dto.SADto$SurveyDetail"
+    <insert id="insertSurvey" parameterType="com.reven.project.service.sa.dto.SASurveyDto$SurveyDetail"
             useGeneratedKeys="true" keyProperty="surveySeq" keyColumn="survey_seq">
         insert into sa_survey_mst (survey_uid, title, description, use_yn, reg_dtm, reg_id, mod_dtm, mod_id)
         values (#{surveyUid}, #{title}, #{description}, #{useYn}, now(), 'system', now(), 'system')
     </insert>
 
-    <update id="updateSurvey" parameterType="com.reven.project.service.sa.dto.SADto$SurveyDetail">
+    <update id="updateSurvey" parameterType="com.reven.project.service.sa.dto.SASurveyDto$SurveyDetail">
         update sa_survey_mst
         set title = #{title},
             description = #{description},
@@ -200,7 +200,7 @@
         where survey_seq = #{surveySeq}
     </update>
 
-    <insert id="insertSurveyField" parameterType="com.reven.project.service.sa.dto.SADto$SurveyField"
+    <insert id="insertSurveyField" parameterType="com.reven.project.service.sa.dto.SASurveyDto$SurveyField"
             useGeneratedKeys="true" keyProperty="fieldSeq" keyColumn="field_seq">
         insert into sa_survey_field_dtl
             (survey_seq, field_key, field_label, field_type, required_yn, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id)
@@ -208,7 +208,7 @@
             (#{surveySeq}, #{fieldKey}, #{label}, #{fieldType}, #{requiredYn}, #{sortOrd}, now(), 'system', now(), 'system')
     </insert>
 
-    <insert id="insertSurveyOption" parameterType="com.reven.project.service.sa.dto.SADto$SurveyOption"
+    <insert id="insertSurveyOption" parameterType="com.reven.project.service.sa.dto.SASurveyDto$SurveyOption"
             useGeneratedKeys="true" keyProperty="optionSeq" keyColumn="field_opt_seq">
         insert into sa_survey_field_opt_dtl
             (field_seq, option_label, option_value, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id)

@@ -76,7 +76,8 @@
             reg_dtm as registeredAt,
             reg_id as registeredBy,
             mod_dtm as modifiedAt,
-            mod_id as modifiedBy
+            mod_id as modifiedBy,
+            view_cnt as viewCnt
         from bd_ai_news_mst
         where delete_flg = 'N'
           and status = 'Y'
@@ -108,7 +109,8 @@
             reg_dtm as registeredAt,
             reg_id as registeredBy,
             mod_dtm as modifiedAt,
-            mod_id as modifiedBy
+            mod_id as modifiedBy,
+            view_cnt as viewCnt
         from bd_ai_news_mst
         where news_seq = #{newsSeq}
           and delete_flg = 'N'
@@ -132,7 +134,8 @@
             reg_dtm as registeredAt,
             reg_id as registeredBy,
             mod_dtm as modifiedAt,
-            mod_id as modifiedBy
+            mod_id as modifiedBy,
+            view_cnt as viewCnt
         from bd_ai_news_mst
         where news_seq = #{newsSeq}
           and status = 'Y'
@@ -157,7 +160,8 @@
             reg_dtm as registeredAt,
             reg_id as registeredBy,
             mod_dtm as modifiedAt,
-            mod_id as modifiedBy
+            mod_id as modifiedBy,
+            view_cnt as viewCnt
         from bd_ai_news_mst
         where slug = #{slug}
           and delete_flg = 'N'
@@ -219,5 +223,12 @@
         set delete_flg = 'Y',
             mod_dtm = current_timestamp
         where news_seq = #{newsSeq}
+    </update>
+
+    <update id="increaseViewCount">
+        update bd_ai_news_mst
+        set view_cnt = view_cnt + 1
+        where news_seq = #{newsSeq}
+          and delete_flg = 'N'
     </update>
 </mapper>

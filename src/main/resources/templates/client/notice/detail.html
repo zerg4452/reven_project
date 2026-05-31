@@ -1,0 +1,38 @@
+<!-- screen: 공지사항 상세 / purpose: 공개 공지사항 본문과 썸네일, 첨부 파일을 조회하는 화면 / created: 2026-05-31 -->
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${notice?.title()} ?: '공지사항 상세')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: publicGnb('board')}"></header>
+<main class="public-content">
+    <section class="page-head">
+        <h1 th:text="${notice?.title()} ?: '공지사항 상세'">공지사항 상세</h1>
+        <p>
+            <span th:text="${notice?.publishDtm() != null ? #temporals.format(notice.publishDtm(), 'yyyy-MM-dd') : '2026-05-31'}">2026-05-31</span>
+            <span th:text="|· 조회수 ${notice?.viewCnt() ?: 0}|">· 조회수 0</span>
+        </p>
+    </section>
+
+    <section class="content-panel notice-detail-content">
+        <div class="notice-detail-thumbnail" th:if="${thumbnail != null}">
+            <img th:src="${thumbnail.fileUrl()}" th:alt="${notice?.title()}">
+        </div>
+        <div class="notice-detail-body" th:utext="${notice?.content()}">본문</div>
+    </section>
+
+    <section class="content-panel notice-attachment-panel" th:if="${!#lists.isEmpty(attachments)}">
+        <div class="panel-head"><h2>첨부 파일</h2><span th:text="|${#lists.size(attachments)}개|">0개</span></div>
+        <ul class="notice-attachment-list">
+            <li th:each="file : ${attachments}">
+                <a th:href="${file.fileUrl()}" th:text="${file.originalFileName()}" target="_blank">파일명</a>
+                <span class="notice-file-size" th:text="${file.displayFileSizeKb()}">1 KB</span>
+            </li>
+        </ul>
+    </section>
+
+    <div class="detail-action-bar"><a class="btn btn-neutral" th:href="@{/board/notice/list.do}">목록</a></div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

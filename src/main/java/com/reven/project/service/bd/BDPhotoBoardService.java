@@ -123,6 +123,16 @@ public class BDPhotoBoardService {
     }
 
     /**
+     * 사진 게시판 조회수를 1 증가시킨다.
+     */
+    @Transactional
+    public void increaseViewCount(Long photoSeq) {
+        if (photoSeq != null) {
+            photoBoardMapper.increaseViewCount(photoSeq);
+        }
+    }
+
+    /**
      * 사용자 포토 게시판 단건을 조회한다.
      */
     public BDPhotoBoardDetailResponseDto findPublicPhotoBoard(Long photoSeq) {

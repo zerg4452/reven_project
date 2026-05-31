@@ -7,7 +7,10 @@
 <main class="public-content">
     <section class="page-head">
         <h1 th:text="${photo?.title()} ?: '포토 게시판 상세'">포토 게시판 상세</h1>
-        <p th:text="${photo?.registeredAt() != null ? #temporals.format(photo.registeredAt(), 'yyyy-MM-dd') : '2026-05-30'}">2026-05-30</p>
+        <p>
+            <span th:text="${photo?.registeredAt() != null ? #temporals.format(photo.registeredAt(), 'yyyy-MM-dd') : '2026-05-30'}">2026-05-30</span>
+            <span th:text="|· 조회수 ${photo?.viewCnt() ?: 0}|">· 조회수 0</span>
+        </p>
     </section>
 
     <section class="content-panel photo-attachment-panel photo-detail-attachments">

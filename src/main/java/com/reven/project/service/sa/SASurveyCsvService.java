@@ -1,6 +1,6 @@
 package com.reven.project.service.sa;
 
-import com.reven.project.service.sa.dto.SADto;
+import com.reven.project.service.sa.dto.SASurveyDto;
 import com.reven.project.service.sa.mapper.SASurveySubmitMapper;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -24,15 +24,15 @@ public class SASurveyCsvService {
     /**
      * 설문 이력 검색 결과를 UTF-8 BOM이 포함된 CSV 바이트 배열로 만든다.
      */
-    public byte[] createSubmissionCsv(SADto.SubmissionSearchRequest request) {
-        List<SADto.CsvRow> rows = submitMapper.selectCsvRows(request);
+    public byte[] createSubmissionCsv(SASurveyDto.SubmissionSearchRequest request) {
+        List<SASurveyDto.CsvRow> rows = submitMapper.selectCsvRows(request);
         try {
             StringWriter writer = new StringWriter();
             CSVFormat format = CSVFormat.DEFAULT.builder()
                     .setHeader("제출UID", "설문명", "제출자명", "연락처", "이메일", "상태", "제출일", "문항", "답변", "답변JSON")
                     .build();
             try (CSVPrinter printer = new CSVPrinter(writer, format)) {
-                for (SADto.CsvRow row : rows) {
+                for (SASurveyDto.CsvRow row : rows) {
                     printer.printRecord(row.submitUid, row.surveyTitle, row.submitterName, row.phone, row.email,
                             row.status, row.submittedDate, row.fieldLabel, row.answerValue, row.answerJson);
                 }

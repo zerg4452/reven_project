@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reven.project.service.bd.mapper.BDNoticeMapper">
+
+    <!-- 사용자 공개 가시성 조건(목록·고정·상세·파일 공통, 미래 게시일 단일 차단 지점) -->
+    <sql id="publicNoticeVisibleWhere">
+        m.delete_flg = 'N'
+        and m.publish_yn = 'Y'
+        and m.publish_dtm &lt;= now()
+    </sql>
+
+    <sql id="publicNoticeSearchWhere">
+        <if test="keyword != null and keyword != ''">
+          and (
+            m.title like concat('%', #{keyword}, '%')
+            or m.content like concat('%', #{keyword}, '%')
+          )
+        </if>
+    </sql>
+
+    <sql id="publicNoticeListColumns">
+        m.notice_seq as noticeSeq,
+        m.title,
+        m.pin_yn as pinYn,
+        m.view_cnt as viewCnt,
+        date(m.publish_dtm) as publishDate,
+        tf.notice_file_seq as thumbnailFileSeq,
+        null as thumbnailFileUrl
+    </sql>
+
+    <sql id="publicNoticeThumbnailJoin">
+        left join bd_notice_file_dtl tf
+          on tf.notice_file_seq = (
+            select f.notice_file_seq
+            from bd_notice_file_dtl f
+            where f.notice_seq = m.notice_seq
+              and f.delete_flg = 'N'
+              and f.file_type = 'THUMB'
+            order by f.notice_file_seq asc
+            limit 1
+          )
+    </sql>
+
+    <select id="selectNoticeList" resultType="com.reven.project.service.bd.dto.BDNoticeListItemResponseDto">
+        select
+            notice_seq as noticeSeq,
+            title,
+            publish_yn as publishYn,
+            pin_yn as pinYn,
+            view_cnt as viewCnt,
+            date(publish_dtm) as publishDate,
+            date(mod_dtm) as updatedDate
+        from bd_notice_mst
+        where delete_flg = 'N'
+        <if test="startDate != null">
+          and date(publish_dtm) &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+          and date(publish_dtm) &lt;= #{endDate}
+        </if>
+        order by pin_yn desc, publish_dtm desc, notice_seq desc
+    </select>
+
+    <select id="selectNoticeDetail" resultType="com.reven.project.service.bd.dto.BDNoticeDetailResponseDto">
+        select
+            notice_seq as noticeSeq,
+            title,
+            content,
+            publish_yn as publishYn,
+            pin_yn as pinYn,
+            view_cnt as viewCnt,
+            publish_dtm as publishDtm,
+            delete_flg as deleteFlg,
+            reg_dtm as registeredAt,
+            reg_id as registeredBy,
+            mod_dtm as modifiedAt,
+            mod_id as modifiedBy
+        from bd_notice_mst
+        where notice_seq = #{noticeSeq}
+          and delete_flg = 'N'
+    </select>
+
+    <select id="selectNoticeFiles" resultType="com.reven.project.service.bd.dto.BDNoticeFileResponseDto">
+        select
+            notice_file_seq as noticeFileSeq,
+            notice_seq as noticeSeq,
+            file_type as fileType,
+            original_file_name as originalFileName,
+            stored_file_name as storedFileName,
+            stored_path as storedPath,
+            content_type as contentType,
+            file_size as fileSize,
+            sort_ord as sortOrder,
+            delete_flg as deleteFlg,
+            reg_dtm as registeredAt,
+            reg_id as registeredBy,
+            mod_dtm as modifiedAt,
+            mod_id as modifiedBy,
+            null as fileUrl
+        from bd_notice_file_dtl
+        where notice_seq = #{noticeSeq}
+          and delete_flg = 'N'
+        <if test="fileType != null and fileType != ''">
+          and file_type = #{fileType}
+        </if>
+        order by sort_ord asc, notice_file_seq asc
+    </select>
+
+    <select id="selectNoticeFile" resultType="com.reven.project.service.bd.dto.BDNoticeFileResponseDto">
+        select
+            notice_file_seq as noticeFileSeq,
+            notice_seq as noticeSeq,
+            file_type as fileType,
+            original_file_name as originalFileName,
+            stored_file_name as storedFileName,
+            stored_path as storedPath,
+            content_type as contentType,
+            file_size as fileSize,
+            sort_ord as sortOrder,
+            delete_flg as deleteFlg,
+            reg_dtm as registeredAt,
+            reg_id as registeredBy,
+            mod_dtm as modifiedAt,
+            mod_id as modifiedBy,
+            null as fileUrl
+        from bd_notice_file_dtl
+        where notice_file_seq = #{noticeFileSeq}
+          and delete_flg = 'N'
+    </select>
+
+    <select id="selectPublicPinnedNotices" resultType="com.reven.project.service.bd.dto.BDNoticePublicListItemResponseDto">
+        select
+        <include refid="publicNoticeListColumns"/>
+        from bd_notice_mst m
+        <include refid="publicNoticeThumbnailJoin"/>
+        where <include refid="publicNoticeVisibleWhere"/>
+          and m.pin_yn = 'Y'
+        order by m.publish_dtm desc, m.notice_seq desc
+    </select>
+
+    <select id="selectPublicNoticeList" resultType="com.reven.project.service.bd.dto.BDNoticePublicListItemResponseDto">
+        select
+        <include refid="publicNoticeListColumns"/>
+        from bd_notice_mst m
+        <include refid="publicNoticeThumbnailJoin"/>
+        where <include refid="publicNoticeVisibleWhere"/>
+          and m.pin_yn = 'N'
+        <include refid="publicNoticeSearchWhere"/>
+        order by m.publish_dtm desc, m.notice_seq desc
+        limit #{size} offset #{offset}
+    </select>
+
+    <select id="selectPublicNoticeCount" resultType="int">
+        select count(*)
+        from bd_notice_mst m
+        where <include refid="publicNoticeVisibleWhere"/>
+          and m.pin_yn = 'N'
+        <include refid="publicNoticeSearchWhere"/>
+    </select>
+
+    <select id="selectPublicNoticeDetail" resultType="com.reven.project.service.bd.dto.BDNoticeDetailResponseDto">
+        select
+            notice_seq as noticeSeq,
+            title,
+            content,
+            publish_yn as publishYn,
+            pin_yn as pinYn,
+            view_cnt as viewCnt,
+            publish_dtm as publishDtm,
+            delete_flg as deleteFlg,
+            reg_dtm as registeredAt,
+            reg_id as registeredBy,
+            mod_dtm as modifiedAt,
+            mod_id as modifiedBy
+        from bd_notice_mst
+        where notice_seq = #{noticeSeq}
+          and delete_flg = 'N'
+          and publish_yn = 'Y'
+          and publish_dtm &lt;= now()
+    </select>
+
+    <select id="selectPublicNoticeFile" resultType="com.reven.project.service.bd.dto.BDNoticeFileResponseDto">
+        select
+            f.notice_file_seq as noticeFileSeq,
+            f.notice_seq as noticeSeq,
+            f.file_type as fileType,
+            f.original_file_name as originalFileName,
+            f.stored_file_name as storedFileName,
+            f.stored_path as storedPath,
+            f.content_type as contentType,
+            f.file_size as fileSize,
+            f.sort_ord as sortOrder,
+            f.delete_flg as deleteFlg,
+            f.reg_dtm as registeredAt,
+            f.reg_id as registeredBy,
+            f.mod_dtm as modifiedAt,
+            f.mod_id as modifiedBy,
+            null as fileUrl
+        from bd_notice_file_dtl f
+        inner join bd_notice_mst m
+          on m.notice_seq = f.notice_seq
+         and m.delete_flg = 'N'
+         and m.publish_yn = 'Y'
+         and m.publish_dtm &lt;= now()
+        where f.notice_file_seq = #{noticeFileSeq}
+          and f.delete_flg = 'N'
+    </select>
+
+    <insert id="insertNotice">
+        <selectKey keyProperty="noticeSeq" resultType="long" order="AFTER">
+            select last_insert_id()
+        </selectKey>
+        insert into bd_notice_mst (
+            title,
+            content,
+            publish_yn,
+            pin_yn,
+            publish_dtm,
+            view_cnt,
+            delete_flg,
+            reg_dtm,
+            reg_id,
+            mod_dtm,
+            mod_id
+        ) values (
+            #{title},
+            #{content},
+            #{publishYn},
+            #{pinYn},
+            #{publishDtm},
+            0,
+            'N',
+            current_timestamp,
+            #{actorId},
+            current_timestamp,
+            #{actorId}
+        )
+    </insert>
+
+    <update id="updateNotice">
+        update bd_notice_mst
+        set title = #{title},
+            content = #{content},
+            publish_yn = #{publishYn},
+            pin_yn = #{pinYn},
+            publish_dtm = #{publishDtm},
+            mod_dtm = current_timestamp,
+            mod_id = #{actorId}
+        where notice_seq = #{noticeSeq}
+          and delete_flg = 'N'
+    </update>
+
+    <update id="deleteNotice">
+        update bd_notice_mst
+        set delete_flg = 'Y',
+            mod_dtm = current_timestamp,
+            mod_id = #{actorId}
+        where notice_seq = #{noticeSeq}
+          and delete_flg = 'N'
+    </update>
+
+    <insert id="insertNoticeFile">
+        <selectKey keyProperty="noticeFileSeq" resultType="long" order="AFTER">
+            select last_insert_id()
+        </selectKey>
+        insert into bd_notice_file_dtl (
+            notice_seq,
+            file_type,
+            original_file_name,
+            stored_file_name,
+            stored_path,
+            content_type,
+            file_size,
+            sort_ord,
+            delete_flg,
+            reg_dtm,
+            reg_id,
+            mod_dtm,
+            mod_id
+        ) values (
+            #{noticeSeq},
+            #{fileType},
+            #{originalFileName},
+            #{storedFileName},
+            #{storedPath},
+            #{contentType},
+            #{fileSize},
+            #{sortOrder},
+            'N',
+            current_timestamp,
+            #{actorId},
+            current_timestamp,
+            #{actorId}
+        )
+    </insert>
+
+    <update id="deleteNoticeFile">
+        update bd_notice_file_dtl
+        set delete_flg = 'Y',
+            mod_dtm = current_timestamp,
+            mod_id = #{actorId}
+        where notice_file_seq = #{noticeFileSeq}
+          and delete_flg = 'N'
+    </update>
+
+    <update id="deleteNoticeFiles">
+        update bd_notice_file_dtl
+        set delete_flg = 'Y',
+            mod_dtm = current_timestamp,
+            mod_id = #{actorId}
+        where notice_seq = #{noticeSeq}
+          and delete_flg = 'N'
+    </update>
+
+    <update id="increaseViewCount">
+        update bd_notice_mst
+        set view_cnt = view_cnt + 1
+        where notice_seq = #{noticeSeq}
+          and delete_flg = 'N'
+    </update>
+</mapper>

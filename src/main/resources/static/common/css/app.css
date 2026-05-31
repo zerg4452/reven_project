@@ -772,6 +772,12 @@ a:hover {
     color: #5f6b76;
 }
 
+.public-notice-search {
+    grid-template-columns: 80px minmax(0, 1fr) auto auto;
+    align-items: center;
+    background: var(--public-cream);
+}
+
 .public-news-search {
     grid-template-columns: 80px minmax(0, 1fr) auto auto;
     align-items: center;
@@ -1638,6 +1644,10 @@ textarea.form-control {
     background: #6b7784;
 }
 
+.badge-warning {
+    background: #b9770d;
+}
+
 .field-editor,
 .question-list,
 .answer-list {
@@ -2011,12 +2021,14 @@ textarea.form-control {
 
     .news-search-actions,
     .management-search-actions,
+    .public-notice-search,
     .public-news-search,
     .public-photo-search {
         grid-column: 1 / -1;
         width: 100%;
     }
 
+    .public-notice-search,
     .public-news-search,
     .public-photo-search {
         grid-template-columns: 1fr;
@@ -2069,4 +2081,101 @@ textarea.form-control {
         scroll-behavior: auto !important;
         transition-duration: 0.01ms !important;
     }
+}
+
+/* 공지사항: 상단 고정 행 배경색 구분 */
+.notice-row-pinned > td {
+    background: #fff7e6;
+}
+
+.notice-list-table .notice-col-type {
+    width: 80px;
+}
+
+.notice-list-table .notice-col-date {
+    width: 130px;
+}
+
+.notice-list-table .notice-col-view {
+    width: 90px;
+}
+
+.notice-thumbnail-current {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.notice-thumbnail-image {
+    max-width: 160px;
+    max-height: 120px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.notice-thumbnail-preview img {
+    margin-top: 8px;
+}
+
+.notice-attachment-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.notice-file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.notice-file-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+    border: 1px solid #e1e5ea;
+    border-radius: 8px;
+}
+
+.notice-file-card-select {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.notice-file-name {
+    word-break: break-all;
+}
+
+.notice-file-size {
+    color: #6b7784;
+    font-size: 13px;
+}
+
+.notice-detail-thumbnail img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.notice-detail-body {
+    white-space: pre-wrap;
+    line-height: 1.7;
+}
+
+.notice-attachment-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.notice-attachment-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }

@@ -77,7 +77,8 @@
             reg_dtm as registeredAt,
             reg_id as registeredBy,
             mod_dtm as modifiedAt,
-            mod_id as modifiedBy
+            mod_id as modifiedBy,
+            view_cnt as viewCnt
         from bd_photo_board_mst
         where photo_seq = #{photoSeq}
           and delete_flg = 'N'
@@ -178,7 +179,8 @@
             reg_dtm as registeredAt,
             reg_id as registeredBy,
             mod_dtm as modifiedAt,
-            mod_id as modifiedBy
+            mod_id as modifiedBy,
+            view_cnt as viewCnt
         from bd_photo_board_mst
         where photo_seq = #{photoSeq}
           and publish_yn = 'Y'
@@ -300,6 +302,13 @@
             mod_dtm = current_timestamp,
             mod_id = #{actorId}
         where photo_file_seq = #{photoFileSeq}
+          and delete_flg = 'N'
+    </update>
+
+    <update id="increaseViewCount">
+        update bd_photo_board_mst
+        set view_cnt = view_cnt + 1
+        where photo_seq = #{photoSeq}
           and delete_flg = 'N'
     </update>
 </mapper>

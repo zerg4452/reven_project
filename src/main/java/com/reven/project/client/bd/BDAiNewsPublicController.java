@@ -1,6 +1,9 @@
 package com.reven.project.client.bd;
 
 import com.reven.project.service.bd.BDAiNewsService;
+import com.reven.project.service.bd.dto.BDAiNewsDetailResponseDto;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,8 +31,18 @@ public class BDAiNewsPublicController {
      * 게시 상태 AI News 단건을 상세 화면으로 표시한다.
      */
     @GetMapping("/board/ai-news/detail.do")
-    public String detail(@RequestParam Long newsSeq, Model model) {
-        model.addAttribute("news", aiNewsService.findPublishedAiNewsDetail(newsSeq));
+    public String detail(
+            @RequestParam Long newsSeq,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Model model
+    ) {
+        BDAiNewsDetailResponseDto news = aiNewsService.findPublishedAiNewsDetail(newsSeq);
+        if (news != null) {
+            BDBoardViewCountSupport.countOnce(request, response, "bd_viewed_news", newsSeq,
+                    () -> aiNewsService.increaseViewCount(newsSeq));
+        }
+        model.addAttribute("news", news);
         return "client/news/ai-detail";
     }
 }

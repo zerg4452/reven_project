@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.reven.project.service.sa.mapper.SASurveySubmitMapper">
-    <resultMap id="SubmissionListItemMap" type="com.reven.project.service.sa.dto.SADto$SubmissionListItem">
+    <resultMap id="SubmissionListItemMap" type="com.reven.project.service.sa.dto.SASurveyDto$SubmissionListItem">
         <id property="submitSeq" column="submit_seq"/>
         <result property="rowNo" column="row_no"/>
         <result property="submitUid" column="submit_uid"/>
@@ -14,7 +14,7 @@
         <result property="submittedDate" column="submitted_date"/>
     </resultMap>
 
-    <resultMap id="SubmissionDetailMap" type="com.reven.project.service.sa.dto.SADto$SubmissionDetail">
+    <resultMap id="SubmissionDetailMap" type="com.reven.project.service.sa.dto.SASurveyDto$SubmissionDetail">
         <id property="submitSeq" column="submit_seq"/>
         <result property="submitUid" column="submit_uid"/>
         <result property="surveyUid" column="survey_uid"/>
@@ -27,7 +27,7 @@
         <result property="submittedDate" column="submitted_date"/>
     </resultMap>
 
-    <resultMap id="AnswerSnapshotMap" type="com.reven.project.service.sa.dto.SADto$AnswerSnapshot">
+    <resultMap id="AnswerSnapshotMap" type="com.reven.project.service.sa.dto.SASurveyDto$AnswerSnapshot">
         <id property="answerSeq" column="answer_seq"/>
         <result property="submitSeq" column="submit_seq"/>
         <result property="fieldKey" column="field_key"/>
@@ -38,7 +38,7 @@
         <result property="sortOrd" column="sort_ord"/>
     </resultMap>
 
-    <resultMap id="CsvRowMap" type="com.reven.project.service.sa.dto.SADto$CsvRow">
+    <resultMap id="CsvRowMap" type="com.reven.project.service.sa.dto.SASurveyDto$CsvRow">
         <result property="submitUid" column="submit_uid"/>
         <result property="surveyTitle" column="survey_title"/>
         <result property="submitterName" column="submitter_name"/>
@@ -85,7 +85,7 @@
         </where>
     </sql>
 
-    <insert id="insertSubmission" parameterType="com.reven.project.service.sa.dto.SADto$SubmitInsert"
+    <insert id="insertSubmission" parameterType="com.reven.project.service.sa.dto.SASurveyDto$SubmitInsert"
             useGeneratedKeys="true" keyProperty="submitSeq" keyColumn="submit_seq">
         insert into sa_survey_submit_mst
             (survey_seq, survey_uid, submit_uid, survey_title_snapshot, submitter_name, phone, email, status, submitted_dtm, ip, reg_dtm, reg_id, mod_dtm, mod_id)
@@ -93,7 +93,7 @@
             (#{surveySeq}, #{surveyUid}, #{submitUid}, #{surveyTitle}, #{submitterName}, #{phone}, #{email}, #{status}, now(), #{ip}, now(), 'system', now(), 'system')
     </insert>
 
-    <insert id="insertAnswer" parameterType="com.reven.project.service.sa.dto.SADto$AnswerInsert"
+    <insert id="insertAnswer" parameterType="com.reven.project.service.sa.dto.SASurveyDto$AnswerInsert"
             useGeneratedKeys="true" keyProperty="answerSeq" keyColumn="answer_seq">
         insert into sa_survey_answer_dtl
             (submit_seq, field_seq, field_key_snapshot, field_label_snapshot, field_type_snapshot, required_yn_snapshot, answer_value, answer_json, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id)

@@ -47,8 +47,9 @@
     <button class="nav-toggle" type="button" data-nav-toggle aria-controls="publicGlobalNavigation" aria-expanded="false">메뉴</button>
     <div class="gnb-links public-gnb-links" id="publicGlobalNavigation">
         <div class="gnb-menu" th:classappend="${active == 'board'} ? ' is-active'">
-            <a th:href="@{/board/ai-news/list.do}">게시판</a>
+            <a th:href="@{/board/notice/list.do}">게시판</a>
             <div class="gnb-dropdown">
+                <a th:href="@{/board/notice/list.do}">공지사항</a>
                 <a th:href="@{/board/ai-news/list.do}">AI News</a>
                 <a th:href="@{/board/photo/list.do}">포토 게시판</a>
             </div>

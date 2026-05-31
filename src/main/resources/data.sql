@@ -104,6 +104,15 @@ SELECT 'news_photo_board', 'news', 2, '포토게시판', '/admin/board/photo',
        'board', 'photo_board', 'Y', 'N', 20, NOW(), 'system', NOW(), 'system'
 WHERE NOT EXISTS (SELECT 1 FROM co_adm_menu_mst WHERE menu_cd = 'news_photo_board');
 
+INSERT INTO co_adm_menu_mst (
+    menu_cd, parent_menu_cd, depth_no, menu_nm, menu_url, match_urls_json,
+    menu_type, board_key, use_yn, delete_flg, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id
+)
+SELECT 'news_notice', 'news', 2, '공지사항', '/admin/board/notice',
+       '["/admin/board/notice"]',
+       'board', 'notice', 'Y', 'N', 5, NOW(), 'system', NOW(), 'system'
+WHERE NOT EXISTS (SELECT 1 FROM co_adm_menu_mst WHERE menu_cd = 'news_notice');
+
 INSERT INTO co_dashboard_panel_mst (
     board_key, panel_title, use_yn, item_limit, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id
 )

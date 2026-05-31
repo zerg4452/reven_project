@@ -1,0 +1,63 @@
+<!-- screen: 공지사항 / purpose: 공개 공지사항을 표 형식으로 조회하고 고정 공지를 상단에 노출하는 화면 / created: 2026-05-31 -->
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('공지사항')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: publicGnb('board')}"></header>
+<main class="public-content">
+    <section class="page-head"><h1>공지사항</h1><p>게시된 공지사항을 확인합니다.</p></section>
+
+    <form class="search-panel public-notice-search" method="get" th:action="@{/board/notice/list.do}">
+        <label class="search-label" for="keyword">제목·내용</label>
+        <input class="form-control" id="keyword" name="keyword" th:value="${page?.search()?.keyword()}" placeholder="제목 또는 내용 검색">
+        <button class="btn btn-register btn-sm" type="submit">검색</button>
+        <a class="btn btn-neutral btn-sm" th:href="@{/board/notice/list.do}">초기화</a>
+    </form>
+
+    <section class="content-panel no-pad">
+        <div class="panel-head"><h2>공지 목록</h2><span th:text="|${page?.totalCount() ?: 0}개|">0개</span></div>
+        <div class="table-scroll">
+            <table class="notice-list-table">
+                <thead>
+                <tr>
+                    <th class="notice-col-type">구분</th>
+                    <th>제목</th>
+                    <th class="notice-col-date">게시일</th>
+                    <th class="notice-col-view">조회수</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="notice : ${page.pinnedNotices()}" class="notice-row-pinned">
+                    <td><span class="badge badge-warning">고정</span></td>
+                    <td><a th:href="@{/board/notice/detail.do(noticeSeq=${notice.noticeSeq()})}" th:text="${notice.title()}">공지 제목</a></td>
+                    <td th:text="${notice.publishDate()}">2026-05-31</td>
+                    <td th:text="${notice.viewCnt()}">0</td>
+                </tr>
+                <tr th:each="notice : ${page.notices()}">
+                    <td>일반</td>
+                    <td><a th:href="@{/board/notice/detail.do(noticeSeq=${notice.noticeSeq()})}" th:text="${notice.title()}">공지 제목</a></td>
+                    <td th:text="${notice.publishDate()}">2026-05-31</td>
+                    <td th:text="${notice.viewCnt()}">0</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(page.pinnedNotices()) and #lists.isEmpty(page.notices())}">
+                    <td colspan="4" class="empty">현재 등록된 내용이 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <nav class="detail-action-bar" th:if="${page != null and page.totalPages() > 1}" aria-label="공지사항 페이지">
+        <a class="btn btn-neutral btn-sm"
+           th:if="${page.hasPrevious()}"
+           th:href="@{/board/notice/list.do(keyword=${page.search().keyword()},page=${page.previousPage()})}">이전</a>
+        <span th:text="|${page.search().page()} / ${page.totalPages()}|">1 / 1</span>
+        <a class="btn btn-neutral btn-sm"
+           th:if="${page.hasNext()}"
+           th:href="@{/board/notice/list.do(keyword=${page.search().keyword()},page=${page.nextPage()})}">다음</a>
+    </nav>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

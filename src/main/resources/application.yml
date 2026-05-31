@@ -43,3 +43,9 @@ reven:
       max-files: 5
       max-image-size-mb: 20
       max-video-size-mb: 50
+    notice:
+      root-path: ./storage/notice-board
+      base-url: /admin/board/notice/file.do
+      max-attachments: 10
+      max-thumbnail-size-mb: 5
+      max-attachment-size-mb: 20

@@ -1,0 +1,17 @@
+<!-- screen: 공지사항 비정상 접근 / purpose: 공개 공지사항 비정상 접근 시 안내 후 목록으로 이동하는 화면 / created: 2026-05-31 -->
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('비정상 접근')}"></head>
+<body>
+<script th:inline="javascript">
+    const message = /*[[${message}]]*/ '비정상적인 접근입니다.';
+    const redirectUrl = /*[[${redirectUrl}]]*/ '/board/notice/list.do';
+    alert(message || '비정상적인 접근입니다.');
+    location.replace(redirectUrl || '/board/notice/list.do');
+</script>
+<noscript>
+    <p>비정상적인 접근입니다.</p>
+    <a th:href="@{/board/notice/list.do}">목록으로 이동</a>
+</noscript>
+</body>
+</html>

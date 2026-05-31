@@ -55,4 +55,7 @@ public interface BDPhotoBoardMapper {
 
     /** 사진 게시판 첨부 파일 단건을 soft delete 처리한다. */
     int deletePhotoBoardFile(@Param("photoFileSeq") Long photoFileSeq, @Param("actorId") String actorId);
+
+    /** 사진 게시판 조회수를 1 증가시킨다. */
+    int increaseViewCount(@Param("photoSeq") Long photoSeq);
 }

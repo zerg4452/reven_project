@@ -2,14 +2,18 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('게시판')}"></head>
 <body>
-<!-- screen: 게시판 허브 / purpose: 관리자 게시판 1-depth에서 포토게시판과 AI News로 이동하는 화면 / created: 2026-05-27 -->
+<!-- screen: 게시판 허브 / purpose: 관리자 게시판 1-depth에서 공지사항, 포토게시판, AI News로 이동하는 화면 / created: 2026-05-27 -->
 <header th:replace="~{fragments/layout :: gnb('board')}"></header>
 <div class="admin-shell">
     <aside th:replace="~{fragments/layout :: lnb('board')}"></aside>
     <main class="admin-content">
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '게시판', '게시판 허브')}"></div>
-        <section class="page-head"><h1>게시판</h1><p>포토게시판과 AI News를 관리합니다.</p></section>
+        <section class="page-head"><h1>게시판</h1><p>공지사항, 포토게시판, AI News를 관리합니다.</p></section>
         <section class="board-hub-grid">
+            <a class="board-hub-card" th:href="@{/admin/board/notice/list.do}">
+                <strong>공지사항</strong>
+                <span>공지 등록과 상단 고정, 노출 여부를 관리합니다.</span>
+            </a>
             <a class="board-hub-card" th:href="@{/admin/board/photo/list.do}">
                 <strong>포토게시판</strong>
                 <span>이미지, GIF, WEBP, MP4 첨부를 관리합니다.</span>

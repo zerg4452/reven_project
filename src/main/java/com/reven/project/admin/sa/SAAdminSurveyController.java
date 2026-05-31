@@ -1,6 +1,6 @@
 package com.reven.project.admin.sa;
 
-import com.reven.project.service.sa.dto.SADto;
+import com.reven.project.service.sa.dto.SASurveyDto;
 import com.reven.project.service.sa.SASurveyService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -27,7 +27,7 @@ public class SAAdminSurveyController {
 
     @InitBinder
     void initBinder(WebDataBinder binder) {
-        // SADto는 화면 form binding을 위해 public field 기반 DTO를 사용하므로 직접 필드 접근을 활성화한다.
+        // SASurveyDto는 화면 form binding을 위해 public field 기반 DTO를 사용하므로 직접 필드 접근을 활성화한다.
         binder.initDirectFieldAccess();
     }
 
@@ -35,8 +35,8 @@ public class SAAdminSurveyController {
      * 설문 관리 목록 화면을 조회한다.
      */
     @GetMapping("/list.do")
-    public String list(@ModelAttribute SADto.SurveySearchRequest request, Model model) {
-        List<SADto.SurveyListItem> surveys = surveyService.findAdminSurveys(request);
+    public String list(@ModelAttribute SASurveyDto.SurveySearchRequest request, Model model) {
+        List<SASurveyDto.SurveyListItem> surveys = surveyService.findAdminSurveys(request);
         model.addAttribute("surveys", surveys);
         model.addAttribute("totalCount", surveys.size());
         model.addAttribute("dateFrom", request.startDate);
@@ -62,7 +62,7 @@ public class SAAdminSurveyController {
     @PostMapping("/insert.do")
     public String insert(
             @RequestParam(required = false) String surveyUid,
-            @Valid @ModelAttribute SADto.SurveySaveRequest request,
+            @Valid @ModelAttribute SASurveyDto.SurveySaveRequest request,
             BindingResult bindingResult,
             Model model
     ) {
@@ -75,7 +75,7 @@ public class SAAdminSurveyController {
     @PostMapping("/update.do")
     public String update(
             @RequestParam(required = false) String surveyUid,
-            @Valid @ModelAttribute SADto.SurveySaveRequest request,
+            @Valid @ModelAttribute SASurveyDto.SurveySaveRequest request,
             BindingResult bindingResult,
             Model model
     ) {
@@ -93,7 +93,7 @@ public class SAAdminSurveyController {
 
     private String saveSurvey(
             String surveyUid,
-            SADto.SurveySaveRequest request,
+            SASurveyDto.SurveySaveRequest request,
             BindingResult bindingResult,
             Model model
     ) {
@@ -102,7 +102,7 @@ public class SAAdminSurveyController {
             model.addAttribute("survey", surveyUid == null ? surveyService.newSurveyForm() : surveyService.findSurvey(surveyUid));
             return "admin/survey/detail";
         }
-        SADto.SurveyDetail saved = surveyService.saveSurvey(surveyUid, request);
+        SASurveyDto.SurveyDetail saved = surveyService.saveSurvey(surveyUid, request);
         return "redirect:/admin/surveys/write.do?surveyUid=" + saved.surveyUid;
     }
 }

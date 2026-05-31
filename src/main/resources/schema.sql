@@ -181,6 +181,7 @@ CREATE TABLE IF NOT EXISTS bd_ai_news_mst (
     tags_json TEXT NULL COMMENT '태그 JSON',
     source_url VARCHAR(1000) NULL COMMENT '출처 URL',
     status CHAR(1) NOT NULL DEFAULT 'P' COMMENT '상태',
+    view_cnt BIGINT NOT NULL DEFAULT 0 COMMENT '조회수',
     delete_flg CHAR(1) NOT NULL DEFAULT 'N' COMMENT '삭제 여부',
     published_dtm DATETIME NULL COMMENT '게시 일시',
     reg_dtm DATETIME NOT NULL COMMENT '등록 일시',
@@ -196,6 +197,7 @@ CREATE TABLE IF NOT EXISTS bd_photo_board_mst (
     photo_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT '포토 게시판 일련번호',
     title VARCHAR(300) NOT NULL COMMENT '제목',
     publish_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '게시 여부',
+    view_cnt BIGINT NOT NULL DEFAULT 0 COMMENT '조회수',
     delete_flg CHAR(1) NOT NULL DEFAULT 'N' COMMENT '삭제 여부',
     reg_dtm DATETIME NOT NULL COMMENT '등록 일시',
     reg_id VARCHAR(100) NOT NULL COMMENT '등록자 아이디',
@@ -223,3 +225,45 @@ CREATE TABLE IF NOT EXISTS bd_photo_board_file_dtl (
     KEY idx_bd_photo_board_file_dtl_photo_seq (photo_seq),
     KEY idx_bd_photo_board_file_dtl_sort_ord (photo_seq, sort_ord)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='포토 게시판 첨부 파일';
+
+CREATE TABLE IF NOT EXISTS bd_notice_mst (
+    notice_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT '공지사항 일련번호',
+    title VARCHAR(300) NOT NULL COMMENT '제목',
+    content LONGTEXT NULL COMMENT '본문',
+    publish_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '노출 여부',
+    pin_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '상단 고정 여부',
+    publish_dtm DATETIME NOT NULL COMMENT '게시일',
+    view_cnt BIGINT NOT NULL DEFAULT 0 COMMENT '조회수',
+    delete_flg CHAR(1) NOT NULL DEFAULT 'N' COMMENT '삭제 여부',
+    reg_dtm DATETIME NOT NULL COMMENT '등록 일시',
+    reg_id VARCHAR(100) NOT NULL COMMENT '등록자 아이디',
+    mod_dtm DATETIME NOT NULL COMMENT '수정 일시',
+    mod_id VARCHAR(100) NOT NULL COMMENT '수정자 아이디',
+    PRIMARY KEY (notice_seq),
+    KEY idx_bd_notice_mst_publish_dtm (publish_dtm),
+    KEY idx_bd_notice_mst_pin_publish (pin_yn, publish_dtm)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='공지사항 마스터';
+
+CREATE TABLE IF NOT EXISTS bd_notice_file_dtl (
+    notice_file_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT '공지사항 첨부 일련번호',
+    notice_seq BIGINT NOT NULL COMMENT '공지사항 일련번호',
+    file_type VARCHAR(20) NOT NULL DEFAULT 'ATTACH' COMMENT '파일 유형(THUMB/ATTACH)',
+    original_file_name VARCHAR(255) NOT NULL COMMENT '원본 파일명',
+    stored_file_name VARCHAR(255) NOT NULL COMMENT '저장 파일명',
+    stored_path VARCHAR(500) NOT NULL COMMENT '저장 경로',
+    content_type VARCHAR(100) NOT NULL COMMENT 'MIME 타입',
+    file_size BIGINT NOT NULL DEFAULT 0 COMMENT '파일 크기',
+    sort_ord INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
+    delete_flg CHAR(1) NOT NULL DEFAULT 'N' COMMENT '삭제 여부',
+    reg_dtm DATETIME NOT NULL COMMENT '등록 일시',
+    reg_id VARCHAR(100) NOT NULL COMMENT '등록자 아이디',
+    mod_dtm DATETIME NOT NULL COMMENT '수정 일시',
+    mod_id VARCHAR(100) NOT NULL COMMENT '수정자 아이디',
+    PRIMARY KEY (notice_file_seq),
+    KEY idx_bd_notice_file_dtl_notice_seq (notice_seq),
+    KEY idx_bd_notice_file_dtl_type (notice_seq, file_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='공지사항 첨부 파일';
+
+-- 기존 게시판 테이블에 조회수 컬럼이 없을 경우 추가한다(기존 DB 대응, MariaDB IF NOT EXISTS).
+ALTER TABLE bd_photo_board_mst ADD COLUMN IF NOT EXISTS view_cnt BIGINT NOT NULL DEFAULT 0 COMMENT '조회수' AFTER publish_yn;
+ALTER TABLE bd_ai_news_mst ADD COLUMN IF NOT EXISTS view_cnt BIGINT NOT NULL DEFAULT 0 COMMENT '조회수' AFTER status;

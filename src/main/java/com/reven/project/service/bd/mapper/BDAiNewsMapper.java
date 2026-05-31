@@ -37,4 +37,7 @@ public interface BDAiNewsMapper {
 
     /** AI News 원고를 soft delete 처리한다. */
     int deleteAiNews(@Param("newsSeq") Long newsSeq);
+
+    /** AI News 조회수를 1 증가시킨다. */
+    int increaseViewCount(@Param("newsSeq") Long newsSeq);
 }

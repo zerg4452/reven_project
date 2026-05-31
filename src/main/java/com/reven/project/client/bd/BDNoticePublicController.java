@@ -1,9 +1,10 @@
-// 사용자 포토 게시판 화면 컨트롤러
+// 사용자 공지사항 화면 컨트롤러
 package com.reven.project.client.bd;
 
-import com.reven.project.service.bd.BDPhotoBoardService;
-import com.reven.project.service.bd.dto.BDPhotoBoardFileResponseDto;
-import com.reven.project.service.bd.dto.BDPhotoBoardPublicSearchRequestDto;
+import com.reven.project.service.bd.BDNoticeService;
+import com.reven.project.service.bd.dto.BDNoticeDetailResponseDto;
+import com.reven.project.service.bd.dto.BDNoticeFileResponseDto;
+import com.reven.project.service.bd.dto.BDNoticePublicSearchRequestDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -22,71 +23,70 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public class BDPhotoBoardPublicController {
+public class BDNoticePublicController {
 
-    private final BDPhotoBoardService photoBoardService;
+    private static final String VIEW_COOKIE_NAME = "bd_viewed_notice";
 
-    public BDPhotoBoardPublicController(BDPhotoBoardService photoBoardService) {
-        this.photoBoardService = photoBoardService;
+    private final BDNoticeService noticeService;
+
+    public BDNoticePublicController(BDNoticeService noticeService) {
+        this.noticeService = noticeService;
     }
 
     /**
-     * 사용자 포토 게시판 목록을 조회한다.
+     * 사용자 공지사항 목록을 조회한다.
      */
-    @GetMapping("/board/photo/list.do")
+    @GetMapping("/board/notice/list.do")
     public String list(
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "false") boolean imageOnly,
-            @RequestParam(defaultValue = "false") boolean videoOnly,
             @RequestParam(defaultValue = "1") int page,
             Model model
     ) {
-        model.addAttribute("page", photoBoardService.searchPublicPhotoBoards(
-                new BDPhotoBoardPublicSearchRequestDto(keyword, imageOnly, videoOnly, page, 9)
+        model.addAttribute("page", noticeService.searchPublicNotices(
+                new BDNoticePublicSearchRequestDto(keyword, page, 10)
         ));
-        return "client/photo/list";
+        return "client/notice/list";
     }
 
     /**
-     * 사용자 포토 게시판 상세를 조회한다.
+     * 사용자 공지사항 상세를 조회한다(공개 조건 통과 시에만 조회수 증가).
      */
-    @GetMapping("/board/photo/detail.do")
+    @GetMapping("/board/notice/detail.do")
     public String detail(
-            @RequestParam(required = false) Long photoSeq,
+            @RequestParam(required = false) Long noticeSeq,
             HttpServletRequest request,
             HttpServletResponse response,
             Model model
     ) {
-        var photo = photoBoardService.findPublicPhotoBoard(photoSeq);
-        if (photo == null) {
+        BDNoticeDetailResponseDto notice = noticeService.findPublicNotice(noticeSeq);
+        if (notice == null) {
             model.addAttribute("message", "비정상적인 접근입니다.");
-            model.addAttribute("redirectUrl", "/board/photo/list.do");
-            return "client/photo/invalid-access";
+            model.addAttribute("redirectUrl", "/board/notice/list.do");
+            return "client/notice/invalid-access";
         }
 
-        BDBoardViewCountSupport.countOnce(request, response, "bd_viewed_photo", photoSeq,
-                () -> photoBoardService.increaseViewCount(photoSeq));
+        BDBoardViewCountSupport.countOnce(request, response, VIEW_COOKIE_NAME, noticeSeq,
+                () -> noticeService.increaseViewCount(noticeSeq));
 
-        model.addAttribute("photo", photo);
-        model.addAttribute("photoFiles", photoBoardService.findPublicPhotoBoardFiles(photoSeq));
-        return "client/photo/detail";
+        model.addAttribute("notice", notice);
+        model.addAttribute("thumbnail", firstOrNull(noticeService.findPublicNoticeFilesForDetail(noticeSeq, "THUMB")));
+        model.addAttribute("attachments", noticeService.findPublicNoticeFilesForDetail(noticeSeq, "ATTACH"));
+        return "client/notice/detail";
     }
 
     /**
-     * 공개 포토 게시판 첨부 파일을 반환한다.
+     * 공개 공지사항 첨부 파일을 반환한다.
      */
-    @GetMapping("/board/photo/file.do")
-    public ResponseEntity<Resource> file(@RequestParam Long photoFileSeq) throws IOException {
-        BDPhotoBoardFileResponseDto file = photoBoardService.findPublicPhotoBoardFile(photoFileSeq);
+    @GetMapping("/board/notice/file.do")
+    public ResponseEntity<Resource> file(@RequestParam Long noticeFileSeq) throws IOException {
+        BDNoticeFileResponseDto file = noticeService.findPublicNoticeFile(noticeFileSeq);
         if (file == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-
-        Path path = photoBoardService.resolvePublicPhotoBoardFilePath(photoFileSeq);
+        Path path = noticeService.resolvePublicNoticeFilePath(noticeFileSeq);
         if (path == null || !Files.exists(path)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-
         return ResponseEntity.ok()
                 .contentType(parseMediaType(file.contentType()))
                 .contentLength(Files.size(path))
@@ -96,6 +96,10 @@ public class BDPhotoBoardPublicController {
                                 .build()
                                 .toString())
                 .body(new FileSystemResource(path));
+    }
+
+    private BDNoticeFileResponseDto firstOrNull(java.util.List<BDNoticeFileResponseDto> files) {
+        return files == null || files.isEmpty() ? null : files.get(0);
     }
 
     private MediaType parseMediaType(String contentType) {

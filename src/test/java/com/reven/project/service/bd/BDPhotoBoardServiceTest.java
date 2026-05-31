@@ -436,7 +436,8 @@ class BDPhotoBoardServiceTest {
                 LocalDateTime.of(2026, 5, 27, 0, 0),
                 "admin",
                 LocalDateTime.of(2026, 5, 27, 0, 0),
-                "admin"
+                "admin",
+                0L
         );
     }
 

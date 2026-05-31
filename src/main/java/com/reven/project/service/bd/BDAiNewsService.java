@@ -73,6 +73,16 @@ public class BDAiNewsService {
     }
 
     /**
+     * AI News 조회수를 1 증가시킨다.
+     */
+    @Transactional
+    public void increaseViewCount(Long newsSeq) {
+        if (newsSeq != null) {
+            aiNewsMapper.increaseViewCount(newsSeq);
+        }
+    }
+
+    /**
      * AI News를 등록하거나 기존 원고를 수정한다.
      */
     @Transactional

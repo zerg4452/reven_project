@@ -21,7 +21,7 @@
 - Spring Boot 패키지 구조를 업무 접두어 우선 구조에서 `admin`, `client`, `service`, `common` 기준 구조로 재배치했다. 컨트롤러는 `admin`/`client`, 서비스·DTO·Mapper는 `service`, 보안/설정은 `common` 아래에 위치하도록 정리했다.
 - 사용자 Thymeleaf 화면은 `templates/client/survey`, 관리자 전용 JS는 `static/admin/js`, 공통 CSS/JS는 `static/common` 아래로 이동했다.
 - 관리자 GNB에서 업무 메뉴를 좌측에 정렬하고 `사용자 화면`, `로그아웃`은 우측 유틸 영역으로 분리했다. GNB에 `뉴스` 메뉴를 추가했다.
-- class 기반 설문 DTO의 보일러플레이트를 줄이기 위해 Lombok 의존성을 추가하고 `SADto` 내부 DTO에 `@Getter`, `@Setter`를 적용했다.
+- class 기반 설문 DTO의 보일러플레이트를 줄이기 위해 Lombok 의존성을 추가하고 `SASurveyDto` 내부 DTO에 `@Getter`, `@Setter`를 적용했다.
 - 컨트롤러, 서비스, 보안 필터/설정, MyBatis mapper, 설문 DTO에 메서드 역할과 주요 로직 의도를 설명하는 주석을 보강했다.
 - 2026-05-24: 뉴스 메뉴 진입 시 검색 DTO의 offset/limit가 primitive int라서 null 바인딩 시 400이 발생하던 문제를 수정했다. BDAiNewsSearchRequestDto를 Integer로 변경하고, BDAiNewsService에서 기본값을 보정하도록 바꿨다.
 - 2026-05-24: 관리자 GNB 업무 메뉴 순서를 `관리자 홈`, `관리자 관리`, `뉴스`, `설문 운영`으로 조정했다.
@@ -70,3 +70,10 @@
 - 2026-05-29: Java `record` DTO 레이아웃 규칙(`.cursor/rules/java-record-schema.mdc`)을 추가했다. record 컴포넌트는 기존 여러 줄 형태를 유지하되 필드마다 `@Schema(description, example)` 한글 메타와 템플릿 값을 붙이고, 컴포넌트 사이에 빈 줄 2줄을 둔다. `io.swagger.core.v3:swagger-annotations` 의존성을 추가하고 CO/BD record DTO 30개에 일괄 반영했다.
 - 2026-05-30: 사용자 GNB의 게시판 드롭다운에 `AI News`와 `포토 게시판`을 함께 노출하도록 구조를 확장했다. 사용자 포토 게시판은 관리자 포토 게시판 데이터를 사용하되 게시 중인 글만 공개하고, 목록은 9개 단위 카드형 썸네일 그리드로 구성했다. 검색은 제목 검색과 이미지 포함/동영상 포함 체크박스를 제공하며, 두 체크박스는 OR 조건으로 처리한다. 파일 유형은 새 컬럼 없이 첨부 파일의 `content_type`으로 판단한다. 상세 화면에서는 이미지 확대와 동영상 재생을 같은 딤드 레이어 모달에서 지원한다. 비정상 상세 접근은 `비정상적인 접근입니다.` 알럿 후 목록으로 이동하고, 비정상 파일 직접 접근은 404로 응답하도록 정리했다.
 - 2026-05-30: 로컬 Java 런타임과 Gradle wrapper가 없어 Docker의 `gradle:8.14.3-jdk21` 이미지로 변경 테스트와 전체 테스트를 실행해 `BUILD SUCCESSFUL`을 확인했다. 같은 이미지로 앱을 임시 기동해 `/board/photo/list.do`, 검색 조건 포함 목록, 공개 상세, 공개 파일 200 응답, 비정상 상세 알럿 페이지, 비정상 파일 404를 HTTP로 확인했다.
+
+## 2026-05-31
+
+- 설문 DTO holder 클래스명을 도메인 의미에 맞게 `SADto`에서 `SASurveyDto`로 변경했다. 컨트롤러·서비스·MyBatis mapper XML·`COMainControllerTest`의 import와 FQCN을 함께 갱신했다.
+- 공지사항(BDNotice) 게시판을 추가했다. 관리자 `/admin/board/notice/*`, 사용자 `/board/notice/*`, `bd_notice_mst`/`bd_notice_file_dtl`, 썸네일·첨부 업로드, 상단 고정·미래 게시일 미노출, 공개 목록(고정+페이징)을 구현했다.
+- 포토게시판·AI News 공개 상세에 조회수 증가와 `BDBoardViewCountSupport` 쿠키 중복 방지를 연결했다.
+- 공지 관리 목록에 게시일 범위 검색(기본 60일~내일)을 추가했고, 공개 상세 첨부 조회의 중복 DB 호출을 `findPublicNoticeFilesForDetail`로 줄였다. `BDNoticeAdminControllerTest`, `BDNoticePublicControllerTest`를 추가했다.

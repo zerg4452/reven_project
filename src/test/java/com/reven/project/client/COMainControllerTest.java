@@ -13,7 +13,7 @@ import com.reven.project.service.bd.dto.BDPhotoBoardPublicPageResponseDto;
 import com.reven.project.service.bd.dto.BDPhotoBoardPublicSearchRequestDto;
 import com.reven.project.service.sa.SASurveyService;
 import com.reven.project.service.sa.SASurveySubmitService;
-import com.reven.project.service.sa.dto.SADto;
+import com.reven.project.service.sa.dto.SASurveyDto;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -78,7 +78,7 @@ class COMainControllerTest {
         BDAiNewsService newsService = mock(BDAiNewsService.class);
         when(newsService.findPublishedAiNewsDetail(7L)).thenReturn(new BDAiNewsDetailResponseDto(
                 7L, "slug", "상세 뉴스", "AI News", "요약", "본문", "[]", "",
-                "Y", "N", LocalDate.of(2026, 5, 26), null, null, null, null, null, null
+                "Y", "N", LocalDate.of(2026, 5, 26), null, null, null, null, null, null, null
         ));
 
         MockMvc mvc = MockMvcBuilders.standaloneSetup(new BDAiNewsPublicController(newsService)).build();
@@ -195,8 +195,8 @@ class COMainControllerTest {
                 .andExpect(model().attributeExists("surveys"));
     }
 
-    private SADto.SurveyListItem survey(String uid, String title, String useYn) {
-        SADto.SurveyListItem survey = new SADto.SurveyListItem();
+    private SASurveyDto.SurveyListItem survey(String uid, String title, String useYn) {
+        SASurveyDto.SurveyListItem survey = new SASurveyDto.SurveyListItem();
         survey.surveyUid = uid;
         survey.title = title;
         survey.useYn = useYn;
@@ -223,6 +223,7 @@ class COMainControllerTest {
                 null,
                 null,
                 null,
+                null,
                 null
         );
     }
@@ -236,7 +237,8 @@ class COMainControllerTest {
                 LocalDateTime.of(2026, 5, 27, 0, 0),
                 "admin",
                 LocalDateTime.of(2026, 5, 27, 0, 0),
-                "admin"
+                "admin",
+                0L
         );
     }
 

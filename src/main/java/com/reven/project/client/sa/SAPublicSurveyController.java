@@ -1,6 +1,6 @@
 package com.reven.project.client.sa;
 
-import com.reven.project.service.sa.dto.SADto;
+import com.reven.project.service.sa.dto.SASurveyDto;
 import com.reven.project.service.sa.SASurveyService;
 import com.reven.project.service.sa.SASurveySubmitService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -52,7 +52,7 @@ public class SAPublicSurveyController {
     public String submit(@RequestParam String surveyUid,
                                              @RequestParam Map<String, String> params,
                                              HttpServletRequest servletRequest) {
-        SADto.SurveySubmitRequest request = new SADto.SurveySubmitRequest();
+        SASurveyDto.SurveySubmitRequest request = new SASurveyDto.SurveySubmitRequest();
         request.submitterName = params.get("submitterName");
         request.phone = params.get("phone");
         request.email = params.get("email");
@@ -60,7 +60,7 @@ public class SAPublicSurveyController {
         // 동적 문항은 answers[fieldKey] 형태로 넘어오므로 fieldKey를 잘라 답변 목록으로 평탄화한다.
         params.forEach((key, value) -> {
             if (key.startsWith("answers[")) {
-                SADto.AnswerRequest answer = new SADto.AnswerRequest();
+                SASurveyDto.AnswerRequest answer = new SASurveyDto.AnswerRequest();
                 answer.fieldKey = key.substring("answers[".length(), key.length() - 1);
                 answer.answerValue = value;
                 request.answers.add(answer);

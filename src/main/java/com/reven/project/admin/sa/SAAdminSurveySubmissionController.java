@@ -1,6 +1,6 @@
 package com.reven.project.admin.sa;
 
-import com.reven.project.service.sa.dto.SADto;
+import com.reven.project.service.sa.dto.SASurveyDto;
 import com.reven.project.service.sa.SASurveyCsvService;
 import com.reven.project.service.sa.SASurveySubmitService;
 import org.springframework.core.io.ByteArrayResource;
@@ -38,9 +38,9 @@ public class SAAdminSurveySubmissionController {
      * 설문 이력 관리 목록 화면을 조회한다.
      */
     @GetMapping("/admin/survey-submissions/list.do")
-    public String list(@ModelAttribute SADto.SubmissionSearchRequest request, Model model) {
-        SADto.SubmissionSearchRequest normalized = normalizeSearch(request);
-        List<SADto.SubmissionListItem> submissions = submitService.findSubmissions(normalized);
+    public String list(@ModelAttribute SASurveyDto.SubmissionSearchRequest request, Model model) {
+        SASurveyDto.SubmissionSearchRequest normalized = normalizeSearch(request);
+        List<SASurveyDto.SubmissionListItem> submissions = submitService.findSubmissions(normalized);
         model.addAttribute("submissions", submissions);
         model.addAttribute("totalCount", submissions.size());
         model.addAttribute("dateFrom", normalized.startDate);
@@ -65,7 +65,7 @@ public class SAAdminSurveySubmissionController {
      * 현재 검색 조건에 맞는 설문 이력을 CSV 파일로 내려준다.
      */
     @GetMapping("/admin/survey-submissions/download.do")
-    public ResponseEntity<ByteArrayResource> csv(@ModelAttribute SADto.SubmissionSearchRequest request) {
+    public ResponseEntity<ByteArrayResource> csv(@ModelAttribute SASurveyDto.SubmissionSearchRequest request) {
         byte[] csv = csvService.createSubmissionCsv(normalizeSearch(request));
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"survey-submissions.csv\"")
@@ -77,11 +77,11 @@ public class SAAdminSurveySubmissionController {
     /**
      * 설문 이력 검색 조건의 날짜/상태 기본값을 보정한다.
      */
-    private SADto.SubmissionSearchRequest normalizeSearch(SADto.SubmissionSearchRequest request) {
+    private SASurveyDto.SubmissionSearchRequest normalizeSearch(SASurveyDto.SubmissionSearchRequest request) {
         List<String> statuses = request.statuses == null || request.statuses.isEmpty()
-                ? statusOptions().stream().map(SADto.SubmissionStatusOption::getCode).toList()
+                ? statusOptions().stream().map(SASurveyDto.SubmissionStatusOption::getCode).toList()
                 : request.statuses;
-        SADto.SubmissionSearchRequest normalized = new SADto.SubmissionSearchRequest();
+        SASurveyDto.SubmissionSearchRequest normalized = new SASurveyDto.SubmissionSearchRequest();
         normalized.startDate = request.startDate;
         normalized.endDate = request.endDate;
         normalized.keywordType = request.keywordType;
@@ -93,7 +93,7 @@ public class SAAdminSurveySubmissionController {
     /**
      * 설문 이력 상태 체크박스 옵션을 반환한다.
      */
-    private List<SADto.SubmissionStatusOption> statusOptions() {
+    private List<SASurveyDto.SubmissionStatusOption> statusOptions() {
         return List.of(
                 statusOption("new", "신규"),
                 statusOption("reviewing", "확인중"),
@@ -103,8 +103,8 @@ public class SAAdminSurveySubmissionController {
         );
     }
 
-    private SADto.SubmissionStatusOption statusOption(String code, String label) {
-        SADto.SubmissionStatusOption option = new SADto.SubmissionStatusOption();
+    private SASurveyDto.SubmissionStatusOption statusOption(String code, String label) {
+        SASurveyDto.SubmissionStatusOption option = new SASurveyDto.SubmissionStatusOption();
         option.code = code;
         option.label = label;
         return option;

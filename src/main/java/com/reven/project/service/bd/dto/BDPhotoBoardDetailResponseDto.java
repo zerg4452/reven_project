@@ -35,7 +35,11 @@ public record BDPhotoBoardDetailResponseDto(
 
 
         @Schema(description = "수정자 아이디", example = "admin")
-        String modifiedBy
+        String modifiedBy,
+
+
+        @Schema(description = "조회수", example = "12")
+        Long viewCnt
 ) {
     public Long id() {
         return photoSeq;

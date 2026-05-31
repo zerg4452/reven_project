@@ -15,11 +15,11 @@ import java.util.List;
 /**
  * 설문 도메인에서 화면, 서비스, MyBatis 입출력에 사용하는 DTO 묶음이다.
  */
-public final class SADto {
+public final class SASurveyDto {
     private static final String DEFAULT_KEYWORD_TYPE = "전체";
     private static final ZoneId PROJECT_ZONE = ZoneId.of("Asia/Seoul");
 
-    private SADto() {
+    private SASurveyDto() {
     }
 
     @Getter
