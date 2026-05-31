@@ -4,6 +4,9 @@ import com.reven.project.service.bd.dto.BDPhotoBoardDetailResponseDto;
 import com.reven.project.service.bd.dto.BDPhotoBoardFileResponseDto;
 import com.reven.project.service.bd.dto.BDPhotoBoardFileSaveCommand;
 import com.reven.project.service.bd.dto.BDPhotoBoardListItemResponseDto;
+import com.reven.project.service.bd.dto.BDPhotoBoardPublicListItemResponseDto;
+import com.reven.project.service.bd.dto.BDPhotoBoardPublicPageResponseDto;
+import com.reven.project.service.bd.dto.BDPhotoBoardPublicSearchRequestDto;
 import com.reven.project.service.bd.dto.BDPhotoBoardSaveCommand;
 import com.reven.project.service.bd.dto.BDPhotoBoardSaveRequestDto;
 import com.reven.project.service.bd.mapper.BDPhotoBoardMapper;
@@ -97,6 +100,69 @@ public class BDPhotoBoardService {
      */
     public Path resolvePhotoBoardFilePath(Long photoFileSeq) {
         BDPhotoBoardFileResponseDto file = photoBoardMapper.selectPhotoBoardFile(photoFileSeq);
+        if (file == null) {
+            return null;
+        }
+        return resolveStoredFilePath(file.storedPath(), file.storedFileName());
+    }
+
+    /**
+     * 사용자 포토 게시판 목록을 조회한다.
+     */
+    public BDPhotoBoardPublicPageResponseDto searchPublicPhotoBoards(BDPhotoBoardPublicSearchRequestDto search) {
+        BDPhotoBoardPublicSearchRequestDto normalized = search == null
+                ? new BDPhotoBoardPublicSearchRequestDto("", false, false, 1, 9)
+                : search.normalized();
+        int totalCount = photoBoardMapper.selectPublicPhotoBoardCount(normalized);
+        int totalPages = totalCount == 0 ? 0 : (int) Math.ceil((double) totalCount / normalized.size());
+        List<BDPhotoBoardPublicListItemResponseDto> photos = photoBoardMapper.selectPublicPhotoBoardList(normalized)
+                .stream()
+                .map(this::withThumbnailUrl)
+                .toList();
+        return new BDPhotoBoardPublicPageResponseDto(normalized, photos, totalCount, totalPages);
+    }
+
+    /**
+     * 사용자 포토 게시판 단건을 조회한다.
+     */
+    public BDPhotoBoardDetailResponseDto findPublicPhotoBoard(Long photoSeq) {
+        if (photoSeq == null) {
+            return null;
+        }
+        return photoBoardMapper.selectPublicPhotoBoardDetail(photoSeq);
+    }
+
+    /**
+     * 사용자 포토 게시판의 첨부 파일 목록을 조회한다.
+     */
+    public List<BDPhotoBoardFileResponseDto> findPublicPhotoBoardFiles(Long photoSeq) {
+        if (photoSeq == null || findPublicPhotoBoard(photoSeq) == null) {
+            return List.of();
+        }
+        return photoBoardMapper.selectPhotoBoardFiles(photoSeq).stream()
+                .map(this::withPublicFileUrl)
+                .toList();
+    }
+
+    /**
+     * 사용자 포토 게시판 첨부 파일 단건을 조회한다.
+     */
+    public BDPhotoBoardFileResponseDto findPublicPhotoBoardFile(Long photoFileSeq) {
+        if (photoFileSeq == null) {
+            return null;
+        }
+        BDPhotoBoardFileResponseDto file = photoBoardMapper.selectPublicPhotoBoardFile(photoFileSeq);
+        return file == null ? null : withPublicFileUrl(file);
+    }
+
+    /**
+     * 사용자 포토 게시판 첨부 파일의 실제 저장 경로를 구한다.
+     */
+    public Path resolvePublicPhotoBoardFilePath(Long photoFileSeq) {
+        if (photoFileSeq == null) {
+            return null;
+        }
+        BDPhotoBoardFileResponseDto file = photoBoardMapper.selectPublicPhotoBoardFile(photoFileSeq);
         if (file == null) {
             return null;
         }
@@ -423,6 +489,42 @@ public class BDPhotoBoardService {
 
     private String buildFileUrl(Long photoFileSeq) {
         return fileBaseUrl + "?photoFileSeq=" + photoFileSeq;
+    }
+
+    private BDPhotoBoardPublicListItemResponseDto withThumbnailUrl(BDPhotoBoardPublicListItemResponseDto photo) {
+        return new BDPhotoBoardPublicListItemResponseDto(
+                photo.photoSeq(),
+                photo.title(),
+                photo.registeredDate(),
+                photo.thumbnailFileSeq(),
+                photo.thumbnailContentType(),
+                buildPublicFileUrl(photo.thumbnailFileSeq()),
+                photo.hasImage(),
+                photo.hasVideo()
+        );
+    }
+
+    private BDPhotoBoardFileResponseDto withPublicFileUrl(BDPhotoBoardFileResponseDto file) {
+        return new BDPhotoBoardFileResponseDto(
+                file.photoFileSeq(),
+                file.photoSeq(),
+                file.originalFileName(),
+                file.storedFileName(),
+                file.storedPath(),
+                file.contentType(),
+                file.fileSize(),
+                file.sortOrder(),
+                file.deleteFlg(),
+                file.registeredAt(),
+                file.registeredBy(),
+                file.modifiedAt(),
+                file.modifiedBy(),
+                buildPublicFileUrl(file.photoFileSeq())
+        );
+    }
+
+    private String buildPublicFileUrl(Long photoFileSeq) {
+        return photoFileSeq == null ? null : "/board/photo/file.do?photoFileSeq=" + photoFileSeq;
     }
 
     private String firstText(String... values) {

@@ -1,0 +1,44 @@
+{
+  "status": "N",
+  "title": "오늘의 Codex/Cursor/Claude + Harness 소식",
+  "slug": "ai-news-2026-05-30",
+  "category": "AI News",
+  "tags": [
+    "Codex",
+    "Cursor",
+    "Claude",
+    "Harness"
+  ],
+  "summary": "오늘은 Codex/Claude/Cursor를 HTTP API나 MCP로 감싸는 하네스형 도구가 눈에 띄었고, 실제 성능 차이는 모델보다 wrapper의 context/tool-loop 정책에서 나온다는 논의가 다시 확인됐습니다.",
+  "content_markdown": "오늘의 Codex/Cursor/Claude + Harness 소식\n\n1. agentapi: Codex/Claude/CursorCLI를 HTTP API로 감싸는 도구\n- 출처: GitHub coder/agentapi\n- 링크: https://github.com/coder/agentapi\n- 핵심 요약: Claude Code, Goose, Aider, Gemini, Amp, Codex, CursorCLI 같은 coding agent를 HTTP API 뒤에 붙이는 프로젝트입니다. README에서 Codex 실행 시 agent type을 명시하라고 안내하는 점이 실사용 하네스 관점에서 중요합니다.\n- 왜 중요한지: Codex를 PHP 사이트나 별도 운영 UI와 연결하려면 CLI 직접 호출보다 HTTP API wrapper가 더 다루기 쉽습니다. 다만 agent가 파일시스템을 만지는 구조라 권한 경계가 핵심입니다.\n- 다음 행동: read-only workspace에서 Codex type으로 띄워보고, 로그/작업 디렉터리/권한 분리가 되는지 먼저 확인하세요.\n\n2. sub-agents-mcp: MCP 호환 도구에서 task-specific agent 실행\n- 출처: GitHub shinpr/sub-agents-mcp\n- 링크: https://github.com/shinpr/sub-agents-mcp\n- 핵심 요약: Markdown으로 task-specific sub-agent를 정의하고 Cursor CLI, Claude Code, Codex, Gemini CLI backend를 통해 실행하는 MCP 서버입니다.\n- 왜 중요한지: Codex와 Cursor/Claude 사이를 연결할 때 MCP를 공통 호출면으로 쓰는 패턴이 계속 강화되고 있습니다. “Codex용 플러그인”을 직접 만들지 않아도 MCP 레이어로 비슷한 효과를 낼 수 있습니다.\n- 다음 행동: code-reviewer, test-writer처럼 작은 agent 두세 개만 정의해 현재 PHP 프로젝트에 적용 가능성을 테스트하세요.\n\n3. wshobson/agents: multi-harness agentic plugin marketplace\n- 출처: GitHub wshobson/agents\n- 링크: https://github.com/wshobson/agents\n- 핵심 요약: Claude Code, Codex CLI, Cursor, OpenCode, Gemini CLI를 대상으로 하는 multi-harness agent/plugin marketplace입니다. Codex와 Cursor용 생성 경로를 따로 제공하고, round-trip verification 문서도 포함합니다.\n- 왜 중요한지: 여러 하네스에 같은 agent 개념을 이식하는 구조를 볼 수 있어, 개인용 Codex 플러그인 설계의 좋은 참고 대상입니다.\n- 다음 행동: 전체 설치보다 Codex 대상 생성 결과물의 디렉터리 구조와 검증 스크립트만 먼저 읽어보세요.\n\n4. Codex/Cursor/Claude 비교에서 “wrapper가 성능 차이를 만든다”는 논의\n- 출처: Reddit r/vibecoding\n- 링크: https://www.reddit.com/r/vibecoding/comments/1tab961/help_me_understand_cursor_vs_claude_codecodex/\n- 핵심 요약: 같은 모델이라도 Cursor, Claude Code, Codex에서 결과가 달라지는 이유를 system prompt, repo context retrieval, tool loop policy, context compression, timeout/max-step 정책 차이로 설명하는 댓글 흐름이 있습니다.\n- 왜 중요한지: 모델 벤치마크보다 하네스 품질이 실제 생산성에 더 직접적으로 영향을 줍니다.\n- 다음 행동: 하네스 후보를 평가할 때 model 지원 목록보다 context packing, tool loop, resume, logging, permission 정책을 체크하세요.\n\n5. Max 플랜 기준 Cursor vs Claude vs Codex 팀 운용 질문\n- 출처: Reddit r/AI_Agents\n- 링크: https://www.reddit.com/r/AI_Agents/comments/1tpu7uk/cursor_vs_claude_vs_chatgpt_codex_on_max_plans/\n- 핵심 요약: 스타트업 팀이 Cursor, Claude Code, Codex Max 플랜을 모두 쓸 수 있을 때 어떤 식으로 운용하는지 묻는 글입니다. 가격 제한이 작아지면 도구 선택은 비용보다 팀의 routing policy와 review workflow 문제가 됩니다.\n- 왜 중요한지: 개인 실험과 팀 운용은 기준이 다릅니다. 팀에서는 누가 어떤 변경을 승인하고, 어떤 agent가 테스트/리뷰를 맡는지 정해야 합니다.\n- 다음 행동: 팀/개인 모두에 쓸 수 있는 기본 routing을 Codex=리뷰/검증, Claude Code=복잡한 구현, Cursor=빠른 편집으로 잡고 예외만 기록하세요.\n\n오늘의 추천 액션\n1. Codex 하네스 후보는 agentapi, sub-agents-mcp, wshobson/agents를 우선 추적하세요.\n2. 비교 글은 모델 승패보다 wrapper 정책(context, tool loop, resume, 권한)을 기준으로 읽으세요.\n3. PHP 사이트 importer에는 status=Y 보호, slug unique, JSON parse 실패 시 error 기록을 먼저 넣으세요.",
+  "sources": [
+    {
+      "title": "agentapi",
+      "source": "GitHub coder/agentapi",
+      "url": "https://github.com/coder/agentapi"
+    },
+    {
+      "title": "sub-agents-mcp",
+      "source": "GitHub shinpr/sub-agents-mcp",
+      "url": "https://github.com/shinpr/sub-agents-mcp"
+    },
+    {
+      "title": "agents",
+      "source": "GitHub wshobson/agents",
+      "url": "https://github.com/wshobson/agents"
+    },
+    {
+      "title": "Help me understand Cursor vs Claude Code/Codex",
+      "source": "Reddit r/vibecoding",
+      "url": "https://www.reddit.com/r/vibecoding/comments/1tab961/help_me_understand_cursor_vs_claude_codecodex/"
+    },
+    {
+      "title": "Cursor vs Claude vs ChatGPT Codex on Max Plans",
+      "source": "Reddit r/AI_Agents",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1tpu7uk/cursor_vs_claude_vs_chatgpt_codex_on_max_plans/"
+    }
+  ],
+  "published_at": "2026-05-30T09:03:58+09:00",
+  "inserted_at": null,
+  "error": null
+}

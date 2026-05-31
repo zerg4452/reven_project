@@ -1,0 +1,58 @@
+<!-- screen: 포토 게시판 / purpose: 공개 포토 게시글을 카드형 목록으로 조회하는 화면 / created: 2026-05-30 -->
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('포토 게시판')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: publicGnb('board')}"></header>
+<main class="public-content">
+    <section class="page-head"><h1>포토 게시판</h1><p>게시된 이미지와 동영상을 확인합니다.</p></section>
+
+    <form class="search-panel public-photo-search" method="get" th:action="@{/board/photo/list.do}">
+        <label class="search-label" for="keyword">제목</label>
+        <input class="form-control" id="keyword" name="keyword" th:value="${page?.search()?.keyword()}" placeholder="제목 검색">
+        <label class="search-check" for="imageOnly">
+            <input id="imageOnly" type="checkbox" name="imageOnly" value="true" th:checked="${page?.search()?.imageOnly()}">
+            이미지 포함
+        </label>
+        <label class="search-check" for="videoOnly">
+            <input id="videoOnly" type="checkbox" name="videoOnly" value="true" th:checked="${page?.search()?.videoOnly()}">
+            동영상 포함
+        </label>
+        <button class="btn btn-register btn-sm" type="submit">검색</button>
+        <a class="btn btn-neutral btn-sm" th:href="@{/board/photo/list.do}">초기화</a>
+    </form>
+
+    <section class="content-panel no-pad">
+        <div class="panel-head"><h2>포토 게시글</h2><span th:text="|${page?.totalCount() ?: 0}개|">0개</span></div>
+        <div class="public-photo-grid" th:if="${page != null and !#lists.isEmpty(page.photos())}">
+            <a class="public-photo-card"
+               th:each="photo : ${page.photos()}"
+               th:href="@{/board/photo/detail.do(photoSeq=${photo.photoSeq()})}">
+                <div class="public-photo-thumb">
+                    <img th:if="${photo.thumbnailImage()}" th:src="${photo.thumbnailFileUrl()}" th:alt="${photo.title()}">
+                    <video th:if="${photo.thumbnailVideo()}" th:src="${photo.thumbnailFileUrl()}" muted preload="metadata"></video>
+                    <span th:if="${!photo.thumbnailImage() and !photo.thumbnailVideo()}" class="public-photo-fallback">첨부 없음</span>
+                </div>
+                <div class="public-photo-card-body">
+                    <h2 th:text="${photo.title()}">포토 게시글 제목</h2>
+                    <p th:text="${photo.registeredDate()}">2026-05-30</p>
+                </div>
+            </a>
+        </div>
+        <p class="empty" th:if="${page == null or #lists.isEmpty(page.photos())}">현재 등록된 내용이 없습니다.</p>
+    </section>
+
+    <nav class="detail-action-bar" th:if="${page != null and page.totalPages() > 1}" aria-label="포토 게시판 페이지">
+        <a class="btn btn-neutral btn-sm"
+           th:if="${page.hasPrevious()}"
+           th:href="@{/board/photo/list.do(keyword=${page.search().keyword()},imageOnly=${page.search().imageOnly()},videoOnly=${page.search().videoOnly()},page=${page.previousPage()})}">이전</a>
+        <span th:text="|${page.search().page()} / ${page.totalPages()}|">1 / 1</span>
+        <a class="btn btn-neutral btn-sm"
+           th:if="${page.hasNext()}"
+           th:href="@{/board/photo/list.do(keyword=${page.search().keyword()},imageOnly=${page.search().imageOnly()},videoOnly=${page.search().videoOnly()},page=${page.nextPage()})}">다음</a>
+    </nav>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

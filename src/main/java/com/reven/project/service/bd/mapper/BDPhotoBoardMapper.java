@@ -4,6 +4,8 @@ import com.reven.project.service.bd.dto.BDPhotoBoardDetailResponseDto;
 import com.reven.project.service.bd.dto.BDPhotoBoardFileResponseDto;
 import com.reven.project.service.bd.dto.BDPhotoBoardFileSaveCommand;
 import com.reven.project.service.bd.dto.BDPhotoBoardListItemResponseDto;
+import com.reven.project.service.bd.dto.BDPhotoBoardPublicListItemResponseDto;
+import com.reven.project.service.bd.dto.BDPhotoBoardPublicSearchRequestDto;
 import com.reven.project.service.bd.dto.BDPhotoBoardSaveCommand;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
@@ -23,6 +25,18 @@ public interface BDPhotoBoardMapper {
 
     /** 사진 게시판 첨부 단건을 조회한다. */
     BDPhotoBoardFileResponseDto selectPhotoBoardFile(@Param("photoFileSeq") Long photoFileSeq);
+
+    /** 사용자 포토 게시판 목록을 조회한다. */
+    List<BDPhotoBoardPublicListItemResponseDto> selectPublicPhotoBoardList(BDPhotoBoardPublicSearchRequestDto search);
+
+    /** 사용자 포토 게시판 목록 건수를 조회한다. */
+    int selectPublicPhotoBoardCount(BDPhotoBoardPublicSearchRequestDto search);
+
+    /** 사용자 포토 게시판 단건 상세를 조회한다. */
+    BDPhotoBoardDetailResponseDto selectPublicPhotoBoardDetail(@Param("photoSeq") Long photoSeq);
+
+    /** 사용자 포토 게시판 첨부 단건을 조회한다. */
+    BDPhotoBoardFileResponseDto selectPublicPhotoBoardFile(@Param("photoFileSeq") Long photoFileSeq);
 
     /** 사진 게시판 원고를 등록한다. */
     int insertPhotoBoard(BDPhotoBoardSaveCommand requestDto);

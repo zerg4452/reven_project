@@ -1,0 +1,55 @@
+<!-- screen: 포토 게시판 상세 / purpose: 공개 포토 게시글의 첨부 이미지와 동영상을 확인하는 화면 / created: 2026-05-30 -->
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${photo?.title()} ?: '포토 게시판 상세')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: publicGnb('board')}"></header>
+<main class="public-content">
+    <section class="page-head">
+        <h1 th:text="${photo?.title()} ?: '포토 게시판 상세'">포토 게시판 상세</h1>
+        <p th:text="${photo?.registeredAt() != null ? #temporals.format(photo.registeredAt(), 'yyyy-MM-dd') : '2026-05-30'}">2026-05-30</p>
+    </section>
+
+    <section class="content-panel photo-attachment-panel photo-detail-attachments">
+        <div class="panel-head"><h2>첨부 파일</h2><span th:text="|${#lists.size(photoFiles)}개|">0개</span></div>
+        <div class="photo-file-scroll" th:if="${!#lists.isEmpty(photoFiles)}">
+            <div class="public-photo-file-grid">
+                <button th:each="file : ${photoFiles}"
+                        th:if="${file.image() or file.video()}"
+                        type="button"
+                        class="public-photo-file-card"
+                        th:attr="data-public-photo-preview='true',data-media-src=${file.fileUrl()},data-media-type=${file.contentType()},data-media-alt=${file.originalFileName()}">
+                    <span class="public-photo-file-thumb">
+                        <img th:if="${file.image()}" th:src="${file.fileUrl()}" th:alt="${file.originalFileName()}">
+                        <video th:if="${file.video()}" th:src="${file.fileUrl()}" muted preload="metadata"></video>
+                    </span>
+                    <strong class="public-photo-file-name" th:text="${file.originalFileName()}">파일명</strong>
+                    <span class="public-photo-file-size" th:text="${file.displayFileSizeKb()}">1 KB</span>
+                </button>
+                <article th:each="file : ${photoFiles}"
+                         th:if="${!file.image() and !file.video()}"
+                         class="public-photo-file-card">
+                    <span class="public-photo-fallback" th:text="${file.originalFileName()}">파일</span>
+                    <strong class="public-photo-file-name" th:text="${file.originalFileName()}">파일명</strong>
+                    <span class="public-photo-file-size" th:text="${file.displayFileSizeKb()}">1 KB</span>
+                </article>
+            </div>
+        </div>
+        <p class="empty" th:if="${#lists.isEmpty(photoFiles)}">등록된 첨부 파일이 없습니다.</p>
+    </section>
+
+    <div class="detail-action-bar"><a class="btn btn-neutral" th:href="@{/board/photo/list.do}">목록</a></div>
+</main>
+<div class="public-photo-modal" data-public-photo-modal aria-hidden="true">
+    <div class="public-photo-modal-backdrop" data-public-photo-modal-close></div>
+    <div class="public-photo-modal-dialog" role="dialog" aria-modal="true" aria-label="첨부 파일 확대 보기">
+        <button type="button" class="public-photo-modal-close" data-public-photo-modal-close aria-label="닫기">×</button>
+        <img class="public-photo-modal-image" data-public-photo-modal-image alt="">
+        <video class="public-photo-modal-video" data-public-photo-modal-video controls></video>
+    </div>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script th:src="@{/common/js/photo-public.js}" defer></script>
+</body>
+</html>

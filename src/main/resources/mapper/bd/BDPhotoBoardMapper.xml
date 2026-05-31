@@ -4,6 +4,52 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.reven.project.service.bd.mapper.BDPhotoBoardMapper">
 
+    <sql id="publicPhotoBoardSearchWhere">
+        where m.delete_flg = 'N'
+          and m.publish_yn = 'Y'
+        <if test="keyword != null and keyword != ''">
+          and m.title like concat('%', #{keyword}, '%')
+        </if>
+        <choose>
+            <when test="imageOnly and videoOnly">
+              and (
+                exists (
+                    select 1
+                    from bd_photo_board_file_dtl f
+                    where f.photo_seq = m.photo_seq
+                      and f.delete_flg = 'N'
+                      and f.content_type like 'image/%'
+                )
+                or exists (
+                    select 1
+                    from bd_photo_board_file_dtl f
+                    where f.photo_seq = m.photo_seq
+                      and f.delete_flg = 'N'
+                      and f.content_type like 'video/%'
+                )
+              )
+            </when>
+            <when test="imageOnly">
+              and exists (
+                select 1
+                from bd_photo_board_file_dtl f
+                where f.photo_seq = m.photo_seq
+                  and f.delete_flg = 'N'
+                  and f.content_type like 'image/%'
+              )
+            </when>
+            <when test="videoOnly">
+              and exists (
+                select 1
+                from bd_photo_board_file_dtl f
+                where f.photo_seq = m.photo_seq
+                  and f.delete_flg = 'N'
+                  and f.content_type like 'video/%'
+              )
+            </when>
+        </choose>
+    </sql>
+
     <select id="selectPhotoBoardList" resultType="com.reven.project.service.bd.dto.BDPhotoBoardListItemResponseDto">
         select
             m.photo_seq as photoSeq,
@@ -78,6 +124,90 @@
         from bd_photo_board_file_dtl
         where photo_file_seq = #{photoFileSeq}
           and delete_flg = 'N'
+    </select>
+
+    <select id="selectPublicPhotoBoardList" resultType="com.reven.project.service.bd.dto.BDPhotoBoardPublicListItemResponseDto">
+        select
+            m.photo_seq as photoSeq,
+            m.title,
+            date(m.reg_dtm) as registeredDate,
+            tf.photo_file_seq as thumbnailFileSeq,
+            tf.content_type as thumbnailContentType,
+            null as thumbnailFileUrl,
+            exists (
+                select 1
+                from bd_photo_board_file_dtl f
+                where f.photo_seq = m.photo_seq
+                  and f.delete_flg = 'N'
+                  and f.content_type like 'image/%'
+            ) as hasImage,
+            exists (
+                select 1
+                from bd_photo_board_file_dtl f
+                where f.photo_seq = m.photo_seq
+                  and f.delete_flg = 'N'
+                  and f.content_type like 'video/%'
+            ) as hasVideo
+        from bd_photo_board_mst m
+        left join bd_photo_board_file_dtl tf
+          on tf.photo_file_seq = (
+            select f.photo_file_seq
+            from bd_photo_board_file_dtl f
+            where f.photo_seq = m.photo_seq
+              and f.delete_flg = 'N'
+            order by f.sort_ord asc, f.photo_file_seq asc
+            limit 1
+          )
+        <include refid="publicPhotoBoardSearchWhere"/>
+        order by m.photo_seq desc
+        limit #{size} offset #{offset}
+    </select>
+
+    <select id="selectPublicPhotoBoardCount" resultType="int">
+        select count(*)
+        from bd_photo_board_mst m
+        <include refid="publicPhotoBoardSearchWhere"/>
+    </select>
+
+    <select id="selectPublicPhotoBoardDetail" resultType="com.reven.project.service.bd.dto.BDPhotoBoardDetailResponseDto">
+        select
+            photo_seq as photoSeq,
+            title,
+            publish_yn as publishYn,
+            delete_flg as deleteFlg,
+            reg_dtm as registeredAt,
+            reg_id as registeredBy,
+            mod_dtm as modifiedAt,
+            mod_id as modifiedBy
+        from bd_photo_board_mst
+        where photo_seq = #{photoSeq}
+          and publish_yn = 'Y'
+          and delete_flg = 'N'
+    </select>
+
+    <select id="selectPublicPhotoBoardFile" resultType="com.reven.project.service.bd.dto.BDPhotoBoardFileResponseDto">
+        select
+            f.photo_file_seq as photoFileSeq,
+            f.photo_seq as photoSeq,
+            f.original_file_name as originalFileName,
+            f.stored_file_name as storedFileName,
+            f.stored_path as storedPath,
+            f.content_type as contentType,
+            f.file_size as fileSize,
+            f.sort_ord as sortOrder,
+            f.delete_flg as deleteFlg,
+            f.reg_dtm as registeredAt,
+            f.reg_id as registeredBy,
+            f.mod_dtm as modifiedAt,
+            f.mod_id as modifiedBy,
+            null as fileUrl
+        from bd_photo_board_file_dtl f
+        inner join bd_photo_board_mst m
+          on m.photo_seq = f.photo_seq
+         and m.publish_yn = 'Y'
+         and m.delete_flg = 'N'
+        where f.photo_file_seq = #{photoFileSeq}
+          and f.delete_flg = 'N'
     </select>
 
     <insert id="insertPhotoBoard">

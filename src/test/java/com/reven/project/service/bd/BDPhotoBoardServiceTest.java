@@ -2,11 +2,15 @@ package com.reven.project.service.bd;
 
 import com.reven.project.service.bd.dto.BDPhotoBoardDetailResponseDto;
 import com.reven.project.service.bd.dto.BDPhotoBoardFileResponseDto;
+import com.reven.project.service.bd.dto.BDPhotoBoardPublicListItemResponseDto;
+import com.reven.project.service.bd.dto.BDPhotoBoardPublicPageResponseDto;
+import com.reven.project.service.bd.dto.BDPhotoBoardPublicSearchRequestDto;
 import com.reven.project.service.bd.dto.BDPhotoBoardSaveCommand;
 import com.reven.project.service.bd.dto.BDPhotoBoardSaveRequestDto;
 import com.reven.project.service.bd.mapper.BDPhotoBoardMapper;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -19,6 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import org.mockito.ArgumentCaptor;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -30,6 +36,123 @@ class BDPhotoBoardServiceTest {
 
     @TempDir
     Path tempDir;
+
+    @Test
+    void searchPublicPhotoBoardsNormalizesSearchAndBuildsThumbnailUrl() {
+        BDPhotoBoardMapper mapper = mock(BDPhotoBoardMapper.class);
+        BDPhotoBoardPublicListItemResponseDto item = new BDPhotoBoardPublicListItemResponseDto(
+                1L,
+                "봄 행사",
+                LocalDate.of(2026, 5, 30),
+                10L,
+                "image/png",
+                null,
+                true,
+                false
+        );
+        when(mapper.selectPublicPhotoBoardCount(any(BDPhotoBoardPublicSearchRequestDto.class))).thenReturn(10);
+        when(mapper.selectPublicPhotoBoardList(any(BDPhotoBoardPublicSearchRequestDto.class))).thenReturn(List.of(item));
+
+        BDPhotoBoardService service = newService(mapper);
+
+        BDPhotoBoardPublicPageResponseDto page = service.searchPublicPhotoBoards(
+                new BDPhotoBoardPublicSearchRequestDto("  봄  ", true, false, 0, 100)
+        );
+
+        ArgumentCaptor<BDPhotoBoardPublicSearchRequestDto> searchCaptor =
+                ArgumentCaptor.forClass(BDPhotoBoardPublicSearchRequestDto.class);
+        verify(mapper).selectPublicPhotoBoardCount(searchCaptor.capture());
+        verify(mapper).selectPublicPhotoBoardList(searchCaptor.capture());
+        assertThat(searchCaptor.getAllValues())
+                .allSatisfy(search -> {
+                    assertThat(search.keyword()).isEqualTo("봄");
+                    assertThat(search.page()).isEqualTo(1);
+                    assertThat(search.size()).isEqualTo(9);
+                    assertThat(search.offset()).isZero();
+                    assertThat(search.imageOnly()).isTrue();
+                    assertThat(search.videoOnly()).isFalse();
+                });
+        assertThat(page.search().size()).isEqualTo(9);
+        assertThat(page.totalCount()).isEqualTo(10);
+        assertThat(page.totalPages()).isEqualTo(2);
+        assertThat(page.photos()).hasSize(1);
+        assertThat(page.photos().get(0).thumbnailFileUrl()).isEqualTo("/board/photo/file.do?photoFileSeq=10");
+    }
+
+    @Test
+    void findPublicPhotoBoardReturnsMapperPublicDetail() {
+        BDPhotoBoardMapper mapper = mock(BDPhotoBoardMapper.class);
+        BDPhotoBoardDetailResponseDto detail = detail(1L, "공개 포토");
+        when(mapper.selectPublicPhotoBoardDetail(1L)).thenReturn(detail);
+
+        BDPhotoBoardService service = newService(mapper);
+
+        assertThat(service.findPublicPhotoBoard(1L)).isSameAs(detail);
+        assertThat(service.findPublicPhotoBoard(null)).isNull();
+        verify(mapper).selectPublicPhotoBoardDetail(1L);
+        verify(mapper, never()).selectPublicPhotoBoardDetail(isNull());
+    }
+
+    @Test
+    void findPublicPhotoBoardFilesReturnsExistingFilesWithPublicUrls() {
+        BDPhotoBoardMapper mapper = mock(BDPhotoBoardMapper.class);
+        when(mapper.selectPublicPhotoBoardDetail(1L)).thenReturn(detail(1L, "공개 포토"));
+        when(mapper.selectPhotoBoardFiles(1L)).thenReturn(List.of(file(10L, 1L, "image.png", 1)));
+
+        BDPhotoBoardService service = newService(mapper);
+
+        List<BDPhotoBoardFileResponseDto> files = service.findPublicPhotoBoardFiles(1L);
+
+        assertThat(files).hasSize(1);
+        assertThat(files.get(0).fileUrl()).isEqualTo("/board/photo/file.do?photoFileSeq=10");
+        assertThat(service.findPublicPhotoBoardFiles(null)).isEmpty();
+        verify(mapper).selectPublicPhotoBoardDetail(1L);
+        verify(mapper).selectPhotoBoardFiles(1L);
+        verify(mapper, never()).selectPhotoBoardFiles(isNull());
+    }
+
+    @Test
+    void findPublicPhotoBoardFilesReturnsEmptyWhenPostIsNotPublic() {
+        BDPhotoBoardMapper mapper = mock(BDPhotoBoardMapper.class);
+        when(mapper.selectPublicPhotoBoardDetail(1L)).thenReturn(null);
+
+        BDPhotoBoardService service = newService(mapper);
+
+        assertThat(service.findPublicPhotoBoardFiles(1L)).isEmpty();
+        verify(mapper, never()).selectPhotoBoardFiles(any());
+    }
+
+    @Test
+    void findPublicPhotoBoardFileReturnsPublicFileWithUrlAndNullForMissing() {
+        BDPhotoBoardMapper mapper = mock(BDPhotoBoardMapper.class);
+        when(mapper.selectPublicPhotoBoardFile(10L)).thenReturn(file(10L, 1L, "image.png", 1));
+        when(mapper.selectPublicPhotoBoardFile(99L)).thenReturn(null);
+
+        BDPhotoBoardService service = newService(mapper);
+
+        BDPhotoBoardFileResponseDto file = service.findPublicPhotoBoardFile(10L);
+
+        assertThat(file.fileUrl()).isEqualTo("/board/photo/file.do?photoFileSeq=10");
+        assertThat(service.findPublicPhotoBoardFile(99L)).isNull();
+        assertThat(service.findPublicPhotoBoardFile(null)).isNull();
+        verify(mapper).selectPublicPhotoBoardFile(10L);
+        verify(mapper).selectPublicPhotoBoardFile(99L);
+        verify(mapper, never()).selectPublicPhotoBoardFile(isNull());
+    }
+
+    @Test
+    void resolvePublicPhotoBoardFilePathReturnsOnlyPublicFilePath() {
+        BDPhotoBoardMapper mapper = mock(BDPhotoBoardMapper.class);
+        when(mapper.selectPublicPhotoBoardFile(10L)).thenReturn(file(10L, 1L, "image.png", 1));
+        when(mapper.selectPublicPhotoBoardFile(99L)).thenReturn(null);
+
+        BDPhotoBoardService service = newService(mapper);
+
+        assertThat(service.resolvePublicPhotoBoardFilePath(10L))
+                .isEqualTo(tempDir.resolve("2026/05/27/stored.png").toAbsolutePath().normalize());
+        assertThat(service.resolvePublicPhotoBoardFilePath(99L)).isNull();
+        assertThat(service.resolvePublicPhotoBoardFilePath(null)).isNull();
+    }
 
     @Test
     void insertKeepsUploadedFilesAndDoesNotDeleteExistingAttachments() throws Exception {

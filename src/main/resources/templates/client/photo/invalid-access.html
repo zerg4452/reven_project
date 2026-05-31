@@ -1,0 +1,17 @@
+<!-- screen: 포토 게시판 비정상 접근 / purpose: 공개 포토 게시글 비정상 접근 시 안내 후 목록으로 이동하는 화면 / created: 2026-05-30 -->
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('비정상 접근')}"></head>
+<body>
+<script th:inline="javascript">
+    const message = /*[[${message}]]*/ '비정상적인 접근입니다.';
+    const redirectUrl = /*[[${redirectUrl}]]*/ '/board/photo/list.do';
+    alert(message || '비정상적인 접근입니다.');
+    location.replace(redirectUrl || '/board/photo/list.do');
+</script>
+<noscript>
+    <p>비정상적인 접근입니다.</p>
+    <a th:href="@{/board/photo/list.do}">목록으로 이동</a>
+</noscript>
+</body>
+</html>

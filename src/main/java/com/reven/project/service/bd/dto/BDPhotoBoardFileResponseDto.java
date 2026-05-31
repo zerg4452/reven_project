@@ -61,6 +61,14 @@ public record BDPhotoBoardFileResponseDto(
         @Schema(description = "파일 URL", example = "/admin/board/photo/file.do?photoFileSeq=1")
         String fileUrl
 ) {
+    public boolean image() {
+        return contentType != null && contentType.startsWith("image/");
+    }
+
+    public boolean video() {
+        return contentType != null && contentType.startsWith("video/");
+    }
+
     public String displayFileSizeKb() {
         long size = fileSize == null ? 0L : fileSize;
         long kb = Math.max(1L, (size + 1023L) / 1024L);
