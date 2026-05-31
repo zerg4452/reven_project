@@ -1843,7 +1843,7 @@ textarea.form-control {
 
 .site-footer a {
     color: var(--public-gold);
-    font-size: 13px;
+    font-size: 17px;
     text-decoration: none;
     transition: color 160ms;
 }

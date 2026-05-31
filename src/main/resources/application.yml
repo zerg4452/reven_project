@@ -25,6 +25,11 @@ server:
     session:
       timeout: 120m
 
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: false
+
 mybatis:
   mapper-locations: classpath:/mapper/**/*.xml
   type-aliases-package: com.reven.project

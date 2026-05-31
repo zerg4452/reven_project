@@ -54,7 +54,7 @@ public final class BDBoardViewCountSupport {
         }
         for (Cookie cookie : cookies) {
             if (cookieName.equals(cookie.getName()) && cookie.getValue() != null && !cookie.getValue().isBlank()) {
-                Arrays.stream(cookie.getValue().split(","))
+                Arrays.stream(cookie.getValue().split("\\|"))
                         .map(String::trim)
                         .filter(value -> !value.isEmpty())
                         .forEach(viewed::add);
@@ -72,7 +72,7 @@ public final class BDBoardViewCountSupport {
     }
 
     private static void writeCookie(HttpServletResponse response, String cookieName, List<String> values) {
-        Cookie cookie = new Cookie(cookieName, String.join(",", values));
+        Cookie cookie = new Cookie(cookieName, String.join("|", values));
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setMaxAge(COOKIE_MAX_AGE_SECONDS);

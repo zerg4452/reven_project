@@ -146,7 +146,7 @@ public class BDPhotoBoardService {
      * 사용자 포토 게시판의 첨부 파일 목록을 조회한다.
      */
     public List<BDPhotoBoardFileResponseDto> findPublicPhotoBoardFiles(Long photoSeq) {
-        if (photoSeq == null || findPublicPhotoBoard(photoSeq) == null) {
+        if (photoSeq == null) {
             return List.of();
         }
         return photoBoardMapper.selectPhotoBoardFiles(photoSeq).stream()
