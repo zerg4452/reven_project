@@ -1,0 +1,43 @@
+<!-- screen: 개발 일지 / purpose: worklog.md를 월별·일별 지그재그 타임라인으로 표시하는 화면 / created: 2026-05-31 -->
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('개발 일지')}"></head>
+<body class="worklog-body">
+<header th:replace="~{fragments/layout :: publicGnb('worklog')}"></header>
+<main class="public-content worklog-content">
+
+    <section class="page-head worklog-page-head">
+        <h1>개발 일지</h1>
+        <p>이 사이트가 만들어진 기록입니다.</p>
+    </section>
+
+    <div class="worklog-illustration" aria-hidden="true"></div>
+
+    <div th:if="${months.isEmpty()}" class="worklog-empty">기록이 없습니다.</div>
+
+    <div class="worklog-timeline" th:unless="${months.isEmpty()}">
+        <div class="worklog-month-block" th:each="month : ${months}">
+            <div class="worklog-month-label">
+                <span th:text="${month.monthLabel()}">2026년 5월</span>
+            </div>
+            <div class="worklog-days">
+                <div class="worklog-day-card"
+                     th:each="day, stat : ${month.days()}"
+                     th:classappend="${stat.index % 2 == 0} ? ' worklog-left' : ' worklog-right'">
+                    <div class="worklog-card-dot"></div>
+                    <div class="worklog-card-body">
+                        <div class="worklog-card-date" th:text="${day.dateLabel()}">5월 31일</div>
+                        <ul class="worklog-card-entries">
+                            <li th:each="entry : ${day.entries()}" th:text="${entry}">항목</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
