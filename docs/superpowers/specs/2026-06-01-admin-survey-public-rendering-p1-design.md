@@ -79,10 +79,12 @@ P1에서 가장 중요한 저장 규칙은 체크박스처럼 한 문항에 여�
 - 현재 `SAPublicSurveyController.submit()`은 `@RequestParam Map<String, String> params`를 받는다. 이 구조는 같은 키(`answers[key]`)가 여러 번 오면 한 값으로 붕괴하므로 체크박스를 받을 수 없다.
 - 바인딩을 `@RequestParam MultiValueMap<String, String> params`로 바꾼다. `MultiValueMap`은 같은 키의 모든 값을 `List<String>`으로 보존한다.
 - `answers[fieldKey]` 키를 잘라 `fieldKey` → `List<String>` 형태로 그룹핑한 뒤, 문항 1건당 `AnswerRequest` 1건을 만든다. 단일 값 문항은 리스트 크기 1, 체크박스는 크기 N으로 들어온다.
+- 다중 값을 담기 위해 `AnswerRequest`에 `List<String> values` 필드를 추가한다. 컨트롤러는 제출된 raw `optionValue`(주관식은 입력 원문) 목록을 이 필드에 채우기만 한다. 컨트롤러는 라벨 변환이나 JSON 직렬화를 하지 않는다.
+- 기존 `answerValue`/`answerJson` 필드는 클라이언트 입력이 아니라 `SASurveySubmitService`가 `values`로부터 계산하는 결과값으로 역할을 바꾼다. 즉 전달은 `values` 단일 경로로 통일하고, `answer_value`/`answer_json` 컬럼 형식 결정은 전적으로 서비스가 맡는다.
 
 ### 제출값 → 저장값 변환
 
-- 폼이 제출하는 값은 `optionValue`다(라벨 아님). 저장 시 이를 `optionLabel`로 변환하는 책임은 `SASurveySubmitService.submit()`에 둔다. 이 서비스는 이미 `surveyService.findSurvey()`로 문항·옵션 메타데이터를 로드하므로 추가 조회가 필요 없다.
+- 폼이 제출하는 값은 `optionValue`다(라벨 아님). 서비스는 `AnswerRequest.values`를 입력으로 받아 저장값을 계산한다. `optionValue`를 `optionLabel`로 변환하는 책임은 `SASurveySubmitService.submit()`에 둔다. 이 서비스는 이미 `surveyService.findSurvey()`로 문항·옵션 메타데이터를 로드하므로 추가 조회가 필요 없다.
 - 변환 규칙은 문항의 `optionValue` → `optionLabel` 매핑을 만들어 적용한다. 제출된 value가 매핑에 없으면(stale 옵션이나 조작) 변환하지 않고 제출된 value 원문을 그대로 저장한다. 즉 "라벨이 있으면 라벨, 없으면 원본 value".
 - 주관식 문항은 옵션이 없으므로 변환 없이 입력 원문을 그대로 저장한다.
 
@@ -151,3 +153,8 @@ P1에서 가장 중요한 저장 규칙은 체크박스처럼 한 문항에 여�
 - 사용자 설문 화면에서 `objective`와 `subjective` 문항이 각각 알맞은 입력 UI로 보인다.
 - 체크박스 응답이 여러 값으로 제출되어도 저장이 깨지지 않는다.
 - 기존 단일 응답 설문은 동작 방식이 바뀌지 않는다.
+
+## 재검토 메모
+
+- (해결) 체크박스 다중 값 전달 형식. `AnswerRequest`에 `List<String> values` 필드를 두는 방식으로 확정했다. 컨트롤러는 raw `optionValue` 목록만 채우고, `answer_value`/`answer_json` 계산은 `SASurveySubmitService`가 담당한다. §폼 값 바인딩과 §제출값 → 저장값 변환 참고.
+- (해결) `required` 체크박스 처리. 객관식 체크박스에는 HTML `required`를 걸지 않고, "최소 한 개 선택" 검증은 P2로 미룬다. 체크박스 렌더링 자체는 P1 범위에 포함한다. §객관식 문항 규칙 참고.

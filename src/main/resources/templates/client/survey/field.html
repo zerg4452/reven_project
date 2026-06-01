@@ -1,0 +1,55 @@
+<!-- 사용자 설문 문항 1건을 렌더링하는 fragment -->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="field(field)">
+    <section class="survey-question">
+        <div class="survey-question-head">
+            <span class="survey-question-title" th:text="${field.label}">문항</span>
+            <span class="required" th:if="${field.required}">*</span>
+        </div>
+        <div class="survey-question-body" th:switch="${field.renderType}">
+            <textarea th:case="textarea" class="form-control" rows="4"
+                      th:name="|answers[${field.key}]|"
+                      th:required="${field.required}"></textarea>
+
+            <select th:case="select" class="form-control"
+                    th:name="|answers[${field.key}]|"
+                    th:required="${field.required}">
+                <option value="">선택</option>
+                <option th:each="option : ${field.options}"
+                        th:value="${option.optionValue}"
+                        th:text="${option.optionLabel}">보기</option>
+            </select>
+
+            <div th:case="radio" class="survey-option-list">
+                <label th:each="option : ${field.options}" class="survey-option">
+                    <input type="radio"
+                           th:name="|answers[${field.key}]|"
+                           th:value="${option.optionValue}"
+                           th:required="${field.required}">
+                    <span th:text="${option.optionLabel}">보기</span>
+                </label>
+            </div>
+
+            <div th:case="checkbox" class="survey-option-list">
+                <label th:each="option : ${field.options}" class="survey-option">
+                    <input type="checkbox"
+                           th:name="|answers[${field.key}]|"
+                           th:value="${option.optionValue}">
+                    <span th:text="${option.optionLabel}">보기</span>
+                </label>
+            </div>
+
+            <input th:case="date" type="date" class="form-control"
+                   th:name="|answers[${field.key}]|"
+                   th:required="${field.required}">
+            <input th:case="number" type="number" class="form-control"
+                   th:name="|answers[${field.key}]|"
+                   th:required="${field.required}">
+            <input th:case="email" type="email" class="form-control"
+                   th:name="|answers[${field.key}]|"
+                   th:required="${field.required}">
+            <input th:case="*" type="text" class="form-control"
+                   th:name="|answers[${field.key}]|"
+                   th:required="${field.required}">
+        </div>
+    </section>
+</th:block>

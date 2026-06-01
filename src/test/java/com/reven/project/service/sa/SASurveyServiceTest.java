@@ -104,6 +104,15 @@ class SASurveyServiceTest {
         assertThat(result.fields.get(0).surveyType).isEqualTo("subjective");
     }
 
+    @Test
+    void surveyFieldRenderTypeFallsBackBySurveyType() {
+        SASurveyDto.SurveyField objectiveField = field(30L, 1L, "objective", "textarea");
+        SASurveyDto.SurveyField subjectiveField = field(31L, 1L, "subjective", "radio");
+
+        assertThat(objectiveField.getRenderType()).isEqualTo("select");
+        assertThat(subjectiveField.getRenderType()).isEqualTo("text");
+    }
+
     private SASurveyDto.SurveyDetail survey(Long surveySeq, String surveyUid) {
         SASurveyDto.SurveyDetail survey = new SASurveyDto.SurveyDetail();
         survey.surveySeq = surveySeq;

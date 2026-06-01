@@ -128,6 +128,21 @@ public final class SASurveyDto {
             return fieldType;
         }
 
+        public String getRenderType() {
+            String normalizedSurveyType = surveyType == null ? "" : surveyType.trim().toLowerCase();
+            String normalizedFieldType = fieldType == null ? "" : fieldType.trim().toLowerCase();
+            return switch (normalizedSurveyType) {
+                case "subjective" -> switch (normalizedFieldType) {
+                    case "textarea", "date", "number", "email" -> normalizedFieldType;
+                    default -> "text";
+                };
+                default -> switch (normalizedFieldType) {
+                    case "radio", "checkbox" -> normalizedFieldType;
+                    default -> "select";
+                };
+            };
+        }
+
         public boolean isRequired() {
             return "Y".equalsIgnoreCase(requiredYn);
         }
@@ -242,8 +257,7 @@ public final class SASurveyDto {
     public static class AnswerRequest {
         @NotBlank
         public String fieldKey;
-        public String answerValue;
-        public String answerJson;
+        public List<String> values = new ArrayList<>();
     }
 
     @Getter

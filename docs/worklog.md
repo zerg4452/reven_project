@@ -77,3 +77,12 @@
 - 공지사항(BDNotice) 게시판을 추가했다. 관리자 `/admin/board/notice/*`, 사용자 `/board/notice/*`, `bd_notice_mst`/`bd_notice_file_dtl`, 썸네일·첨부 업로드, 상단 고정·미래 게시일 미노출, 공개 목록(고정+페이징)을 구현했다.
 - 포토게시판·AI News 공개 상세에 조회수 증가와 `BDBoardViewCountSupport` 쿠키 중복 방지를 연결했다.
 - 공지 관리 목록에 게시일 범위 검색(기본 60일~내일)을 추가했고, 공개 상세 첨부 조회의 중복 DB 호출을 `findPublicNoticeFilesForDetail`로 줄였다. `BDNoticeAdminControllerTest`, `BDNoticePublicControllerTest`를 추가했다.
+
+## 2026-06-01
+
+- 사용자 설문 화면에 `objective`/`subjective` 문항 렌더링을 반영했다.
+- `SASurveyDto.AnswerRequest`에 `values` 리스트를 추가해 체크박스처럼 여러 값이 들어오는 제출을 보존하도록 바꿨다.
+- `SAPublicSurveyController.submit()`은 `MultiValueMap` 기반으로 `answers[fieldKey]`를 그룹핑하고, `SASurveySubmitService`는 survey field 순서대로 답변 스냅샷을 저장한다.
+- 단일 객관식은 보기 라벨을 `answer_value`에, 체크박스는 라벨 조인 문자열과 raw value JSON 배열을 각각 `answer_value`와 `answer_json`에 저장하도록 정규화했다.
+- 사용자 설문 문항 템플릿을 `client/survey/field.html` fragment로 분리했고, 공통 CSS에 질문/보기 레이아웃을 최소한으로 추가했다.
+- 세부 테스트와 전체 Gradle 테스트를 모두 성공시켜 public survey P1 변경이 기존 테스트를 깨지 않는 것을 확인했다.

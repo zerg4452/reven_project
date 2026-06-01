@@ -9,8 +9,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.util.MultiValueMap;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -50,21 +53,27 @@ public class SAPublicSurveyController {
      */
     @PostMapping("/surveys/submit.do")
     public String submit(@RequestParam String surveyUid,
-                                             @RequestParam Map<String, String> params,
-                                             HttpServletRequest servletRequest) {
+                         @RequestParam MultiValueMap<String, String> params,
+                         HttpServletRequest servletRequest) {
         SASurveyDto.SurveySubmitRequest request = new SASurveyDto.SurveySubmitRequest();
-        request.submitterName = params.get("submitterName");
-        request.phone = params.get("phone");
-        request.email = params.get("email");
+        request.submitterName = params.getFirst("submitterName");
+        request.phone = params.getFirst("phone");
+        request.email = params.getFirst("email");
         request.answers = new ArrayList<>();
-        // 동적 문항은 answers[fieldKey] 형태로 넘어오므로 fieldKey를 잘라 답변 목록으로 평탄화한다.
-        params.forEach((key, value) -> {
-            if (key.startsWith("answers[")) {
-                SASurveyDto.AnswerRequest answer = new SASurveyDto.AnswerRequest();
-                answer.fieldKey = key.substring("answers[".length(), key.length() - 1);
-                answer.answerValue = value;
-                request.answers.add(answer);
+        Map<String, List<String>> groupedAnswers = new LinkedHashMap<>();
+        // 동적 문항은 answers[fieldKey] 형태로 넘어오므로 fieldKey 기준으로 여러 값을 보존해 평탄화한다.
+        params.forEach((key, values) -> {
+            if (!key.startsWith("answers[")) {
+                return;
             }
+            String fieldKey = key.substring("answers[".length(), key.length() - 1);
+            groupedAnswers.put(fieldKey, new ArrayList<>(values));
+        });
+        groupedAnswers.forEach((fieldKey, values) -> {
+            SASurveyDto.AnswerRequest answer = new SASurveyDto.AnswerRequest();
+            answer.fieldKey = fieldKey;
+            answer.values = values;
+            request.answers.add(answer);
         });
         submitService.submit(surveyUid, request, servletRequest.getRemoteAddr());
         return "redirect:/surveys/thanks.do";

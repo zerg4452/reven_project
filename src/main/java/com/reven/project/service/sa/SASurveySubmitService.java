@@ -1,5 +1,7 @@
 package com.reven.project.service.sa;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.reven.project.service.sa.dto.SASurveyDto;
 import com.reven.project.service.sa.mapper.SASurveySubmitMapper;
 import org.springframework.stereotype.Service;
@@ -8,12 +10,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class SASurveySubmitService {
     private final SASurveyService surveyService;
     private final SASurveySubmitMapper submitMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public SASurveySubmitService(SASurveyService surveyService, SASurveySubmitMapper submitMapper) {
         this.surveyService = surveyService;
@@ -37,25 +42,27 @@ public class SASurveySubmitService {
         submission.ip = ip;
         submitMapper.insertSubmission(submission);
 
-        // 제출 이력 상세가 설문 수정 후에도 변하지 않도록 현재 문항 정보를 답변 row에 snapshot으로 복사한다.
-        Map<String, SASurveyDto.SurveyField> fieldsByKey = new LinkedHashMap<>();
-        for (SASurveyDto.SurveyField field : survey.fields) {
-            fieldsByKey.put(field.fieldKey, field);
-        }
+        Map<String, SASurveyDto.AnswerRequest> answersByFieldKey = new LinkedHashMap<>();
         for (SASurveyDto.AnswerRequest source : request.answers) {
-            SASurveyDto.SurveyField field = fieldsByKey.get(source.fieldKey);
-            if (field == null) {
-                // 화면에 없는 fieldKey가 넘어온 경우 저장하지 않는다.
+            answersByFieldKey.put(source.fieldKey, source);
+        }
+
+        // 제출 이력 상세가 설문 수정 후에도 변하지 않도록 현재 문항 정보를 답변 row에 snapshot으로 복사한다.
+        for (SASurveyDto.SurveyField field : survey.fields) {
+            SASurveyDto.AnswerRequest source = answersByFieldKey.get(field.fieldKey);
+            if (source == null) {
                 continue;
             }
+
+            List<String> values = source.values == null ? List.of() : source.values;
             SASurveyDto.AnswerInsert answer = new SASurveyDto.AnswerInsert();
             answer.submitSeq = submission.submitSeq;
             answer.fieldSeq = field.fieldSeq;
             answer.fieldKey = field.fieldKey;
             answer.fieldLabel = field.label;
             answer.fieldType = field.fieldType;
-            answer.answerValue = source.answerValue;
-            answer.answerJson = source.answerJson;
+            answer.answerValue = buildAnswerValue(field, values);
+            answer.answerJson = buildAnswerJson(field, values);
             answer.sortOrd = field.sortOrd;
             submitMapper.insertAnswer(answer);
         }
@@ -79,5 +86,49 @@ public class SASurveySubmitService {
         }
         detail.answers = submitMapper.selectSubmissionAnswers(detail.submitSeq);
         return detail;
+    }
+
+    private String buildAnswerValue(SASurveyDto.SurveyField field, List<String> values) {
+        List<String> normalizedValues = values == null ? List.of() : values;
+        if (normalizedValues.isEmpty()) {
+            return null;
+        }
+
+        String renderType = field.getRenderType();
+        if ("checkbox".equals(renderType)) {
+            return normalizedValues.stream()
+                    .map(value -> resolveOptionLabel(field, value))
+                    .collect(Collectors.joining(", "));
+        }
+
+        String value = normalizedValues.get(0);
+        if ("select".equals(renderType) || "radio".equals(renderType)) {
+            return resolveOptionLabel(field, value);
+        }
+        return value;
+    }
+
+    private String buildAnswerJson(SASurveyDto.SurveyField field, List<String> values) {
+        if (!"checkbox".equals(field.getRenderType())) {
+            return null;
+        }
+        List<String> normalizedValues = values == null ? List.of() : values;
+        if (normalizedValues.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(normalizedValues);
+        } catch (JsonProcessingException ex) {
+            throw new IllegalStateException("Failed to serialize checkbox answer values.", ex);
+        }
+    }
+
+    private String resolveOptionLabel(SASurveyDto.SurveyField field, String value) {
+        for (SASurveyDto.SurveyOption option : field.options) {
+            if (Objects.equals(option.optionValue, value)) {
+                return option.optionLabel;
+            }
+        }
+        return value;
     }
 }

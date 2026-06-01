@@ -40,3 +40,12 @@
 - 체크박스는 단일 문자열로 평탄화하면 안 되므로, 제출 컨트롤러에서 다중 값을 읽는 구조로 바꿔야 한다.
 - 저장은 `answer_value`와 `answer_json`의 기존 컬럼만 사용하고, 별도 스키마 변경은 하지 않는다.
 - 관리자 이력과 CSV는 `answer_value`를 계속 사람이 읽을 수 있게 유지하면 별도 보정 없이 이어갈 수 있다.
+
+## 2026-06-01 관리자 설문 P1 구현
+
+- `SASurveyDto.AnswerRequest.values`를 raw 제출값 리스트로 추가했다.
+- `SASurveyDto.SurveyField.getRenderType()`로 객관식/주관식 렌더링 fallback을 DTO에서 처리했다.
+- `SAPublicSurveyController.submit()`은 `MultiValueMap`을 받아 같은 `answers[fieldKey]` 파라미터를 모두 보존한다.
+- `SASurveySubmitService.submit()`은 survey field 순서를 기준으로 `answer_value`와 `answer_json`을 계산한다.
+- 단일 객관식은 보기 라벨을 `answer_value`에 저장하고, 체크박스는 라벨 조인 문자열과 raw value JSON 배열을 함께 저장한다.
+- 사용자 설문 문항은 `client/survey/field.html` fragment로 분리했다.

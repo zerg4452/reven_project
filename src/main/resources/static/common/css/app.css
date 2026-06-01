@@ -1664,6 +1664,46 @@ textarea.form-control {
     gap: 16px;
 }
 
+.survey-question {
+    display: grid;
+    gap: 10px;
+    padding: 18px 0;
+    border-bottom: 1px solid #e3ebf2;
+}
+
+.survey-question:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.survey-question-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.survey-question-title {
+    color: #263849;
+    font-weight: 800;
+}
+
+.survey-question-body {
+    display: grid;
+    gap: 12px;
+}
+
+.survey-option-list {
+    display: grid;
+    gap: 10px;
+}
+
+.survey-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+}
+
 .menu-management-grid {
     display: grid;
     grid-template-columns: minmax(300px, 4fr) minmax(0, 8fr);
