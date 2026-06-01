@@ -149,6 +149,10 @@ public class BDPhotoBoardService {
         if (photoSeq == null) {
             return List.of();
         }
+        BDPhotoBoardDetailResponseDto photo = photoBoardMapper.selectPublicPhotoBoardDetail(photoSeq);
+        if (photo == null) {
+            return List.of();
+        }
         return photoBoardMapper.selectPhotoBoardFiles(photoSeq).stream()
                 .map(this::withPublicFileUrl)
                 .toList();

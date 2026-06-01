@@ -28,6 +28,7 @@
         <result property="surveySeq" column="survey_seq"/>
         <result property="fieldKey" column="field_key"/>
         <result property="label" column="label"/>
+        <result property="surveyType" column="survey_type"/>
         <result property="fieldType" column="field_type"/>
         <result property="requiredYn" column="required_yn"/>
         <result property="sortOrd" column="sort_ord"/>
@@ -144,6 +145,7 @@
                survey_seq,
                field_key,
                field_label as label,
+               survey_type,
                field_type,
                required_yn,
                sort_ord
@@ -203,9 +205,9 @@
     <insert id="insertSurveyField" parameterType="com.reven.project.service.sa.dto.SASurveyDto$SurveyField"
             useGeneratedKeys="true" keyProperty="fieldSeq" keyColumn="field_seq">
         insert into sa_survey_field_dtl
-            (survey_seq, field_key, field_label, field_type, required_yn, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id)
+            (survey_seq, field_key, field_label, survey_type, field_type, required_yn, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id)
         values
-            (#{surveySeq}, #{fieldKey}, #{label}, #{fieldType}, #{requiredYn}, #{sortOrd}, now(), 'system', now(), 'system')
+            (#{surveySeq}, #{fieldKey}, #{label}, #{surveyType}, #{fieldType}, #{requiredYn}, #{sortOrd}, now(), 'system', now(), 'system')
     </insert>
 
     <insert id="insertSurveyOption" parameterType="com.reven.project.service.sa.dto.SASurveyDto$SurveyOption"

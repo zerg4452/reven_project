@@ -113,6 +113,9 @@ public class SASurveyService {
                 field.options.add(option);
             }
         }
+        for (SASurveyDto.SurveyField field : survey.fields) {
+            field.surveyType = defaultSurveyType(field.surveyType);
+        }
     }
 
     private SASurveyDto.SurveyDetail toSurveyDetail(String surveyUid, SASurveyDto.SurveySaveRequest request) {
@@ -138,6 +141,7 @@ public class SASurveyService {
                     ? "field_" + fieldOrder
                     : source.fieldKey;
             field.label = source.label;
+            field.surveyType = defaultSurveyType(source.surveyType);
             field.fieldType = source.fieldType;
             field.requiredYn = defaultYn(source.requiredYn, "N");
             field.sortOrd = source.sortOrd > 0 ? source.sortOrd : fieldOrder;
@@ -168,6 +172,17 @@ public class SASurveyService {
             case "true", "on", "y" -> "Y";
             case "false", "off", "n" -> "N";
             default -> value;
+        };
+    }
+
+    private String defaultSurveyType(String value) {
+        if (value == null || value.isBlank()) {
+            return "objective";
+        }
+        return switch (value.trim().toLowerCase()) {
+            case "objective", "o", "객관식" -> "objective";
+            case "subjective", "s", "주관식" -> "subjective";
+            default -> "objective";
         };
     }
 

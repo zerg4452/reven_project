@@ -113,6 +113,7 @@ public final class SASurveyDto {
         public Long surveySeq;
         public String fieldKey;
         public String label;
+        public String surveyType = "objective";
         public String fieldType;
         public String requiredYn = "N";
         public int sortOrd;
@@ -172,6 +173,7 @@ public final class SASurveyDto {
         public String fieldKey;
         @NotBlank
         public String label;
+        public String surveyType = "objective";
         @NotBlank
         public String fieldType;
         public String requiredYn = "N";

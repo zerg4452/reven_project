@@ -1552,6 +1552,15 @@ textarea.form-control {
     max-width: 620px;
 }
 
+.survey-admin-form input.form-control,
+.survey-admin-form textarea.form-control {
+    max-width: 560px;
+}
+
+.survey-admin-form select.form-control {
+    max-width: 200px;
+}
+
 .management-admin-fields {
     display: grid;
     grid-template-columns: 1fr;
@@ -1728,7 +1737,7 @@ textarea.form-control {
 
 .field-row {
     display: grid;
-    grid-template-columns: minmax(180px, 1fr) 180px 90px;
+    grid-template-columns: minmax(160px, 1fr) 140px 150px 80px;
     gap: 12px;
     padding: 16px;
     border: 1px solid var(--color-border);

@@ -103,6 +103,7 @@ CREATE TABLE IF NOT EXISTS sa_survey_field_dtl (
     survey_seq BIGINT NOT NULL COMMENT '설문 일련번호',
     field_key VARCHAR(100) NOT NULL COMMENT '문항 키',
     field_label VARCHAR(200) NOT NULL COMMENT '문항 라벨',
+    survey_type VARCHAR(20) NOT NULL DEFAULT 'objective' COMMENT '설문 유형',
     field_type VARCHAR(30) NOT NULL COMMENT '문항 유형',
     required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '필수 여부',
     sort_ord INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
@@ -113,6 +114,8 @@ CREATE TABLE IF NOT EXISTS sa_survey_field_dtl (
     PRIMARY KEY (field_seq),
     KEY idx_sa_survey_field_dtl_survey_seq (survey_seq)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='설문 문항 상세';
+
+ALTER TABLE sa_survey_field_dtl ADD COLUMN IF NOT EXISTS survey_type VARCHAR(20) NOT NULL DEFAULT 'objective' COMMENT '설문 유형' AFTER field_label;
 
 CREATE TABLE IF NOT EXISTS sa_survey_field_opt_dtl (
     field_opt_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT '설문 문항 보기 일련번호',
