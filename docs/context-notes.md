@@ -49,3 +49,20 @@
 - `SASurveySubmitService.submit()`은 survey field 순서를 기준으로 `answer_value`와 `answer_json`을 계산한다.
 - 단일 객관식은 보기 라벨을 `answer_value`에 저장하고, 체크박스는 라벨 조인 문자열과 raw value JSON 배열을 함께 저장한다.
 - 사용자 설문 문항은 `client/survey/field.html` fragment로 분리했다.
+
+## 2026-06-02 관리자 설문 P2 계획
+
+- P2는 저장 검증과 제출 검증을 분리하되, 둘 다 서버에서 막는 방식으로 간다.
+- 저장 검증은 `SAAdminSurveyController`가 `BindingResult`를 재사용해서 객관식 옵션 0개와 라벨 중복을 막는다.
+- 공개 제출 검증은 `SASurveySubmitService`가 먼저 수행하고, 실패하면 `SAPublicSurveyController`가 같은 설문 화면을 다시 렌더링한다.
+- 제출 실패 화면은 입력값 복원보다 문항별 오류 메시지 노출을 우선한다.
+- `select`와 `radio`는 하나의 값만 쓰고, `checkbox`만 다중 값을 유지한다.
+
+## 2026-06-02 관리자 설문 P2 구현
+
+- 관리자 저장 검증은 `SAAdminSurveyController`에서 `objective` 문항의 옵션 비어 있음과 중복 라벨을 `BindingResult`로 거른다.
+- 공개 제출 검증은 `SASurveySubmitService`가 저장 전에 수행하고, 실패 시 `SubmissionValidationException`을 던진다.
+- 공개 컨트롤러는 제출 검증 실패를 잡아서 `client/survey/form`을 다시 렌더링하고 `errors` 맵을 넘긴다.
+- 비필수 문항은 값이 비어 있으면 답변 row를 만들지 않는다.
+- 문항별 오류 표시는 관리자 설문 상세와 사용자 설문 fragment에 각각 추가했다.
+- `./gradlew test`로 전체 회귀를 확인했다.

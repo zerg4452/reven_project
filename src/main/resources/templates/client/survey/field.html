@@ -51,5 +51,6 @@
                    th:name="|answers[${field.key}]|"
                    th:required="${field.required}">
         </div>
+        <div class="survey-question-error" th:if="${errors != null and errors.get(field.key) != null}" th:text="${errors.get(field.key)}"></div>
     </section>
 </th:block>

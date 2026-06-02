@@ -14,7 +14,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/admin/surveys")
@@ -98,11 +101,45 @@ public class SAAdminSurveyController {
             Model model
     ) {
         surveyUid = surveyUid == null || surveyUid.isBlank() ? null : surveyUid;
+        validateSurveyOptions(request, bindingResult);
         if (bindingResult.hasErrors()) {
             model.addAttribute("survey", surveyUid == null ? surveyService.newSurveyForm() : surveyService.findSurvey(surveyUid));
+            model.addAttribute("errors", collectFieldErrors(bindingResult));
             return "admin/survey/detail";
         }
         SASurveyDto.SurveyDetail saved = surveyService.saveSurvey(surveyUid, request);
         return "redirect:/admin/surveys/write.do?surveyUid=" + saved.surveyUid;
+    }
+
+    private void validateSurveyOptions(SASurveyDto.SurveySaveRequest request, BindingResult bindingResult) {
+        List<SASurveyDto.SurveyFieldSaveRequest> fields = request.fields == null ? List.of() : request.fields;
+        for (int index = 0; index < fields.size(); index++) {
+            SASurveyDto.SurveyFieldSaveRequest field = fields.get(index);
+            if ("subjective".equalsIgnoreCase(field.surveyType)) {
+                continue;
+            }
+
+            List<String> labels = new ArrayList<>();
+            for (SASurveyDto.SurveyOptionSaveRequest option : field.normalizedOptions()) {
+                String label = option.optionLabel == null ? "" : option.optionLabel.trim();
+                if (label.isBlank()) {
+                    continue;
+                }
+                if (labels.contains(label)) {
+                    bindingResult.rejectValue("fields[" + index + "].optionsText", "survey.option.duplicate", "보기 라벨이 중복되었습니다.");
+                    break;
+                }
+                labels.add(label);
+            }
+            if (labels.isEmpty()) {
+                bindingResult.rejectValue("fields[" + index + "].optionsText", "survey.option.required", "객관식 문항에는 보기를 1개 이상 입력해야 합니다.");
+            }
+        }
+    }
+
+    private Map<String, String> collectFieldErrors(BindingResult bindingResult) {
+        Map<String, String> errors = new LinkedHashMap<>();
+        bindingResult.getFieldErrors().forEach(error -> errors.putIfAbsent(error.getField(), error.getDefaultMessage()));
+        return errors;
     }
 }

@@ -1692,6 +1692,26 @@ textarea.form-control {
     gap: 12px;
 }
 
+.survey-question-error,
+.survey-admin-field-error {
+    color: var(--color-delete);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.survey-question-error {
+    margin-top: -2px;
+}
+
+.survey-admin-field-error {
+    margin-top: 8px;
+}
+
+.survey-error-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
 .survey-option-list {
     display: grid;
     gap: 10px;

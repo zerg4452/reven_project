@@ -54,7 +54,8 @@ public class SAPublicSurveyController {
     @PostMapping("/surveys/submit.do")
     public String submit(@RequestParam String surveyUid,
                          @RequestParam MultiValueMap<String, String> params,
-                         HttpServletRequest servletRequest) {
+                         HttpServletRequest servletRequest,
+                         Model model) {
         SASurveyDto.SurveySubmitRequest request = new SASurveyDto.SurveySubmitRequest();
         request.submitterName = params.getFirst("submitterName");
         request.phone = params.getFirst("phone");
@@ -75,7 +76,13 @@ public class SAPublicSurveyController {
             answer.values = values;
             request.answers.add(answer);
         });
-        submitService.submit(surveyUid, request, servletRequest.getRemoteAddr());
+        try {
+            submitService.submit(surveyUid, request, servletRequest.getRemoteAddr());
+        } catch (SASurveySubmitService.SubmissionValidationException ex) {
+            model.addAttribute("survey", surveyService.findSurvey(surveyUid));
+            model.addAttribute("errors", ex.getErrors());
+            return "client/survey/form";
+        }
         return "redirect:/surveys/thanks.do";
     }
 

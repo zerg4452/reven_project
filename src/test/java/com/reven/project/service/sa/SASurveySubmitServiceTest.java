@@ -9,7 +9,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,6 +80,77 @@ class SASurveySubmitServiceTest {
 
         assertThat(captor.getValue().answerValue).isEqualTo("Red, Blue");
         assertThat(captor.getValue().answerJson).isEqualTo("[\"red\",\"blue\"]");
+    }
+
+    @Test
+    void submitRejectsRequiredObjectiveWhenNothingIsSelected() {
+        SASurveyService surveyService = mock(SASurveyService.class);
+        SASurveySubmitMapper submitMapper = mock(SASurveySubmitMapper.class);
+        SASurveyDto.SurveyDetail survey = survey(1L, "survey-uid");
+        SASurveyDto.SurveyField field = field(10L, 1L, "objective", "select");
+        field.requiredYn = "Y";
+        field.options = List.of(option(100L, 10L, "Red", "red"));
+        survey.fields = List.of(field);
+        when(surveyService.findSurvey("survey-uid")).thenReturn(survey);
+
+        SASurveySubmitService service = new SASurveySubmitService(surveyService, submitMapper);
+        SASurveyDto.SurveySubmitRequest request = new SASurveyDto.SurveySubmitRequest();
+        SASurveyDto.AnswerRequest answer = new SASurveyDto.AnswerRequest();
+        answer.fieldKey = "field-10";
+        answer.values = List.of("   ");
+        request.answers = List.of(answer);
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.submit("survey-uid", request, "127.0.0.1"))
+                .isInstanceOf(SASurveySubmitService.SubmissionValidationException.class);
+        verify(submitMapper, never()).insertSubmission(any());
+        verify(submitMapper, never()).insertAnswer(any());
+    }
+
+    @Test
+    void submitRejectsRequiredSubjectiveWhenBlank() {
+        SASurveyService surveyService = mock(SASurveyService.class);
+        SASurveySubmitMapper submitMapper = mock(SASurveySubmitMapper.class);
+        SASurveyDto.SurveyDetail survey = survey(1L, "survey-uid");
+        SASurveyDto.SurveyField field = field(11L, 1L, "subjective", "text");
+        field.requiredYn = "Y";
+        survey.fields = List.of(field);
+        when(surveyService.findSurvey("survey-uid")).thenReturn(survey);
+
+        SASurveySubmitService service = new SASurveySubmitService(surveyService, submitMapper);
+        SASurveyDto.SurveySubmitRequest request = new SASurveyDto.SurveySubmitRequest();
+        SASurveyDto.AnswerRequest answer = new SASurveyDto.AnswerRequest();
+        answer.fieldKey = "field-11";
+        answer.values = List.of("   ");
+        request.answers = List.of(answer);
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.submit("survey-uid", request, "127.0.0.1"))
+                .isInstanceOf(SASurveySubmitService.SubmissionValidationException.class);
+        verify(submitMapper, never()).insertSubmission(any());
+        verify(submitMapper, never()).insertAnswer(any());
+    }
+
+    @Test
+    void submitRejectsRequiredCheckboxWhenNothingIsSelected() {
+        SASurveyService surveyService = mock(SASurveyService.class);
+        SASurveySubmitMapper submitMapper = mock(SASurveySubmitMapper.class);
+        SASurveyDto.SurveyDetail survey = survey(1L, "survey-uid");
+        SASurveyDto.SurveyField field = field(12L, 1L, "objective", "checkbox");
+        field.requiredYn = "Y";
+        field.options = List.of(option(120L, 12L, "Red", "red"));
+        survey.fields = List.of(field);
+        when(surveyService.findSurvey("survey-uid")).thenReturn(survey);
+
+        SASurveySubmitService service = new SASurveySubmitService(surveyService, submitMapper);
+        SASurveyDto.SurveySubmitRequest request = new SASurveyDto.SurveySubmitRequest();
+        SASurveyDto.AnswerRequest answer = new SASurveyDto.AnswerRequest();
+        answer.fieldKey = "field-12";
+        answer.values = List.of("   ");
+        request.answers = List.of(answer);
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.submit("survey-uid", request, "127.0.0.1"))
+                .isInstanceOf(SASurveySubmitService.SubmissionValidationException.class);
+        verify(submitMapper, never()).insertSubmission(any());
+        verify(submitMapper, never()).insertAnswer(any());
     }
 
     private SASurveyDto.SurveyDetail survey(Long surveySeq, String surveyUid) {

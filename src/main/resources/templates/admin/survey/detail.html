@@ -12,6 +12,11 @@
             <h1 th:text="${survey?.surveySeq} != null ? '설문 상세' : '설문 등록'">설문 상세</h1>
             <p>설문 문항의 유형, 보기, 사용여부를 편집합니다.</p>
         </section>
+        <div class="alert" th:if="${errors != null and !errors.isEmpty()}">
+            <ul class="survey-error-list">
+                <li th:each="entry : ${errors.entrySet()}" th:text="${entry.value}">오류</li>
+            </ul>
+        </div>
         <form class="form-stack survey-admin-form" method="post" th:action="${survey?.surveySeq} != null ? @{/admin/surveys/update.do(surveyUid=${survey.surveyUid})} : @{/admin/surveys/insert.do}">
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <input type="hidden" name="surveyUid" th:value="${survey?.surveyUid}">
@@ -57,6 +62,7 @@
                         </label>
                         <label class="check-label"><input type="checkbox" th:name="|fields[${stat.index}].requiredYn|" value="Y" th:checked="${field.required}"> 필수</label>
                         <label class="wide">옵션<textarea class="form-control" rows="3" th:name="|fields[${stat.index}].optionsText|" th:text="${field.optionsText}" placeholder="선택형 항목일 때 줄바꿈으로 입력"></textarea></label>
+                        <div class="survey-admin-field-error" th:with="optionError=${errors != null ? errors.get('fields[' + stat.index + '].optionsText') : null}" th:if="${optionError != null}" th:text="${optionError}"></div>
                     </article>
                     <article class="field-row" data-field-row th:if="${survey == null || #lists.isEmpty(survey.fields)}">
                         <div class="field-row-head"><strong>문항 1</strong><button class="btn btn-delete" type="button" data-remove-field>삭제</button></div>
@@ -70,6 +76,7 @@
                         <label>유형<select class="form-control" name="fields[0].fieldType"><option value="text">단답형</option><option value="textarea">장문형</option><option value="select">선택목록</option><option value="radio">라디오</option><option value="checkbox">체크박스</option><option value="date">날짜</option><option value="number">숫자</option><option value="email">이메일</option></select></label>
                         <label class="check-label"><input type="checkbox" name="fields[0].requiredYn" value="Y"> 필수</label>
                         <label class="wide">옵션<textarea class="form-control" rows="3" name="fields[0].optionsText" placeholder="선택형 항목일 때 줄바꿈으로 입력"></textarea></label>
+                        <div class="survey-admin-field-error" th:if="${errors != null and errors.get('fields[0].optionsText') != null}" th:text="${errors.get('fields[0].optionsText')}"></div>
                     </article>
                 </div>
             </section>
@@ -96,6 +103,7 @@
                 <label>유형<select class="form-control" name="fields[__INDEX__].fieldType"><option value="text">단답형</option><option value="textarea">장문형</option><option value="select">선택목록</option><option value="radio">라디오</option><option value="checkbox">체크박스</option><option value="date">날짜</option><option value="number">숫자</option><option value="email">이메일</option></select></label>
                 <label class="check-label"><input type="checkbox" name="fields[__INDEX__].requiredYn" value="Y"> 필수</label>
                 <label class="wide">옵션<textarea class="form-control" rows="3" name="fields[__INDEX__].optionsText" placeholder="선택형 항목일 때 줄바꿈으로 입력"></textarea></label>
+                <div class="survey-admin-field-error"></div>
             </article>
         </template>
     </main>
