@@ -32,9 +32,8 @@
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <section class="content-panel">
                 <div class="panel-head"><h2>관리</h2></div>
-                <div th:if="${updateErrors != null}" class="form-error-summary"
-                     th:each="err : ${updateErrors.allErrors}">
-                    <span th:text="${err.defaultMessage}"></span>
+                <div th:if="${updateErrors != null}" class="form-error-summary">
+                    <span th:each="err : ${updateErrors.allErrors}" th:text="${err.defaultMessage}"></span>
                 </div>
                 <label>상태
                     <select class="form-control" name="status">
