@@ -74,6 +74,11 @@ public class SAAdminSurveySubmissionController {
             BindingResult bindingResult,
             Model model
     ) {
+        boolean allowedStatus = statusOptions().stream()
+                .anyMatch(option -> option.getCode().equals(request.status));
+        if (!allowedStatus) {
+            bindingResult.rejectValue("status", "status.invalid", "허용되지 않는 상태값입니다.");
+        }
         if (bindingResult.hasErrors()) {
             model.addAttribute("submission", submitService.findSubmission(submitUid));
             model.addAttribute("updateErrors", bindingResult);

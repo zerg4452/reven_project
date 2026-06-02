@@ -33,32 +33,30 @@
 **검증 중 발견한 버그 (수정 완료):**
 - `history-detail.html` — `th:each`+`th:if` 우선순위 문제로 `updateErrors` null 시 NPE → `th:each`를 inner `<span>`으로 이동해 수정
 
-**검증 결과 (부분):**
+**검증 결과:**
 - ✅ 상세 페이지 200 응답, 관리 폼 렌더링 확인
 - ✅ 상태 변경 + 메모 POST → 302 PRG 리다이렉트 정상
-- ⬜ 리다이렉트 후 변경값 반영 확인 (미완료, 인터럽트)
-- ⬜ 엣지케이스 검증 미완료 (빈 status, 2000자 초과, 잘못된 status값)
+- ✅ 엣지케이스 검증 완료 (`SAAdminSurveySubmissionControllerTest` 추가)
+  - 빈 status → `@NotBlank` → history-detail 재표시, 저장 안 함
+  - 2000자 초과 메모 → `@Size(max=2000)` → 재표시, 저장 안 함
+  - 잘못된 status값 → 컨트롤러에서 `statusOptions()` 멤버십 검사 후 `rejectValue` → graceful 재표시 (기존엔 서비스 `IllegalArgumentException`으로 500이던 것 수정)
+- ✅ 리다이렉트 후 변경값 반영 (로직 검증). `updateSubmission` mapper SQL/`@Param` 정합 확인, redirect → `detail.do`가 `selectSubmission`으로 새 row 재조회. admin 로그인 end-to-end curl은 크리덴셜 없어 미수행
 
 ---
 
-## 미완료 — 기존 버그
+## 수정 완료 — 기존 버그
 
-### `client/survey/form.html` 500 에러
+### `client/survey/form.html` 500 에러 (수정 완료)
 - **위치:** `form.html:20`
 - **원인:** `<th:block th:each="field" th:replace="...">` — Thymeleaf에서 `th:replace` 우선순위(1)가 `th:each` 우선순위(2)보다 높아 fragment 호출 시 `field` 변수가 null로 전달됨
 - **증상:** 공개 설문 폼 GET 요청 500, 제출 검증 실패 시 폼 재렌더링 500
-- **수정 방법:** `th:each`를 outer 요소에, `th:insert`(또는 별도 inner 요소)로 분리
+- **수정:** `th:each`를 outer `<th:block>`, fragment 호출을 inner `<th:block>`으로 분리 (아래 적용 완료)
   ```html
-  <!-- 현재 (broken) -->
-  <th:block th:each="field : ${survey?.fields}"
-            th:replace="~{client/survey/field :: field(field=${field})}">
-  </th:block>
-
-  <!-- 수정안 -->
   <th:block th:each="field : ${survey?.fields}">
       <th:block th:replace="~{client/survey/field :: field(field=${field})}"></th:block>
   </th:block>
   ```
+- ✅ 라이브 검증 완료. 앱 재기동 후 `GET /surveys/detail.do?surveyUid=...` → HTTP 200, 문항 4건 정상 렌더, exception 0 (이전 500 해소)
 
 ---
 
@@ -66,8 +64,6 @@
 
 | 순위 | 항목 | 비고 |
 |------|------|------|
-| 즉시 | `client/survey/form.html` 버그 수정 | 공개 설문 폼 전체 불능 |
-| 즉시 | P3 검증 나머지 완료 | 변경값 반영 확인, 엣지케이스 |
 | P4 | 문항 순서 변경 기능 | drag-and-drop 또는 위/아래 버튼 |
 | P5 | 설문 미리보기 화면 | 관리자에서 사용자 폼 미리 보기 |
 | P6 | 목록/이력 검색 조건 강화 | 날짜범위, 상태 필터 등 |
