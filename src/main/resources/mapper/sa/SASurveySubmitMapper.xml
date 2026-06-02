@@ -145,6 +145,15 @@
         order by sort_ord, answer_seq
     </select>
 
+    <update id="updateSubmission">
+        update sa_survey_submit_mst
+        set status     = #{status},
+            admin_memo = #{adminMemo},
+            mod_dtm    = now(),
+            mod_id     = 'system'
+        where submit_uid = #{submitUid}
+    </update>
+
     <select id="selectCsvRows" resultMap="CsvRowMap">
         select sm.submit_uid,
                sm.survey_title_snapshot as survey_title,

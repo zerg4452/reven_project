@@ -25,4 +25,9 @@ public interface SASurveySubmitMapper {
 
     /** CSV 출력용 설문 이력/답변 row를 조회한다. */
     List<SASurveyDto.CsvRow> selectCsvRows(SASurveyDto.SubmissionSearchRequest request);
+
+    /** 설문 이력의 상태와 관리자 메모를 변경한다. */
+    void updateSubmission(@Param("submitUid") String submitUid,
+                          @Param("status") String status,
+                          @Param("adminMemo") String adminMemo);
 }

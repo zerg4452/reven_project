@@ -3,6 +3,7 @@ package com.reven.project.service.sa.dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -325,6 +326,25 @@ public final class SASurveyDto {
         public String adminMemo;
         public LocalDate submittedDate;
         public List<AnswerSnapshot> answers = new ArrayList<>();
+
+        public String getStatusText() {
+            if ("new".equalsIgnoreCase(status)) return "신규";
+            if ("reviewing".equalsIgnoreCase(status)) return "확인중";
+            if ("contacted".equalsIgnoreCase(status)) return "연락완료";
+            if ("done".equalsIgnoreCase(status)) return "처리완료";
+            if ("hold".equalsIgnoreCase(status)) return "보류";
+            return status;
+        }
+    }
+
+    @Getter
+    @Setter
+    /** 설문 이력 상태 변경과 관리자 메모 저장 요청 DTO다. */
+    public static class SubmissionUpdateRequest {
+        @NotBlank
+        public String status;
+        @Size(max = 2000)
+        public String adminMemo;
     }
 
     @Getter

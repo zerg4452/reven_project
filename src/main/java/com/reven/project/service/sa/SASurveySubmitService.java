@@ -11,14 +11,31 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class SASurveySubmitService {
+    private static final Set<String> ALLOWED_STATUSES =
+            Set.of("new", "reviewing", "contacted", "done", "hold");
+
     private final SASurveyService surveyService;
     private final SASurveySubmitMapper submitMapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public static class SubmissionValidationException extends RuntimeException {
+        private final Map<String, String> errors;
+
+        public SubmissionValidationException(Map<String, String> errors) {
+            super("Survey submission validation failed");
+            this.errors = Map.copyOf(errors);
+        }
+
+        public Map<String, String> getErrors() {
+            return errors;
+        }
+    }
 
     public SASurveySubmitService(SASurveyService surveyService, SASurveySubmitMapper submitMapper) {
         this.surveyService = surveyService;
@@ -31,6 +48,12 @@ public class SASurveySubmitService {
     @Transactional
     public SASurveyDto.SurveySubmitResponse submit(String surveyUid, SASurveyDto.SurveySubmitRequest request, String ip) {
         SASurveyDto.SurveyDetail survey = surveyService.findSurvey(surveyUid);
+        Map<String, List<String>> normalizedAnswersByFieldKey = normalizeAnswers(request);
+        Map<String, String> errors = validateSubmission(survey, normalizedAnswersByFieldKey);
+        if (!errors.isEmpty()) {
+            throw new SubmissionValidationException(errors);
+        }
+
         SASurveyDto.SubmitInsert submission = new SASurveyDto.SubmitInsert();
         submission.surveySeq = survey.surveySeq;
         submission.surveyUid = survey.surveyUid;
@@ -42,19 +65,12 @@ public class SASurveySubmitService {
         submission.ip = ip;
         submitMapper.insertSubmission(submission);
 
-        Map<String, SASurveyDto.AnswerRequest> answersByFieldKey = new LinkedHashMap<>();
-        for (SASurveyDto.AnswerRequest source : request.answers) {
-            answersByFieldKey.put(source.fieldKey, source);
-        }
-
         // 제출 이력 상세가 설문 수정 후에도 변하지 않도록 현재 문항 정보를 답변 row에 snapshot으로 복사한다.
         for (SASurveyDto.SurveyField field : survey.fields) {
-            SASurveyDto.AnswerRequest source = answersByFieldKey.get(field.fieldKey);
-            if (source == null) {
+            List<String> values = normalizedAnswersByFieldKey.getOrDefault(field.fieldKey, List.of());
+            if (values.isEmpty()) {
                 continue;
             }
-
-            List<String> values = source.values == null ? List.of() : source.values;
             SASurveyDto.AnswerInsert answer = new SASurveyDto.AnswerInsert();
             answer.submitSeq = submission.submitSeq;
             answer.fieldSeq = field.fieldSeq;
@@ -88,20 +104,61 @@ public class SASurveySubmitService {
         return detail;
     }
 
+    /**
+     * 설문 이력의 상태와 관리자 메모를 변경한다.
+     */
+    @Transactional
+    public void updateSubmission(String submitUid, SASurveyDto.SubmissionUpdateRequest request) {
+        if (!ALLOWED_STATUSES.contains(request.status)) {
+            throw new IllegalArgumentException("허용되지 않는 상태값: " + request.status);
+        }
+        findSubmission(submitUid);
+        submitMapper.updateSubmission(submitUid, request.status, request.adminMemo);
+    }
+
+    private Map<String, List<String>> normalizeAnswers(SASurveyDto.SurveySubmitRequest request) {
+        Map<String, List<String>> answersByFieldKey = new LinkedHashMap<>();
+        List<SASurveyDto.AnswerRequest> answers = request.answers == null ? List.of() : request.answers;
+        for (SASurveyDto.AnswerRequest source : answers) {
+            answersByFieldKey.put(source.fieldKey, normalizeValues(source.values));
+        }
+        return answersByFieldKey;
+    }
+
+    private Map<String, String> validateSubmission(SASurveyDto.SurveyDetail survey, Map<String, List<String>> answersByFieldKey) {
+        Map<String, String> errors = new LinkedHashMap<>();
+        for (SASurveyDto.SurveyField field : survey.fields) {
+            List<String> values = answersByFieldKey.getOrDefault(field.fieldKey, List.of());
+            if (field.isRequired() && values.isEmpty()) {
+                errors.put(field.fieldKey, "필수 문항에 응답해 주세요.");
+            }
+        }
+        return errors;
+    }
+
+    private List<String> normalizeValues(List<String> values) {
+        if (values == null) {
+            return List.of();
+        }
+        return values.stream()
+                .map(value -> value == null ? "" : value.trim())
+                .filter(value -> !value.isBlank())
+                .toList();
+    }
+
     private String buildAnswerValue(SASurveyDto.SurveyField field, List<String> values) {
-        List<String> normalizedValues = values == null ? List.of() : values;
-        if (normalizedValues.isEmpty()) {
+        if (values == null || values.isEmpty()) {
             return null;
         }
 
         String renderType = field.getRenderType();
         if ("checkbox".equals(renderType)) {
-            return normalizedValues.stream()
+            return values.stream()
                     .map(value -> resolveOptionLabel(field, value))
                     .collect(Collectors.joining(", "));
         }
 
-        String value = normalizedValues.get(0);
+        String value = values.get(0);
         if ("select".equals(renderType) || "radio".equals(renderType)) {
             return resolveOptionLabel(field, value);
         }
@@ -112,12 +169,11 @@ public class SASurveySubmitService {
         if (!"checkbox".equals(field.getRenderType())) {
             return null;
         }
-        List<String> normalizedValues = values == null ? List.of() : values;
-        if (normalizedValues.isEmpty()) {
+        if (values == null || values.isEmpty()) {
             return null;
         }
         try {
-            return objectMapper.writeValueAsString(normalizedValues);
+            return objectMapper.writeValueAsString(values);
         } catch (JsonProcessingException ex) {
             throw new IllegalStateException("Failed to serialize checkbox answer values.", ex);
         }
