@@ -83,6 +83,11 @@ public record BDAiNewsDetailResponseDto(
     }
 
     public String statusText() {
-        return "Y".equals(status) ? "게시" : "대기";
+        return switch (status == null ? "" : status) {
+            case "P" -> "처리중";
+            case "Y" -> "완료";
+            case "E" -> "에러";
+            default -> "대기";
+        };
     }
 }

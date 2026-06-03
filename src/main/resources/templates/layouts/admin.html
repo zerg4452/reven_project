@@ -1,0 +1,27 @@
+<!-- 관리자 화면 공통 레이아웃 -->
+<!doctype html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title layout:fragment="title">Reven 설문</title>
+    <link rel="stylesheet" th:href="@{/common/css/app.css}">
+    <th:block th:if="${extraHeadLinks != null}" th:utext="${extraHeadLinks}"></th:block>
+</head>
+<body>
+<th:block layout:fragment="pageComment"></th:block>
+<header th:replace="~{fragments/layout :: gnb('_')}"></header>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: lnb('_')}"></aside>
+    <main class="admin-content">
+        <th:block layout:fragment="content"></th:block>
+    </main>
+</div>
+<th:block layout:fragment="pageExtras"></th:block>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<th:block layout:fragment="pageScripts"></th:block>
+</body>
+</html>

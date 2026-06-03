@@ -5,11 +5,15 @@
 <!-- screen: 접수 완료 / purpose: 설문 제출 완료를 안내하는 화면 / created: 2026-05-23 -->
 <header th:replace="~{fragments/layout :: publicGnb('survey')}"></header>
 <main class="public-content narrow">
+
+    <!-- 접수 완료 안내 시작 -->
     <section class="content-panel complete-panel">
         <h1>접수 완료</h1>
         <p>설문 제출이 완료되었습니다.</p>
         <a class="btn btn-register" th:href="@{/surveys/list.do}">설문 목록</a>
     </section>
+    <!-- 접수 완료 안내 끝 -->
+
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>

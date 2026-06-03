@@ -6,15 +6,18 @@ import com.reven.project.service.sa.SASurveyCsvService;
 import com.reven.project.service.sa.SASurveySubmitService;
 import com.reven.project.service.sa.dto.SASurveyDto;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -26,6 +29,56 @@ class SAAdminSurveySubmissionControllerTest {
     private MockMvc mvc(SASurveySubmitService submitService) {
         SASurveyCsvService csvService = mock(SASurveyCsvService.class);
         return MockMvcBuilders.standaloneSetup(new SAAdminSurveySubmissionController(submitService, csvService)).build();
+    }
+
+    @Test
+    void listAppliesAllStatusesByDefault() throws Exception {
+        SASurveySubmitService submitService = mock(SASurveySubmitService.class);
+        when(submitService.findSubmissions(any())).thenReturn(java.util.List.of());
+
+        mvc(submitService).perform(get("/admin/survey-submissions/list.do"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/survey/history-list"));
+
+        ArgumentCaptor<SASurveyDto.SubmissionSearchRequest> captor =
+                ArgumentCaptor.forClass(SASurveyDto.SubmissionSearchRequest.class);
+        verify(submitService).findSubmissions(captor.capture());
+        assertThat(captor.getValue().statuses)
+                .containsExactly("new", "reviewing", "contacted", "done", "hold");
+    }
+
+    @Test
+    void listKeepsSelectedStatusesOnly() throws Exception {
+        SASurveySubmitService submitService = mock(SASurveySubmitService.class);
+        when(submitService.findSubmissions(any())).thenReturn(java.util.List.of());
+
+        mvc(submitService).perform(get("/admin/survey-submissions/list.do")
+                        .param("statuses", "done")
+                        .param("statuses", "hold"))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<SASurveyDto.SubmissionSearchRequest> captor =
+                ArgumentCaptor.forClass(SASurveyDto.SubmissionSearchRequest.class);
+        verify(submitService).findSubmissions(captor.capture());
+        assertThat(captor.getValue().statuses).containsExactly("done", "hold");
+    }
+
+    @Test
+    void listClearsInvalidKeywordTypeAndInvalidDate() throws Exception {
+        SASurveySubmitService submitService = mock(SASurveySubmitService.class);
+        when(submitService.findSubmissions(any())).thenReturn(java.util.List.of());
+
+        mvc(submitService).perform(get("/admin/survey-submissions/list.do")
+                        .param("keywordType", "이상한값")
+                        .param("startDate", "abc"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("keywordType", "전체"));
+
+        ArgumentCaptor<SASurveyDto.SubmissionSearchRequest> captor =
+                ArgumentCaptor.forClass(SASurveyDto.SubmissionSearchRequest.class);
+        verify(submitService).findSubmissions(captor.capture());
+        assertThat(captor.getValue().keywordType).isEqualTo("전체");
+        assertThat(captor.getValue().startDate).isNotNull();
     }
 
     @Test

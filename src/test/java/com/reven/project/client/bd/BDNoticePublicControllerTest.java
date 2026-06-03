@@ -1,6 +1,7 @@
 package com.reven.project.client.bd;
 
 import com.reven.project.service.bd.BDNoticeService;
+import com.reven.project.service.bd.support.BDFileStorageConstants;
 import com.reven.project.service.bd.dto.BDNoticeDetailResponseDto;
 import com.reven.project.service.bd.dto.BDNoticeFileResponseDto;
 import com.reven.project.service.bd.dto.BDNoticePublicListItemResponseDto;
@@ -66,8 +67,8 @@ class BDNoticePublicControllerTest {
         BDNoticeService service = mock(BDNoticeService.class);
         BDNoticeDetailResponseDto notice = noticeDetail(1L, "공개 공지");
         when(service.findPublicNotice(1L)).thenReturn(notice);
-        when(service.findPublicNoticeFilesForDetail(1L, "THUMB")).thenReturn(List.of());
-        when(service.findPublicNoticeFilesForDetail(1L, "ATTACH")).thenReturn(List.of());
+        when(service.findPublicNoticeFilesForDetail(1L, BDFileStorageConstants.FILE_TYPE_THUMB)).thenReturn(List.of());
+        when(service.findPublicNoticeFilesForDetail(1L, BDFileStorageConstants.FILE_TYPE_ATTACH)).thenReturn(List.of());
 
         MockMvc mvc = MockMvcBuilders.standaloneSetup(new BDNoticePublicController(service)).build();
 
@@ -85,8 +86,8 @@ class BDNoticePublicControllerTest {
                 .andExpect(view().name("client/notice/detail"));
 
         verify(service, times(1)).increaseViewCount(1L);
-        verify(service, times(2)).findPublicNoticeFilesForDetail(1L, "THUMB");
-        verify(service, times(2)).findPublicNoticeFilesForDetail(1L, "ATTACH");
+        verify(service, times(2)).findPublicNoticeFilesForDetail(1L, BDFileStorageConstants.FILE_TYPE_THUMB);
+        verify(service, times(2)).findPublicNoticeFilesForDetail(1L, BDFileStorageConstants.FILE_TYPE_ATTACH);
     }
 
     private BDNoticePublicListItemResponseDto publicItem(Long noticeSeq, String title, String pinYn) {

@@ -86,3 +86,28 @@
 - 단일 객관식은 보기 라벨을 `answer_value`에, 체크박스는 라벨 조인 문자열과 raw value JSON 배열을 각각 `answer_value`와 `answer_json`에 저장하도록 정규화했다.
 - 사용자 설문 문항 템플릿을 `client/survey/field.html` fragment로 분리했고, 공통 CSS에 질문/보기 레이아웃을 최소한으로 추가했다.
 - 세부 테스트와 전체 Gradle 테스트를 모두 성공시켜 public survey P1 변경이 기존 테스트를 깨지 않는 것을 확인했다.
+
+## 2026-06-02
+
+- 설문 P4 문항 순서 변경을 구현했다. 관리자 설문 상세 `detail.html`에 ▲/▼ 버튼을 추가하고 `survey-field-editor.js`에서 DOM swap 후 `fields[n]` name을 재부여한다. 저장은 기존 full form POST로 `sort_ord` 1..N에 반영된다.
+- TDD로 `SASurveyServiceTest`, `SAAdminSurveyControllerTest`, `SASurveyFieldReorderViewTest`를 추가한 뒤 UI/JS/CSS를 구현했다. `./gradlew test` 성공.
+- `docs/` 정리. 루트에는 checklist/progress/context-notes/worklog만 두고, 완료 설계·계획은 `docs/clear/` 분류(migration, survey, photo-board, user-main, notice-board)로 이동. `docs/superpowers/` 제거.
+
+## 2026-06-03
+
+- 관리자 설문 등록 저장 후 `write.do` 상세로 남던 흐름을 공지사항과 같이 목록 리다이렉트 + `surveySavedMessage` 알럿으로 변경했다. 수정 저장은 상세 화면에서 알럿만 표시한다.
+- 객관식 보기 입력을 줄바꿈 textarea 대신 보기별 입력란 + `보기 추가`/`삭제` UI로 바꿨다. form은 `fields[n].options[m].optionLabel`로 전송하고 기존 `normalizedOptions()`가 그대로 처리한다.
+- AI News 편집 화면의 `status` 셀렉트가 현재 `news.status`를 반영하도록 `th:selected`를 추가했다. 이후 상태 체계를 `P/Y/E`로 다시 정리하면서 편집 화면도 `처리중/완료/에러`만 선택 가능하게 맞췄다. 템플릿과 서비스/컨트롤러 회귀 테스트를 추가했고 `./gradlew test`로 전체 회귀를 확인했다.
+- AI News 상태를 레거시 파일 단계와 DB 단계로 다시 분리했다. JSON 수집 시 `N`은 DB 저장용 `P`로 정규화하고, 관리자 목록/상세/편집에서는 `P/Y/E`만 노출하도록 바꿨다. `statusText`도 `처리중/완료/에러` 기준으로 정리했고, 목록 필터와 편집 셀렉트에서 `N`을 제거했다. 서비스/컨트롤러/템플릿 회귀 테스트를 추가한 뒤 `./gradlew test`로 확인했다.
+- AI News 크롤링 재수집 버그를 수정했다. Spring 크롤러가 이제 `N` 상태 JSON만 한 번 처리하고, 성공 시 소스 JSON을 `P`와 `inserted_at`으로 갱신한다. 같은 slug의 DB 글이 이미 `Y`이면 DB 상태를 되돌리지 않고 JSON만 소비 처리한다. 재수집 회귀 테스트를 추가했고 `./gradlew test`로 전체 회귀를 다시 확인했다.
+- AI News 크롤링 인입 제목을 JSON `published_at` 날짜 기준 `[yyyy-MM-dd] 제목` 형식으로 저장하도록 바꿨다. 날짜는 크롤링 시점이 아니라 JSON 생성 시점 메타를 쓰고, 수동 등록/수정에는 영향이 없도록 크롤링 경로에만 적용했다. 회귀 테스트와 전체 Gradle 테스트를 다시 통과했다.
+- AI News 편집 화면에서 저장/삭제 후 목록으로 돌아가고, 목록 화면에서 `aiNewsSavedMessage` flash attribute를 브라우저 알럿으로 띄우도록 바꿨다. 저장/수정/삭제 모두 목록으로 리다이렉트되며, 기존 크롤링 완료 메시지는 목록 상단 안내로 유지한다. 회귀 테스트와 전체 Gradle 테스트를 다시 통과했다.
+- AI News 수집 방식 견적 문서를 추가했다. 배치형은 기존 JSON import에 cron, 제한값, 중복 실행 방지, 실행 로그만 붙이는 작은 범위로 보고, 인앱 크롤링형은 파서, 페이지네이션, 재시도, 중복 제거, 운영 로그까지 포함하는 별도 서브시스템으로 정리했다. 1차 권장안은 배치형이다.
+- AI News 수집 방식 견적 문서를 완료 문서 폴더에서 진행 예정 문서 폴더로 옮겼다. `docs/clear`에는 완료 문서만 두고, `docs/planned`에는 작업 예정 문서를 둔다.
+- `.cursor/rules/html-markup-layout.mdc` 규칙(요소 단위 줄바꿈, 블록 구분 빈 줄, 구역 시작·끝 주석)을 기존 Thymeleaf 템플릿 32개에 일괄 반영했다. redirect 전용 `invalid-access` 2개와 `fragments/layout.html`은 제외했다. 템플릿·설문 상세 회귀 테스트를 통과했다.
+- Thymeleaf Layout Dialect pilot을 적용했다. `thymeleaf-layout-dialect` 의존성, `layouts/admin.html`, `admin/news/detail.html`만 `layout:decorate`로 전환했고 detail 컨트롤러에 `pageTitle`·`layoutGnbActive`·`layoutLnbActive`를 추가했다. 나머지 admin/client 화면은 기존 fragment shell을 유지한다.
+- 관리자 템플릿 19개 전체를 Layout Dialect로 전환했다. `layouts/admin.html`(title/pageExtras/pageScripts fragment), `layouts/auth.html`(로그인), admin 페이지는 shell 제거 후 `layout:decorate`만 사용. `AdminLayoutTemplateTest` 추가.
+- 관리자 CSS 미적용 원인은 실행 중인 앱이 Layout Dialect 반영 전 classpath로 동작한 것이었다. `COThymeleafLayoutConfig`로 dialect bean을 명시 등록하고, admin `<title layout:fragment="title">`를 보강했다. `AdminLayoutRenderIntegrationTest`로 shell·CSS 렌더링을 검증한다.
+- 설문 P5 미리보기 화면을 구현했다. 저장된 관리자 설문 상세에서 새 창 미리보기 버튼을 제공하고, 공개 설문 폼을 재사용하되 `previewMode`에서 안내 표시, 제출 버튼 제거, form submit 차단, 제출자·문항 입력 비활성화를 적용했다. 잘못된 `surveyUid`는 관리자 설문 목록으로 돌려보내고 비정상 접근 알림을 표시한다. `SAAdminSurveyControllerTest`, `SASurveyPreviewViewTest`를 추가했고 `./gradlew test`를 통과했다.
+- 관리자 전 화면 레이아웃 깨짐을 수정했다. `layouts/admin.html`의 `layout:fragment="content"`가 `<main class="admin-content">`에 직접 붙어 있어 페이지의 `<th:block layout:fragment="content">`가 main wrapper를 통째로 대체하고, 본문 노드가 `.admin-shell` grid 직속 자식으로 흩어졌다. layout 쪽은 `<main>` 안에 `<th:block layout:fragment="content">`를 두도록 바꿨고, `AdminLayoutRenderIntegrationTest`에 main wrapper 검증을 추가했다. IDE 기동 실패를 유발하던 중복 `COThymeleafLayoutConfig`는 제거했다(Spring Boot auto-config 사용).
+- 설문 P6 검색 강화를 구현했다. `LenientLocalDateEditor`로 잘못된 날짜 바인딩을 null로 흡수하고, 설문 관리·이력 컨트롤러에서 날짜·keywordType·useYn·statuses를 허용값 기준으로 보정한다. 설문 관리 목록에 사용여부 select를 추가했고, 컨트롤러·이력 회귀 테스트를 추가한 뒤 `./gradlew test`를 통과했다.

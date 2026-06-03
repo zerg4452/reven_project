@@ -1,15 +1,31 @@
-<!doctype html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head(${adminSeq} != null ? '관리자 상세' : '관리자 등록')}"></head>
-<body>
 <!-- screen: 관리자 상세 / purpose: 관리자 계정과 사용 상태를 등록하거나 수정하는 화면 / created: 2026-05-23 -->
-<header th:replace="~{fragments/layout :: gnb('management')}"></header>
-<div class="admin-shell">
-    <aside th:replace="~{fragments/layout :: lnb('management')}"></aside>
-    <main class="admin-content">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin}">
+<head>
+    <title layout:fragment="title" th:text="${adminSeq} != null ? '관리자 상세' : '관리자 등록'">관리자 등록</title>
+</head>
+<body>
+<th:block layout:fragment="content">
+
+
+        <!-- 브레드크럼 시작 -->
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 관리', ${adminSeq} != null ? '관리자 상세' : '관리자 등록')}"></div>
-        <section class="page-head"><h1 th:text="${adminSeq} != null ? '관리자 상세' : '관리자 등록'">관리자 상세</h1><p>관리자 계정 정보를 편집합니다.</p></section>
+        <!-- 브레드크럼 끝 -->
+
+        <!-- 페이지 헤더 시작 -->
+        <section class="page-head">
+            <h1 th:text="${adminSeq} != null ? '관리자 상세' : '관리자 등록'">관리자 상세</h1>
+            <p>관리자 계정 정보를 편집합니다.</p>
+        </section>
+        <!-- 페이지 헤더 끝 -->
+
+        <!-- 알림 시작 -->
         <div class="alert" th:if="${error}" th:text="${error}">오류가 발생했습니다.</div>
+        <!-- 알림 끝 -->
+
+        <!-- 관리자 폼 시작 -->
         <form class="form-stack management-admin-form" method="post" th:action="${adminSeq} != null ? @{/admin/management/update.do(adminSeq=${adminSeq})} : @{/admin/management/insert.do}">
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <input type="hidden" name="adminSeq" th:value="${adminSeq}">
@@ -34,6 +50,8 @@
                     </select>
                 </div>
             </section>
+
+            <!-- 하단 버튼 시작 -->
             <div class="detail-action-bar">
                 <a class="btn btn-neutral" th:href="@{/admin/management/list.do}">목록</a>
                 <div>
@@ -44,10 +62,11 @@
                     <button class="btn btn-edit" type="submit" th:text="${adminSeq} != null ? '수정' : '등록'">저장</button>
                 </div>
             </div>
+            <!-- 하단 버튼 끝 -->
         </form>
-    </main>
-</div>
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+        <!-- 관리자 폼 끝 -->
+
+
+</th:block>
 </body>
 </html>

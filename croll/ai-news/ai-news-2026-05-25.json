@@ -1,44 +1,34 @@
 {
-  "status": "N",
-  "title": "오늘의 Codex/Cursor/Claude + Harness 소식",
-  "slug": "ai-news-2026-05-25",
-  "category": "AI News",
-  "tags": [
-    "Codex",
-    "Cursor",
-    "Claude",
-    "Harness"
-  ],
-  "summary": "오늘은 Codex/Cursor/Claude의 역할 분리 패턴이 Reddit에서 반복 확인됐고, GitHub에서는 my-codex, codex-app-server, jcode 같은 하네스 후보가 추적 대상으로 남았습니다.",
-  "content_markdown": "오늘의 Codex/Cursor/Claude + Harness 소식\n\n1. Cursor + Claude Code + Codex 조합 논의\n- 출처: Reddit r/cursor\n- 링크: https://www.reddit.com/r/cursor/comments/1tgeidg/which_combination_is_best_cursor_claude_code/\n- 핵심 요약: Cursor, Claude Code, Codex, Gemini 조합을 두고 실제 생산 작업 기준으로 무엇이 나은지 묻는 토론입니다. 댓글 흐름은 Cursor는 빠른 IDE 편집, Claude Code는 깊은 repo-context 작업, Codex는 async/검증형 워크플로에 적합하다는 쪽입니다.\n- 왜 중요한지: AI 코딩 도구 선택이 단일 제품 비교가 아니라 역할 분리 문제로 바뀌고 있습니다.\n- 다음 행동: 본인 PHP 프로젝트 기준으로 Cursor=편집, Claude Code=큰 구현, Codex=리뷰/검증으로 나눠 실험하세요.\n\n2. cursor v claude v codex 실사용 후기\n- 출처: Reddit r/OnlyAICoding\n- 링크: https://www.reddit.com/r/OnlyAICoding/comments/1tjpmrp/cursor_v_claude_v_codex/\n- 핵심 요약: Codex/OpenAI 계열은 빠르고 생태계 친화적이지만, 복잡한 다단계 추론에서는 Claude 쪽이 더 신뢰된다는 의견이 나왔습니다. Cursor는 6개월 이상 지속 사용한 사용자에게도 여전히 IDE 통합 편의성이 장점으로 언급됩니다.\n- 왜 중요한지: 사용자가 체감하는 차이는 모델 성능 하나가 아니라 latency, context, IDE 흐름, 실패 복구성의 합입니다.\n- 다음 행동: 비교할 때 “정답률”만 보지 말고 수정 횟수, context 재설명 횟수, 최종 diff 품질을 같이 기록하세요.\n\n3. my-codex v2.0.0: Codex CLI용 agent harness\n- 출처: GitHub sehoon787/my-codex\n- 링크: https://github.com/sehoon787/my-codex\n- 핵심 요약: OpenAI Codex CLI 위에 boss meta-orchestrator, 400+ agents, 200+ skills, MCP 서버를 얹는 올인원 하네스입니다. 최신 릴리즈가 2026-05-07로 표시됩니다.\n- 왜 중요한지: Codex를 단순 CLI가 아니라 agent runtime으로 확장하려는 직접적인 후보입니다. 단, 범위가 넓어서 설치 전 권한과 파일 변경 범위 확인이 필요합니다.\n- 다음 행동: 별도 샌드박스에서 설치 스크립트와 .codex 설정 변경만 먼저 검토하세요.\n\n4. codex-app-server topic: app-server 기반 하네스 흐름\n- 출처: GitHub Topics codex-app-server\n- 링크: https://github.com/topics/codex-app-server\n- 핵심 요약: Codex app-server, JSONL events, structured outputs, dynamic tools, MCP, Vercel AI SDK 기반 도구들이 모이는 토픽입니다. CLI stdout wrapper보다 app-server를 통해 Codex를 제어하려는 흐름입니다.\n- 왜 중요한지: Codex 하네스를 안정적으로 만들려면 실행 상태, 이벤트, structured output을 다루는 app-server 접근이 더 적합합니다.\n- 다음 행동: 후보 repo를 CLI wrapper, app-server integration, MCP bridge 세 그룹으로 분류해 추적하세요.\n\n5. jcode v0.12.0: Coding Agent Harness\n- 출처: GitHub 1jehuang/jcode\n- 링크: https://github.com/1jehuang/jcode\n- 핵심 요약: Rust 기반 coding agent harness로 OpenAI, Claude, MCP, TUI 키워드를 포함합니다. 최신 릴리즈가 2026-05-07로 표시됩니다.\n- 왜 중요한지: Codex 전용은 아니지만 coding-agent harness 구현을 비교하는 기준점으로 쓸 수 있습니다.\n- 다음 행동: Codex 전용성보다 MCP/agent 실행 모델, 작업 단위, 로그/검증 구조를 비교 대상으로 보세요.\n\n오늘의 추천 액션\n1. Codex용 직접 후보는 my-codex를 샌드박스에서만 확인하세요.\n2. 하네스 후보는 “Codex 전용”과 “일반 coding agent harness”를 분리해서 평가하세요.\n3. Reddit 비교 글은 제품 결론보다 역할 분리 패턴을 추출하는 용도로만 사용하세요.",
-  "sources": [
-    {
-      "title": "Which combination is best: Cursor + Claude Code, Cursor + Codex, Cursor + Gemini?",
-      "source": "Reddit r/cursor",
-      "url": "https://www.reddit.com/r/cursor/comments/1tgeidg/which_combination_is_best_cursor_claude_code/"
-    },
-    {
-      "title": "cursor v claude v codex",
-      "source": "Reddit r/OnlyAICoding",
-      "url": "https://www.reddit.com/r/OnlyAICoding/comments/1tjpmrp/cursor_v_claude_v_codex/"
-    },
-    {
-      "title": "my-codex",
-      "source": "GitHub sehoon787/my-codex",
-      "url": "https://github.com/sehoon787/my-codex"
-    },
-    {
-      "title": "codex-app-server",
-      "source": "GitHub Topics",
-      "url": "https://github.com/topics/codex-app-server"
-    },
-    {
-      "title": "jcode",
-      "source": "GitHub 1jehuang/jcode",
-      "url": "https://github.com/1jehuang/jcode"
-    }
-  ],
-  "published_at": "2026-05-25T09:11:13+09:00",
-  "inserted_at": null,
-  "error": null
+  "status" : "P",
+  "title" : "오늘의 Codex/Cursor/Claude + Harness 소식",
+  "slug" : "ai-news-2026-05-25",
+  "category" : "AI News",
+  "tags" : [ "Codex", "Cursor", "Claude", "Harness" ],
+  "summary" : "오늘은 Codex/Cursor/Claude의 역할 분리 패턴이 Reddit에서 반복 확인됐고, GitHub에서는 my-codex, codex-app-server, jcode 같은 하네스 후보가 추적 대상으로 남았습니다.",
+  "content_markdown" : "오늘의 Codex/Cursor/Claude + Harness 소식\n\n1. Cursor + Claude Code + Codex 조합 논의\n- 출처: Reddit r/cursor\n- 링크: https://www.reddit.com/r/cursor/comments/1tgeidg/which_combination_is_best_cursor_claude_code/\n- 핵심 요약: Cursor, Claude Code, Codex, Gemini 조합을 두고 실제 생산 작업 기준으로 무엇이 나은지 묻는 토론입니다. 댓글 흐름은 Cursor는 빠른 IDE 편집, Claude Code는 깊은 repo-context 작업, Codex는 async/검증형 워크플로에 적합하다는 쪽입니다.\n- 왜 중요한지: AI 코딩 도구 선택이 단일 제품 비교가 아니라 역할 분리 문제로 바뀌고 있습니다.\n- 다음 행동: 본인 PHP 프로젝트 기준으로 Cursor=편집, Claude Code=큰 구현, Codex=리뷰/검증으로 나눠 실험하세요.\n\n2. cursor v claude v codex 실사용 후기\n- 출처: Reddit r/OnlyAICoding\n- 링크: https://www.reddit.com/r/OnlyAICoding/comments/1tjpmrp/cursor_v_claude_v_codex/\n- 핵심 요약: Codex/OpenAI 계열은 빠르고 생태계 친화적이지만, 복잡한 다단계 추론에서는 Claude 쪽이 더 신뢰된다는 의견이 나왔습니다. Cursor는 6개월 이상 지속 사용한 사용자에게도 여전히 IDE 통합 편의성이 장점으로 언급됩니다.\n- 왜 중요한지: 사용자가 체감하는 차이는 모델 성능 하나가 아니라 latency, context, IDE 흐름, 실패 복구성의 합입니다.\n- 다음 행동: 비교할 때 “정답률”만 보지 말고 수정 횟수, context 재설명 횟수, 최종 diff 품질을 같이 기록하세요.\n\n3. my-codex v2.0.0: Codex CLI용 agent harness\n- 출처: GitHub sehoon787/my-codex\n- 링크: https://github.com/sehoon787/my-codex\n- 핵심 요약: OpenAI Codex CLI 위에 boss meta-orchestrator, 400+ agents, 200+ skills, MCP 서버를 얹는 올인원 하네스입니다. 최신 릴리즈가 2026-05-07로 표시됩니다.\n- 왜 중요한지: Codex를 단순 CLI가 아니라 agent runtime으로 확장하려는 직접적인 후보입니다. 단, 범위가 넓어서 설치 전 권한과 파일 변경 범위 확인이 필요합니다.\n- 다음 행동: 별도 샌드박스에서 설치 스크립트와 .codex 설정 변경만 먼저 검토하세요.\n\n4. codex-app-server topic: app-server 기반 하네스 흐름\n- 출처: GitHub Topics codex-app-server\n- 링크: https://github.com/topics/codex-app-server\n- 핵심 요약: Codex app-server, JSONL events, structured outputs, dynamic tools, MCP, Vercel AI SDK 기반 도구들이 모이는 토픽입니다. CLI stdout wrapper보다 app-server를 통해 Codex를 제어하려는 흐름입니다.\n- 왜 중요한지: Codex 하네스를 안정적으로 만들려면 실행 상태, 이벤트, structured output을 다루는 app-server 접근이 더 적합합니다.\n- 다음 행동: 후보 repo를 CLI wrapper, app-server integration, MCP bridge 세 그룹으로 분류해 추적하세요.\n\n5. jcode v0.12.0: Coding Agent Harness\n- 출처: GitHub 1jehuang/jcode\n- 링크: https://github.com/1jehuang/jcode\n- 핵심 요약: Rust 기반 coding agent harness로 OpenAI, Claude, MCP, TUI 키워드를 포함합니다. 최신 릴리즈가 2026-05-07로 표시됩니다.\n- 왜 중요한지: Codex 전용은 아니지만 coding-agent harness 구현을 비교하는 기준점으로 쓸 수 있습니다.\n- 다음 행동: Codex 전용성보다 MCP/agent 실행 모델, 작업 단위, 로그/검증 구조를 비교 대상으로 보세요.\n\n오늘의 추천 액션\n1. Codex용 직접 후보는 my-codex를 샌드박스에서만 확인하세요.\n2. 하네스 후보는 “Codex 전용”과 “일반 coding agent harness”를 분리해서 평가하세요.\n3. Reddit 비교 글은 제품 결론보다 역할 분리 패턴을 추출하는 용도로만 사용하세요.",
+  "sources" : [ {
+    "title" : "Which combination is best: Cursor + Claude Code, Cursor + Codex, Cursor + Gemini?",
+    "source" : "Reddit r/cursor",
+    "url" : "https://www.reddit.com/r/cursor/comments/1tgeidg/which_combination_is_best_cursor_claude_code/"
+  }, {
+    "title" : "cursor v claude v codex",
+    "source" : "Reddit r/OnlyAICoding",
+    "url" : "https://www.reddit.com/r/OnlyAICoding/comments/1tjpmrp/cursor_v_claude_v_codex/"
+  }, {
+    "title" : "my-codex",
+    "source" : "GitHub sehoon787/my-codex",
+    "url" : "https://github.com/sehoon787/my-codex"
+  }, {
+    "title" : "codex-app-server",
+    "source" : "GitHub Topics",
+    "url" : "https://github.com/topics/codex-app-server"
+  }, {
+    "title" : "jcode",
+    "source" : "GitHub 1jehuang/jcode",
+    "url" : "https://github.com/1jehuang/jcode"
+  } ],
+  "published_at" : "2026-05-25T09:11:13+09:00",
+  "inserted_at" : "2026-06-03 09:21:28",
+  "error" : null,
+  "news_seq" : 6
 }

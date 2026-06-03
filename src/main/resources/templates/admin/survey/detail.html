@@ -1,35 +1,70 @@
-<!doctype html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head(${survey?.surveySeq} != null ? '설문 상세' : '설문 등록')}"></head>
-<body>
 <!-- screen: 설문 상세 / purpose: 설문 문항과 사용여부를 등록하거나 수정하는 화면 / created: 2026-05-23 -->
-<header th:replace="~{fragments/layout :: gnb('survey')}"></header>
-<div class="admin-shell">
-    <aside th:replace="~{fragments/layout :: lnb('surveys')}"></aside>
-    <main class="admin-content">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin}">
+<head>
+    <title layout:fragment="title" th:text="${survey?.surveySeq} != null ? '설문 상세' : '설문 등록'">설문 상세</title>
+</head>
+<body>
+<th:block layout:fragment="content">
+
+
+        <!-- 브레드크럼 시작 -->
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '설문 운영', ${survey?.surveySeq} != null ? '설문 상세' : '설문 등록')}"></div>
+        <!-- 브레드크럼 끝 -->
+
+        <!-- 페이지 헤더 시작 -->
         <section class="page-head">
             <h1 th:text="${survey?.surveySeq} != null ? '설문 상세' : '설문 등록'">설문 상세</h1>
             <p>설문 문항의 유형, 보기, 사용여부를 편집합니다.</p>
         </section>
+        <!-- 페이지 헤더 끝 -->
+
+        <!-- 저장 알림 시작 -->
+        <th:block th:if="${surveySavedMessage != null}">
+            <script th:inline="javascript">
+                window.addEventListener('DOMContentLoaded', function () {
+                    alert(/*[[${surveySavedMessage}]]*/'저장되었습니다.');
+                });
+            </script>
+        </th:block>
+        <!-- 저장 알림 끝 -->
+
+        <!-- 오류 알림 시작 -->
         <div class="alert" th:if="${errors != null and !errors.isEmpty()}">
             <ul class="survey-error-list">
                 <li th:each="entry : ${errors.entrySet()}" th:text="${entry.value}">오류</li>
             </ul>
         </div>
+        <!-- 오류 알림 끝 -->
+
+        <!-- 설문 폼 시작 -->
         <form class="form-stack survey-admin-form" method="post" th:action="${survey?.surveySeq} != null ? @{/admin/surveys/update.do(surveyUid=${survey.surveyUid})} : @{/admin/surveys/insert.do}">
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <input type="hidden" name="surveyUid" th:value="${survey?.surveyUid}">
+
+            <!-- 설문 기본 정보 시작 -->
             <section class="content-panel">
-                <label>설문 제목 <span class="required">*</span><input class="form-control" name="title" th:value="${survey?.title}" required></label>
-                <label>설명<textarea class="form-control" name="description" rows="4" th:text="${survey?.description}"></textarea></label>
-                <label>사용여부
+                <label>
+                    설문 제목 <span class="required">*</span>
+                    <input class="form-control" name="title" th:value="${survey?.title}" required>
+                </label>
+                <label>
+                    설명
+                    <textarea class="form-control" name="description" rows="4" th:text="${survey?.description}"></textarea>
+                </label>
+                <label>
+                    사용여부
                     <select class="form-control" name="useYn">
                         <option value="true" th:selected="${survey?.enabled != false}">사용</option>
                         <option value="false" th:selected="${survey?.enabled == false}">미사용</option>
                     </select>
                 </label>
             </section>
+            <!-- 설문 기본 정보 끝 -->
+
+            <!-- 문항 편집 시작 -->
             <section class="content-panel">
                 <div class="panel-head">
                     <h2>제출 항목</h2>
@@ -39,16 +74,25 @@
                     <article class="field-row" th:each="field, stat : ${survey?.fields}" data-field-row>
                         <div class="field-row-head">
                             <strong th:text="|문항 ${stat.count}|">문항 1</strong>
-                            <button class="btn btn-delete" type="button" data-remove-field>삭제</button>
+                            <div class="field-row-actions">
+                                <button class="btn btn-neutral btn-compact" type="button" data-move-field-up aria-label="위로">▲</button>
+                                <button class="btn btn-neutral btn-compact" type="button" data-move-field-down aria-label="아래로">▼</button>
+                                <button class="btn btn-delete" type="button" data-remove-field>삭제</button>
+                            </div>
                         </div>
-                        <label>항목명<input class="form-control" th:name="|fields[${stat.index}].label|" th:value="${field.label}"></label>
-                        <label>설문 유형
+                        <label>
+                            항목명
+                            <input class="form-control" th:name="|fields[${stat.index}].label|" th:value="${field.label}">
+                        </label>
+                        <label>
+                            설문 유형
                             <select class="form-control" th:name="|fields[${stat.index}].surveyType|">
                                 <option value="objective" th:selected="${field.surveyType == 'objective'}">객관식</option>
                                 <option value="subjective" th:selected="${field.surveyType == 'subjective'}">주관식</option>
                             </select>
                         </label>
-                        <label>유형
+                        <label>
+                            유형
                             <select class="form-control" th:name="|fields[${stat.index}].fieldType|">
                                 <option value="text" th:selected="${field.type == 'text'}">단답형</option>
                                 <option value="textarea" th:selected="${field.type == 'textarea'}">장문형</option>
@@ -60,56 +104,185 @@
                                 <option value="email" th:selected="${field.type == 'email'}">이메일</option>
                             </select>
                         </label>
-                        <label class="check-label"><input type="checkbox" th:name="|fields[${stat.index}].requiredYn|" value="Y" th:checked="${field.required}"> 필수</label>
-                        <label class="wide">옵션<textarea class="form-control" rows="3" th:name="|fields[${stat.index}].optionsText|" th:text="${field.optionsText}" placeholder="선택형 항목일 때 줄바꿈으로 입력"></textarea></label>
-                        <div class="survey-admin-field-error" th:with="optionError=${errors != null ? errors.get('fields[' + stat.index + '].optionsText') : null}" th:if="${optionError != null}" th:text="${optionError}"></div>
+                        <label class="check-label">
+                            <input type="checkbox" th:name="|fields[${stat.index}].requiredYn|" value="Y" th:checked="${field.required}">
+                            필수
+                        </label>
+                        <div class="survey-field-options wide" data-field-options th:style="${field.surveyType == 'subjective'} ? 'display:none' : ''">
+                            <div class="survey-field-options-head">
+                                <strong>보기</strong>
+                                <button class="btn btn-register btn-sm" type="button" data-add-option>보기 추가</button>
+                            </div>
+                            <div class="survey-option-input-list" data-option-list>
+                                <div class="survey-option-input-row" data-option-row th:each="opt, optStat : ${field.options}">
+                                    <input class="form-control" th:name="|fields[${stat.index}].options[${optStat.index}].optionLabel|" th:value="${opt.optionLabel}" placeholder="보기 내용">
+                                    <button class="btn btn-delete btn-sm" type="button" data-remove-option>삭제</button>
+                                </div>
+                                <div class="survey-option-input-row" data-option-row th:if="${#lists.isEmpty(field.options)}">
+                                    <input class="form-control" th:name="|fields[${stat.index}].options[0].optionLabel|" placeholder="보기 내용">
+                                    <button class="btn btn-delete btn-sm" type="button" data-remove-option disabled>삭제</button>
+                                </div>
+                                <div class="survey-option-input-row" data-option-row th:if="${#lists.isEmpty(field.options)}">
+                                    <input class="form-control" th:name="|fields[${stat.index}].options[1].optionLabel|" placeholder="보기 내용">
+                                    <button class="btn btn-delete btn-sm" type="button" data-remove-option>삭제</button>
+                                </div>
+                            </div>
+                            <div class="survey-admin-field-error" th:with="optionError=${errors != null ? errors.get('fields[' + stat.index + '].options') : null}" th:if="${optionError != null}" th:text="${optionError}"></div>
+                        </div>
                     </article>
                     <article class="field-row" data-field-row th:if="${survey == null || #lists.isEmpty(survey.fields)}">
-                        <div class="field-row-head"><strong>문항 1</strong><button class="btn btn-delete" type="button" data-remove-field>삭제</button></div>
-                        <label>항목명<input class="form-control" name="fields[0].label"></label>
-                        <label>설문 유형
+                        <div class="field-row-head">
+                            <strong>문항 1</strong>
+                            <div class="field-row-actions">
+                                <button class="btn btn-neutral btn-compact" type="button" data-move-field-up aria-label="위로">▲</button>
+                                <button class="btn btn-neutral btn-compact" type="button" data-move-field-down aria-label="아래로">▼</button>
+                                <button class="btn btn-delete" type="button" data-remove-field>삭제</button>
+                            </div>
+                        </div>
+                        <label>
+                            항목명
+                            <input class="form-control" name="fields[0].label">
+                        </label>
+                        <label>
+                            설문 유형
                             <select class="form-control" name="fields[0].surveyType">
                                 <option value="objective" selected>객관식</option>
                                 <option value="subjective">주관식</option>
                             </select>
                         </label>
-                        <label>유형<select class="form-control" name="fields[0].fieldType"><option value="text">단답형</option><option value="textarea">장문형</option><option value="select">선택목록</option><option value="radio">라디오</option><option value="checkbox">체크박스</option><option value="date">날짜</option><option value="number">숫자</option><option value="email">이메일</option></select></label>
-                        <label class="check-label"><input type="checkbox" name="fields[0].requiredYn" value="Y"> 필수</label>
-                        <label class="wide">옵션<textarea class="form-control" rows="3" name="fields[0].optionsText" placeholder="선택형 항목일 때 줄바꿈으로 입력"></textarea></label>
-                        <div class="survey-admin-field-error" th:if="${errors != null and errors.get('fields[0].optionsText') != null}" th:text="${errors.get('fields[0].optionsText')}"></div>
+                        <label>
+                            유형
+                            <select class="form-control" name="fields[0].fieldType">
+                                <option value="text">단답형</option>
+                                <option value="textarea">장문형</option>
+                                <option value="select">선택목록</option>
+                                <option value="radio">라디오</option>
+                                <option value="checkbox">체크박스</option>
+                                <option value="date">날짜</option>
+                                <option value="number">숫자</option>
+                                <option value="email">이메일</option>
+                            </select>
+                        </label>
+                        <label class="check-label">
+                            <input type="checkbox" name="fields[0].requiredYn" value="Y">
+                            필수
+                        </label>
+                        <div class="survey-field-options wide" data-field-options>
+                            <div class="survey-field-options-head">
+                                <strong>보기</strong>
+                                <button class="btn btn-register btn-sm" type="button" data-add-option>보기 추가</button>
+                            </div>
+                            <div class="survey-option-input-list" data-option-list>
+                                <div class="survey-option-input-row" data-option-row>
+                                    <input class="form-control" name="fields[0].options[0].optionLabel" placeholder="보기 내용">
+                                    <button class="btn btn-delete btn-sm" type="button" data-remove-option disabled>삭제</button>
+                                </div>
+                                <div class="survey-option-input-row" data-option-row>
+                                    <input class="form-control" name="fields[0].options[1].optionLabel" placeholder="보기 내용">
+                                    <button class="btn btn-delete btn-sm" type="button" data-remove-option>삭제</button>
+                                </div>
+                            </div>
+                            <div class="survey-admin-field-error" th:if="${errors != null and errors.get('fields[0].options') != null}" th:text="${errors.get('fields[0].options')}"></div>
+                        </div>
                     </article>
                 </div>
             </section>
+            <!-- 문항 편집 끝 -->
+
+            <!-- 하단 버튼 시작 -->
             <div class="detail-action-bar">
-                <a class="btn btn-neutral" th:href="@{/admin/surveys/list.do}">목록</a>
+                <div>
+                    <a class="btn btn-neutral" th:href="@{/admin/surveys/list.do}">목록</a>
+                    <a class="btn btn-register"
+                       th:if="${survey?.surveySeq != null}"
+                       th:href="@{/admin/surveys/preview.do(surveyUid=${survey.surveyUid})}"
+                       target="_blank"
+                       rel="noopener noreferrer">미리보기</a>
+                </div>
                 <div>
                     <button class="btn btn-delete" type="submit" th:if="${survey?.surveySeq != null}"
-                            th:formaction="@{/admin/surveys/delete.do(surveyUid=${survey.surveyUid})}"
+                            th:formaction="@{/admin/surveys/delete.do}"
                             onclick="return confirm('이 설문을 삭제하시겠습니까?');">삭제</button>
                     <button class="btn btn-edit" type="submit" th:text="${survey?.surveySeq} != null ? '수정' : '등록'">수정</button>
                 </div>
             </div>
+            <!-- 하단 버튼 끝 -->
         </form>
+        <!-- 설문 폼 끝 -->
+
+        <!-- 문항 템플릿 시작 -->
         <template data-field-template>
             <article class="field-row" data-field-row>
-                <div class="field-row-head"><strong>문항</strong><button class="btn btn-delete" type="button" data-remove-field>삭제</button></div>
-                <label>항목명<input class="form-control" name="fields[__INDEX__].label"></label>
-                <label>설문 유형
+                <div class="field-row-head">
+                    <strong>문항</strong>
+                    <div class="field-row-actions">
+                        <button class="btn btn-neutral btn-compact" type="button" data-move-field-up aria-label="위로">▲</button>
+                        <button class="btn btn-neutral btn-compact" type="button" data-move-field-down aria-label="아래로">▼</button>
+                        <button class="btn btn-delete" type="button" data-remove-field>삭제</button>
+                    </div>
+                </div>
+                <label>
+                    항목명
+                    <input class="form-control" name="fields[__INDEX__].label">
+                </label>
+                <label>
+                    설문 유형
                     <select class="form-control" name="fields[__INDEX__].surveyType">
                         <option value="objective" selected>객관식</option>
                         <option value="subjective">주관식</option>
                     </select>
                 </label>
-                <label>유형<select class="form-control" name="fields[__INDEX__].fieldType"><option value="text">단답형</option><option value="textarea">장문형</option><option value="select">선택목록</option><option value="radio">라디오</option><option value="checkbox">체크박스</option><option value="date">날짜</option><option value="number">숫자</option><option value="email">이메일</option></select></label>
-                <label class="check-label"><input type="checkbox" name="fields[__INDEX__].requiredYn" value="Y"> 필수</label>
-                <label class="wide">옵션<textarea class="form-control" rows="3" name="fields[__INDEX__].optionsText" placeholder="선택형 항목일 때 줄바꿈으로 입력"></textarea></label>
-                <div class="survey-admin-field-error"></div>
+                <label>
+                    유형
+                    <select class="form-control" name="fields[__INDEX__].fieldType">
+                        <option value="text">단답형</option>
+                        <option value="textarea">장문형</option>
+                        <option value="select">선택목록</option>
+                        <option value="radio">라디오</option>
+                        <option value="checkbox">체크박스</option>
+                        <option value="date">날짜</option>
+                        <option value="number">숫자</option>
+                        <option value="email">이메일</option>
+                    </select>
+                </label>
+                <label class="check-label">
+                    <input type="checkbox" name="fields[__INDEX__].requiredYn" value="Y">
+                    필수
+                </label>
+                <div class="survey-field-options wide" data-field-options>
+                    <div class="survey-field-options-head">
+                        <strong>보기</strong>
+                        <button class="btn btn-register btn-sm" type="button" data-add-option>보기 추가</button>
+                    </div>
+                    <div class="survey-option-input-list" data-option-list>
+                        <div class="survey-option-input-row" data-option-row>
+                            <input class="form-control" name="fields[__INDEX__].options[0].optionLabel" placeholder="보기 내용">
+                            <button class="btn btn-delete btn-sm" type="button" data-remove-option disabled>삭제</button>
+                        </div>
+                        <div class="survey-option-input-row" data-option-row>
+                            <input class="form-control" name="fields[__INDEX__].options[1].optionLabel" placeholder="보기 내용">
+                            <button class="btn btn-delete btn-sm" type="button" data-remove-option>삭제</button>
+                        </div>
+                    </div>
+                    <div class="survey-admin-field-error"></div>
+                </div>
             </article>
         </template>
-    </main>
-</div>
-<footer th:replace="~{fragments/layout :: footer}"></footer>
+        <!-- 문항 템플릿 끝 -->
+
+        <!-- 보기 템플릿 시작 -->
+        <template data-option-template>
+            <div class="survey-option-input-row" data-option-row>
+                <input class="form-control" name="fields[__INDEX__].options[__OPT_INDEX__].optionLabel" placeholder="보기 내용">
+                <button class="btn btn-delete btn-sm" type="button" data-remove-option>삭제</button>
+            </div>
+        </template>
+        <!-- 보기 템플릿 끝 -->
+
+
+</th:block>
+<th:block layout:fragment="pageScripts">
 <script th:src="@{/admin/js/survey-field-editor.js}" defer></script>
-<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</th:block>
 </body>
 </html>

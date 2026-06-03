@@ -2,6 +2,7 @@
 package com.reven.project.admin.bd;
 
 import com.reven.project.service.bd.BDNoticeService;
+import com.reven.project.service.bd.support.BDFileStorageConstants;
 import com.reven.project.service.bd.dto.BDNoticeAdminSearchRequestDto;
 import com.reven.project.service.bd.dto.BDNoticeSaveRequestDto;
 import java.io.IOException;
@@ -71,7 +72,7 @@ public class BDNoticeAdminController {
             }
             model.addAttribute("notice", notice);
             model.addAttribute("thumbnail", noticeService.findNoticeThumbnail(noticeSeq));
-            model.addAttribute("attachments", noticeService.findNoticeFiles(noticeSeq, "ATTACH"));
+            model.addAttribute("attachments", noticeService.findNoticeFiles(noticeSeq, BDFileStorageConstants.FILE_TYPE_ATTACH));
         }
         return "admin/notice/edit";
     }

@@ -5,6 +5,8 @@
 <body>
 <header th:replace="~{fragments/layout :: publicGnb('board')}"></header>
 <main class="public-content">
+
+    <!-- 페이지 헤더 시작 -->
     <section class="page-head">
         <h1 th:text="${notice?.title()} ?: '공지사항 상세'">공지사항 상세</h1>
         <p>
@@ -12,16 +14,23 @@
             <span th:text="|· 조회수 ${notice?.viewCnt() ?: 0}|">· 조회수 0</span>
         </p>
     </section>
+    <!-- 페이지 헤더 끝 -->
 
+    <!-- 본문 시작 -->
     <section class="content-panel notice-detail-content">
         <div class="notice-detail-thumbnail" th:if="${thumbnail != null}">
             <img th:src="${thumbnail.fileUrl()}" th:alt="${notice?.title()}">
         </div>
         <div class="notice-detail-body" th:utext="${notice?.content()}">본문</div>
     </section>
+    <!-- 본문 끝 -->
 
+    <!-- 첨부 파일 시작 -->
     <section class="content-panel notice-attachment-panel" th:if="${!#lists.isEmpty(attachments)}">
-        <div class="panel-head"><h2>첨부 파일</h2><span th:text="|${#lists.size(attachments)}개|">0개</span></div>
+        <div class="panel-head">
+            <h2>첨부 파일</h2>
+            <span th:text="|${#lists.size(attachments)}개|">0개</span>
+        </div>
         <ul class="notice-attachment-list">
             <li th:each="file : ${attachments}">
                 <a th:href="${file.fileUrl()}" th:text="${file.originalFileName()}" target="_blank">파일명</a>
@@ -29,8 +38,14 @@
             </li>
         </ul>
     </section>
+    <!-- 첨부 파일 끝 -->
 
-    <div class="detail-action-bar"><a class="btn btn-neutral" th:href="@{/board/notice/list.do}">목록</a></div>
+    <!-- 하단 버튼 시작 -->
+    <div class="detail-action-bar">
+        <a class="btn btn-neutral" th:href="@{/board/notice/list.do}">목록</a>
+    </div>
+    <!-- 하단 버튼 끝 -->
+
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>

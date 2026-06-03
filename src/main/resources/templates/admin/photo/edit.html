@@ -1,18 +1,31 @@
-<!doctype html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head(${photo?.photoSeq} != null ? '포토게시판 수정' : '포토게시판 등록')}"></head>
-<body>
 <!-- screen: 포토게시판 등록/수정 / purpose: 사진 게시글 제목, 첨부 파일, 게시여부를 입력하는 화면 / created: 2026-05-27 -->
-<header th:replace="~{fragments/layout :: gnb('board')}"></header>
-<div class="admin-shell">
-    <aside th:replace="~{fragments/layout :: lnb('board')}"></aside>
-    <main class="admin-content">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin}">
+<head>
+    <title layout:fragment="title" th:text="${photo?.photoSeq} != null ? '포토게시판 수정' : '포토게시판 등록'">포토게시판 등록</title>
+</head>
+<body>
+<th:block layout:fragment="content">
+
+
+        <!-- 브레드크럼 시작 -->
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '게시판', ${photo?.photoSeq} != null ? '포토게시판 수정' : '포토게시판 등록')}"></div>
+        <!-- 브레드크럼 끝 -->
+
+        <!-- 알림 시작 -->
         <div class="alert" th:if="${error}" th:text="${error}">오류가 발생했습니다.</div>
+        <!-- 알림 끝 -->
+
+        <!-- 페이지 헤더 시작 -->
         <section class="page-head">
             <h1 th:text="${photo?.photoSeq} != null ? '포토게시판 수정' : '포토게시판 등록'">포토게시판 등록</h1>
             <p>제목, 첨부 파일, 게시 여부만 관리합니다.</p>
         </section>
+        <!-- 페이지 헤더 끝 -->
+
+        <!-- 등록/수정 폼 시작 -->
         <form class="form-stack photo-upload-form"
               method="post"
               enctype="multipart/form-data"
@@ -104,10 +117,12 @@
                 </div>
             </div>
         </form>
-    </main>
-</div>
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+        <!-- 등록/수정 폼 끝 -->
+
+
+</th:block>
+<th:block layout:fragment="pageScripts">
 <script th:src="@{/admin/js/photo-edit.js}" defer></script>
+</th:block>
 </body>
 </html>

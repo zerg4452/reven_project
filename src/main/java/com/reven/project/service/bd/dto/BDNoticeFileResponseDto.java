@@ -1,6 +1,7 @@
 // 공지사항 첨부 파일 응답 DTO
 package com.reven.project.service.bd.dto;
 
+import com.reven.project.service.bd.support.BDFileStorageConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 
@@ -52,7 +53,7 @@ public record BDNoticeFileResponseDto(
         String fileUrl
 ) {
     public boolean thumbnail() {
-        return "THUMB".equals(fileType);
+        return BDFileStorageConstants.FILE_TYPE_THUMB.equals(fileType);
     }
 
     public boolean image() {

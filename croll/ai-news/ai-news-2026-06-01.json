@@ -1,44 +1,34 @@
 {
-  "status": "N",
-  "title": "오늘의 Codex/Cursor/Claude + Harness 소식",
-  "slug": "ai-news-2026-06-01",
-  "category": "AI News",
-  "tags": [
-    "Codex",
-    "Cursor",
-    "Claude",
-    "Harness"
-  ],
-  "summary": "오늘은 Codex를 HTTP API, MCP, 공식 플러그인 구조로 다루는 하네스 후보가 주요 신호였습니다. Reddit 쪽은 모델 자체보다 wrapper/context/tool-loop 차이가 생산성 차이를 만든다는 흐름이 계속 확인됐습니다.",
-  "content_markdown": "오늘의 Codex/Cursor/Claude + Harness 소식\n\n1. agentapi: Codex/CursorCLI/Claude Code를 HTTP API 뒤에 붙이는 하네스\n- 출처: GitHub coder/agentapi\n- 링크: https://github.com/coder/agentapi\n- 핵심 요약: Claude Code, Goose, Aider, Gemini, Amp, Codex, CursorCLI 같은 coding agent를 HTTP API 뒤에 붙이는 프로젝트입니다. 최근 며칠 계속 신호가 유지되고 있으며, Codex/CursorCLI 타입 지정 방식이 하네스 평가 관점에서 중요합니다.\n- 왜 중요한지: 로컬 PHP 사이트나 별도 운영 UI에서 Codex를 직접 다루려면 CLI stdout 파싱보다 HTTP API 형태가 통합하기 쉽습니다. 다만 작업 디렉터리와 파일 쓰기 권한 분리가 핵심 리스크입니다.\n- 다음 행동: read-only 테스트 workspace에서 Codex 타입으로 실행하고, 로그/종료 처리/작업 디렉터리 격리를 먼저 확인하세요.\n\n2. fiorastudio/buddy: Codex/Claude/CursorCLI 공통 MCP code review companion\n- 출처: GitHub fiorastudio/buddy\n- 링크: https://github.com/fiorastudio/buddy\n- 핵심 요약: Claude Code, Codex, CursorCLI, GitHub CopilotCLI, OpenClaw 등 MCP 호환 클라이언트에서 쓰는 code review companion입니다. Codex 쪽은 MCP 설정, hook, AGENTS.md/instructions.md 주입 흐름을 설명합니다.\n- 왜 중요한지: Codex plugin/hook/MCP 설정이 실제 파일 시스템에 어떻게 배치되는지 확인할 수 있는 사례입니다. 하네스 후보 평가는 기능보다 설치 후 변경 파일 범위를 먼저 봐야 합니다.\n- 다음 행동: 설치 전 ~/.codex, AGENTS.md, hooks 관련 변경점을 백업하고 Codex 설정 부분만 따로 검토하세요.\n\n3. OpenAI plugins repo: Codex 플러그인 패키징 기준점\n- 출처: GitHub openai/plugins\n- 링크: https://github.com/openai/plugins\n- 핵심 요약: .codex-plugin/plugin.json, skills, MCP 설정, agents, commands, hooks 등 Codex 플러그인 구조를 설명하는 기준 저장소입니다.\n- 왜 중요한지: 개인용 Codex 하네스나 PHP 자동등록 도구를 나중에 플러그인화하려면 임의 구조보다 공식 플러그인 매니페스트 구조에 맞추는 편이 유지보수에 유리합니다.\n- 다음 행동: 개인 자동화도 장기적으로는 commands + skills + MCP 설정 단위로 나눌 수 있는지 설계 메모를 남기세요.\n\n4. Reddit: Cursor/Claude/Codex 비교에서 하네스 차이가 핵심이라는 흐름\n- 출처: Reddit r/vibecoding\n- 링크: https://www.reddit.com/r/vibecoding/comments/1tab961/help_me_understand_cursor_vs_claude_codecodex/\n- 핵심 요약: 같은 모델을 써도 Cursor, Claude Code, Codex 결과가 달라지는 이유로 system prompt, repo context retrieval, tool loop, context compression, timeout/max-step 정책 차이가 언급됩니다.\n- 왜 중요한지: 실제 생산성은 모델 성능만으로 결정되지 않습니다. 어떤 wrapper가 context를 어떻게 넣고, 실패 후 어떻게 복구하는지가 더 큰 차이를 만듭니다.\n- 다음 행동: 도구 비교 시 모델 이름보다 context packing, tool loop, resume, logging, permission 정책을 체크리스트화하세요.\n\n5. Reddit: Max 플랜 기준 Cursor/Claude/Codex 팀 운용 논의\n- 출처: Reddit r/AI_Agents\n- 링크: https://www.reddit.com/r/AI_Agents/comments/1tpu7uk/cursor_vs_claude_vs_chatgpt_codex_on_max_plans/\n- 핵심 요약: Cursor, Claude Code, Codex를 모두 쓸 수 있는 팀 환경에서 어떤 운용이 좋은지 묻는 토론입니다. 비용 제약이 작을수록 역할 라우팅, 리뷰 흐름, 컨텍스트 공유가 더 중요해집니다.\n- 왜 중요한지: 개인 실험과 팀 운용은 평가 기준이 다릅니다. 팀에서는 구현 agent와 검증 agent를 분리하는 정책이 효과적일 수 있습니다.\n- 다음 행동: 기본 라우팅을 Codex=계획/리뷰/검증, Claude Code=복잡한 구현, Cursor=빠른 IDE 편집으로 두고 예외 사례만 기록하세요.\n\n오늘의 추천 액션\n1. Codex 하네스 후보는 agentapi, buddy, openai/plugins를 우선 추적하세요.\n2. 새 플러그인 설치 전에는 변경 파일 목록, hook 등록 방식, MCP 권한 범위를 먼저 확인하세요.\n3. PHP 사이트 importer에는 status=Y 덮어쓰기 방지, slug unique, JSON parse 실패 시 error 기록을 먼저 넣으세요.",
-  "sources": [
-    {
-      "title": "agentapi",
-      "source": "GitHub coder/agentapi",
-      "url": "https://github.com/coder/agentapi"
-    },
-    {
-      "title": "buddy",
-      "source": "GitHub fiorastudio/buddy",
-      "url": "https://github.com/fiorastudio/buddy"
-    },
-    {
-      "title": "OpenAI plugins",
-      "source": "GitHub openai/plugins",
-      "url": "https://github.com/openai/plugins"
-    },
-    {
-      "title": "Help me understand Cursor vs Claude Code/Codex",
-      "source": "Reddit r/vibecoding",
-      "url": "https://www.reddit.com/r/vibecoding/comments/1tab961/help_me_understand_cursor_vs_claude_codecodex/"
-    },
-    {
-      "title": "Cursor vs Claude vs ChatGPT Codex on Max Plans",
-      "source": "Reddit r/AI_Agents",
-      "url": "https://www.reddit.com/r/AI_Agents/comments/1tpu7uk/cursor_vs_claude_vs_chatgpt_codex_on_max_plans/"
-    }
-  ],
-  "published_at": "2026-06-01T09:05:08+09:00",
-  "inserted_at": null,
-  "error": null
+  "status" : "P",
+  "title" : "오늘의 Codex/Cursor/Claude + Harness 소식",
+  "slug" : "ai-news-2026-06-01",
+  "category" : "AI News",
+  "tags" : [ "Codex", "Cursor", "Claude", "Harness" ],
+  "summary" : "오늘은 Codex를 HTTP API, MCP, 공식 플러그인 구조로 다루는 하네스 후보가 주요 신호였습니다. Reddit 쪽은 모델 자체보다 wrapper/context/tool-loop 차이가 생산성 차이를 만든다는 흐름이 계속 확인됐습니다.",
+  "content_markdown" : "오늘의 Codex/Cursor/Claude + Harness 소식\n\n1. agentapi: Codex/CursorCLI/Claude Code를 HTTP API 뒤에 붙이는 하네스\n- 출처: GitHub coder/agentapi\n- 링크: https://github.com/coder/agentapi\n- 핵심 요약: Claude Code, Goose, Aider, Gemini, Amp, Codex, CursorCLI 같은 coding agent를 HTTP API 뒤에 붙이는 프로젝트입니다. 최근 며칠 계속 신호가 유지되고 있으며, Codex/CursorCLI 타입 지정 방식이 하네스 평가 관점에서 중요합니다.\n- 왜 중요한지: 로컬 PHP 사이트나 별도 운영 UI에서 Codex를 직접 다루려면 CLI stdout 파싱보다 HTTP API 형태가 통합하기 쉽습니다. 다만 작업 디렉터리와 파일 쓰기 권한 분리가 핵심 리스크입니다.\n- 다음 행동: read-only 테스트 workspace에서 Codex 타입으로 실행하고, 로그/종료 처리/작업 디렉터리 격리를 먼저 확인하세요.\n\n2. fiorastudio/buddy: Codex/Claude/CursorCLI 공통 MCP code review companion\n- 출처: GitHub fiorastudio/buddy\n- 링크: https://github.com/fiorastudio/buddy\n- 핵심 요약: Claude Code, Codex, CursorCLI, GitHub CopilotCLI, OpenClaw 등 MCP 호환 클라이언트에서 쓰는 code review companion입니다. Codex 쪽은 MCP 설정, hook, AGENTS.md/instructions.md 주입 흐름을 설명합니다.\n- 왜 중요한지: Codex plugin/hook/MCP 설정이 실제 파일 시스템에 어떻게 배치되는지 확인할 수 있는 사례입니다. 하네스 후보 평가는 기능보다 설치 후 변경 파일 범위를 먼저 봐야 합니다.\n- 다음 행동: 설치 전 ~/.codex, AGENTS.md, hooks 관련 변경점을 백업하고 Codex 설정 부분만 따로 검토하세요.\n\n3. OpenAI plugins repo: Codex 플러그인 패키징 기준점\n- 출처: GitHub openai/plugins\n- 링크: https://github.com/openai/plugins\n- 핵심 요약: .codex-plugin/plugin.json, skills, MCP 설정, agents, commands, hooks 등 Codex 플러그인 구조를 설명하는 기준 저장소입니다.\n- 왜 중요한지: 개인용 Codex 하네스나 PHP 자동등록 도구를 나중에 플러그인화하려면 임의 구조보다 공식 플러그인 매니페스트 구조에 맞추는 편이 유지보수에 유리합니다.\n- 다음 행동: 개인 자동화도 장기적으로는 commands + skills + MCP 설정 단위로 나눌 수 있는지 설계 메모를 남기세요.\n\n4. Reddit: Cursor/Claude/Codex 비교에서 하네스 차이가 핵심이라는 흐름\n- 출처: Reddit r/vibecoding\n- 링크: https://www.reddit.com/r/vibecoding/comments/1tab961/help_me_understand_cursor_vs_claude_codecodex/\n- 핵심 요약: 같은 모델을 써도 Cursor, Claude Code, Codex 결과가 달라지는 이유로 system prompt, repo context retrieval, tool loop, context compression, timeout/max-step 정책 차이가 언급됩니다.\n- 왜 중요한지: 실제 생산성은 모델 성능만으로 결정되지 않습니다. 어떤 wrapper가 context를 어떻게 넣고, 실패 후 어떻게 복구하는지가 더 큰 차이를 만듭니다.\n- 다음 행동: 도구 비교 시 모델 이름보다 context packing, tool loop, resume, logging, permission 정책을 체크리스트화하세요.\n\n5. Reddit: Max 플랜 기준 Cursor/Claude/Codex 팀 운용 논의\n- 출처: Reddit r/AI_Agents\n- 링크: https://www.reddit.com/r/AI_Agents/comments/1tpu7uk/cursor_vs_claude_vs_chatgpt_codex_on_max_plans/\n- 핵심 요약: Cursor, Claude Code, Codex를 모두 쓸 수 있는 팀 환경에서 어떤 운용이 좋은지 묻는 토론입니다. 비용 제약이 작을수록 역할 라우팅, 리뷰 흐름, 컨텍스트 공유가 더 중요해집니다.\n- 왜 중요한지: 개인 실험과 팀 운용은 평가 기준이 다릅니다. 팀에서는 구현 agent와 검증 agent를 분리하는 정책이 효과적일 수 있습니다.\n- 다음 행동: 기본 라우팅을 Codex=계획/리뷰/검증, Claude Code=복잡한 구현, Cursor=빠른 IDE 편집으로 두고 예외 사례만 기록하세요.\n\n오늘의 추천 액션\n1. Codex 하네스 후보는 agentapi, buddy, openai/plugins를 우선 추적하세요.\n2. 새 플러그인 설치 전에는 변경 파일 목록, hook 등록 방식, MCP 권한 범위를 먼저 확인하세요.\n3. PHP 사이트 importer에는 status=Y 덮어쓰기 방지, slug unique, JSON parse 실패 시 error 기록을 먼저 넣으세요.",
+  "sources" : [ {
+    "title" : "agentapi",
+    "source" : "GitHub coder/agentapi",
+    "url" : "https://github.com/coder/agentapi"
+  }, {
+    "title" : "buddy",
+    "source" : "GitHub fiorastudio/buddy",
+    "url" : "https://github.com/fiorastudio/buddy"
+  }, {
+    "title" : "OpenAI plugins",
+    "source" : "GitHub openai/plugins",
+    "url" : "https://github.com/openai/plugins"
+  }, {
+    "title" : "Help me understand Cursor vs Claude Code/Codex",
+    "source" : "Reddit r/vibecoding",
+    "url" : "https://www.reddit.com/r/vibecoding/comments/1tab961/help_me_understand_cursor_vs_claude_codecodex/"
+  }, {
+    "title" : "Cursor vs Claude vs ChatGPT Codex on Max Plans",
+    "source" : "Reddit r/AI_Agents",
+    "url" : "https://www.reddit.com/r/AI_Agents/comments/1tpu7uk/cursor_vs_claude_vs_chatgpt_codex_on_max_plans/"
+  } ],
+  "published_at" : "2026-06-01T09:05:08+09:00",
+  "inserted_at" : "2026-06-03 09:21:28",
+  "error" : null,
+  "news_seq" : 11
 }

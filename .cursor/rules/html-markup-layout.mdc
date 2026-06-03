@@ -1,0 +1,104 @@
+---
+description: HTML·Thymeleaf 마크업 요소 줄바꿈, 블록 구분, 구역 주석
+globs: **/*.html
+alwaysApply: false
+---
+
+# HTML Markup Layout
+
+When writing or editing HTML and Thymeleaf templates:
+
+## Element line breaks
+
+- Put each element on its **own line** for readability.
+- Do not cram multiple sibling elements onto one line.
+- Keep parent–child nesting clear with consistent indentation.
+- Inline text nodes may stay on the same line as their wrapping element when the content is short.
+
+```html
+<!-- ❌ BAD -->
+<section class="page-head"><h1>설문 관리</h1><p>설문 마스터를 관리합니다.</p></section>
+
+<!-- ✅ GOOD -->
+<section class="page-head">
+    <h1>설문 관리</h1>
+    <p>설문 마스터를 관리합니다.</p>
+</section>
+```
+
+## Block grouping
+
+- Separate **major block sections** with **one blank line** (double line break between groups).
+- Use this between layout regions such as header, search panel, list table, action bar, and footer actions.
+- Do not add blank lines between every sibling element inside the same block.
+
+```html
+<!-- ✅ GOOD -->
+<!-- 페이지 헤더 시작 -->
+<section class="page-head">
+    <h1>설문 관리</h1>
+    <p>설문 마스터를 관리합니다.</p>
+</section>
+<!-- 페이지 헤더 끝 -->
+
+<!-- 검색 시작 -->
+<form class="search-panel" method="get" th:action="@{/admin/survey/list.do}">
+    <div class="search-row">
+        <label for="keyword">검색어</label>
+        <input id="keyword" name="keyword" type="text">
+    </div>
+</form>
+<!-- 검색 끝 -->
+
+<!-- 리스트 시작 -->
+<section class="list-panel">
+    <table class="data-table">
+        ...
+    </table>
+</section>
+<!-- 리스트 끝 -->
+```
+
+## Block region comments
+
+- Mark each **major block region** with paired start/end HTML comments so the screen area is easy to scan.
+- Format: `<!-- {영역명} 시작 -->` immediately **before** the opening block element, and `<!-- {영역명} 끝 -->` immediately **after** the closing block element.
+- Use short Korean names that match the screen purpose (e.g. `페이지 헤더`, `검색`, `리스트`, `알림`, `상세 폼`, `하단 버튼`).
+- Pair every start comment with a matching end comment for the same region name.
+- Do not add region comments for every nested inner element — only for top-level functional blocks within `<main>` (or equivalent content area).
+- Keep the existing screen-purpose HTML comment at the top of the page; region comments are separate and mark layout blocks inside the page.
+- Put **one blank line** after `<main>` (or equivalent content wrapper) before the first `<!-- … 시작 -->` comment.
+- Put **one blank line** after the last `<!-- … 끝 -->` comment before `</main>` (or the wrapper closing tag).
+- Put **one blank line** between consecutive region groups: after `<!-- … 끝 -->`, then before the next `<!-- … 시작 -->`.
+
+```html
+<!-- ❌ BAD — cramped against main boundaries -->
+<main class="admin-content">
+    <!-- 브레드크럼 시작 -->
+    ...
+    <!-- 하단 버튼 끝 -->
+</main>
+
+<!-- ✅ GOOD -->
+<main class="admin-content">
+
+    <!-- 브레드크럼 시작 -->
+    ...
+    <!-- 브레드크럼 끝 -->
+
+    <!-- 페이지 헤더 시작 -->
+    ...
+    <!-- 페이지 헤더 끝 -->
+
+    <!-- 하단 버튼 시작 -->
+    ...
+    <!-- 하단 버튼 끝 -->
+
+</main>
+```
+
+## Thymeleaf notes
+
+- Apply the same layout rules to `th:*` attributes and `th:block` wrappers.
+- Keep Thymeleaf fragment inserts (`th:replace`, `th:insert`) on their own line like other block elements.
+- Full-page templates must follow `thymeleaf-layout-dialect.mdc` (use `layouts/*` + `layout:decorate`; do not duplicate shell markup).

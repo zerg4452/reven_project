@@ -1,0 +1,20 @@
+<!-- 관리자 로그인 공통 레이아웃 -->
+<!doctype html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title layout:fragment="title">관리자 로그인</title>
+    <link rel="stylesheet" th:href="@{/common/css/app.css}">
+</head>
+<body>
+<th:block layout:fragment="pageComment"></th:block>
+<main class="auth-page">
+    <th:block layout:fragment="content"></th:block>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<th:block layout:fragment="pageScripts"></th:block>
+</body>
+</html>

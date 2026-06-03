@@ -1,0 +1,34 @@
+{
+  "status" : "P",
+  "title" : "오늘의 Codex/Cursor/Claude + Harness 소식",
+  "slug" : "ai-news-2026-06-02",
+  "category" : "AI News",
+  "tags" : [ "Codex", "Cursor", "Claude", "Harness" ],
+  "summary" : "오늘은 Cursor의 AI 변경 자동 승인 증가와 Cursor CLI 실사용 후기가 눈에 띄었고, Codex/Claude/Cursor를 HTTP API나 multi-harness plugin 구조로 묶는 agentapi, wshobson/agents, harness engineering 인덱스가 주요 추적 후보로 남았습니다.",
+  "content_markdown" : "오늘의 Codex/Cursor/Claude + Harness 소식\n\n1. Cursor AI 변경의 38%가 수동 리뷰 없이 accept된다는 토론\n- 출처: Reddit r/ClaudeCode\n- 링크: https://www.reddit.com/r/ClaudeCode/comments/1tsykkx/38_of_ai_code_changes_in_cursor_are_now_accepted/\n- 핵심 요약: Cursor의 Spring 2026 developer habits report를 두고, AI 코드 변경이 수동 리뷰 없이 accept되는 비율이 크게 늘었다는 점을 토론했습니다. 댓글에서는 자동 리뷰, 작은 diff, 보일러플레이트 변경과 실제 핵심 로직 변경을 구분해야 한다는 지적이 나왔습니다.\n- 왜 중요한지: AI 코딩 도구의 핵심 리스크가 “생성 품질”에서 “검토 정책과 변경 승인 기준”으로 이동하고 있습니다.\n- 다음 행동: PHP importer에도 diff 크기, DB write/auth/payment 같은 위험 영역을 기준으로 자동 승인 금지 규칙을 두세요.\n\n2. Cursor CLI Appreciation: Codex/Claude와 병행한 사용 후기\n- 출처: Reddit r/cursor\n- 링크: https://www.reddit.com/r/cursor/comments/1ttxvgk/cursor_appreciation_post/\n- 핵심 요약: 사용자가 Claude Code를 업무에, Codex를 개인 프로젝트에 쓰다가 Cursor CLI를 시도한 후기입니다. Composer 2.5가 빠르고, 작은 개인 프로젝트에서는 비용 대비 쓸 만하다는 평가가 나왔습니다.\n- 왜 중요한지: Cursor를 IDE 전용으로만 보지 않고 CLI agent 후보로 보는 흐름이 생기고 있습니다. Codex/Claude와 비교할 때 “빠른 반복”이 별도 장점입니다.\n- 다음 행동: 작은 PHP 화면 수정 같은 작업은 Cursor CLI, 구조 변경/검증은 Codex로 나눠 테스트하세요.\n\n3. agentapi: Codex, Claude Code, Cursor CLI를 HTTP API로 제어\n- 출처: GitHub coder/agentapi\n- 링크: https://github.com/coder/agentapi\n- 핵심 요약: Claude Code, Codex, Cursor CLI 등 여러 coding agent를 HTTP API로 감싸는 프로젝트입니다. 최근 크롤링 기준 Codex와 Cursor CLI 모두 지원 대상으로 명시됩니다.\n- 왜 중요한지: 로컬 PHP 사이트나 관리 UI에서 agent 작업을 트리거하려면 HTTP API wrapper가 CLI 직접 호출보다 통합하기 쉽습니다. 단, 파일 쓰기 권한과 작업 디렉터리 격리가 필요합니다.\n- 다음 행동: read-only workspace에서 Codex 타입으로 실행해 로그, 취소, 결과 회수 방식을 먼저 확인하세요.\n\n4. wshobson/agents: Codex CLI 지원 multi-harness plugin marketplace\n- 출처: GitHub wshobson/agents\n- 링크: https://github.com/wshobson/agents\n- 핵심 요약: Claude Code, Codex CLI, Cursor, OpenCode, Gemini CLI를 대상으로 하는 multi-harness agent/plugin marketplace입니다. Codex용으로 plugin.json, skills, agents 생성 경로가 문서화되어 있습니다.\n- 왜 중요한지: Codex용 agent/plugin을 직접 만들 때 하네스별 파일 구조와 marketplace 패키징을 비교할 수 있는 좋은 기준입니다.\n- 다음 행동: 전체 설치 전 docs/harnesses.md와 Codex 생성 결과물만 확인하고, 필요한 agent만 부분 적용하세요.\n\n5. Awesome Harness Engineering: 하네스 설계 체크리스트 인덱스\n- 출처: GitHub ai-boost/awesome-harness-engineering\n- 링크: https://github.com/ai-boost/awesome-harness-engineering\n- 핵심 요약: agent harness engineering 관련 도구, 패턴, eval, memory, MCP, permission, observability, orchestration 자료를 모은 큐레이션입니다. OpenHarness, MCP HTTP transport, compaction, skills 같은 운영 요소가 정리되어 있습니다.\n- 왜 중요한지: Codex 플러그인을 붙이는 것만으로는 안정적인 자동화가 되지 않습니다. 권한, 로그, 재시도, 평가, 상태 관리가 함께 설계되어야 합니다.\n- 다음 행동: 현재 자동 뉴스 파이프라인도 수집, 요약, JSON 생성, Gmail 발송, PHP insert를 각각 관측 가능한 단계로 나누세요.\n\n오늘의 추천 액션\n1. PHP importer에는 status=Y 보호 외에 slug unique, JSON parse 실패 시 error 기록, 위험 카테고리 자동 승인 금지를 넣으세요.\n2. Cursor CLI는 작은 반복 작업, Codex는 검증/비동기 작업, Claude Code는 복잡한 repo-context 작업으로 분리해 평가하세요.\n3. Codex 하네스 후보는 agentapi, wshobson/agents, awesome-harness-engineering을 우선 추적하세요.",
+  "sources" : [ {
+    "title" : "38% of AI code changes in Cursor are now accepted without manual review",
+    "source" : "Reddit r/ClaudeCode",
+    "url" : "https://www.reddit.com/r/ClaudeCode/comments/1tsykkx/38_of_ai_code_changes_in_cursor_are_now_accepted/"
+  }, {
+    "title" : "Cursor Appreciation Post",
+    "source" : "Reddit r/cursor",
+    "url" : "https://www.reddit.com/r/cursor/comments/1ttxvgk/cursor_appreciation_post/"
+  }, {
+    "title" : "agentapi",
+    "source" : "GitHub coder/agentapi",
+    "url" : "https://github.com/coder/agentapi"
+  }, {
+    "title" : "agents",
+    "source" : "GitHub wshobson/agents",
+    "url" : "https://github.com/wshobson/agents"
+  }, {
+    "title" : "awesome-harness-engineering",
+    "source" : "GitHub ai-boost/awesome-harness-engineering",
+    "url" : "https://github.com/ai-boost/awesome-harness-engineering"
+  } ],
+  "published_at" : "2026-06-02T09:03:28+09:00",
+  "inserted_at" : "2026-06-03 09:21:28",
+  "error" : null,
+  "news_seq" : 12
+}

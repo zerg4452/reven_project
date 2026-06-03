@@ -1,7 +1,9 @@
 # Agent Behavior
 
 Cursor loads this file for cross-project agent habits in this repository.
-**Project rules** live in `.cursor/rules/` (e.g. `survey-rebuild-project.mdc`, `java-method-layout.mdc`, `java-record-schema.mdc`).
+**Project rules** live in `.cursor/rules/` (e.g. `survey-rebuild-project.mdc`, `java-method-layout.mdc`, `java-record-schema.mdc`, `html-markup-layout.mdc`, `thymeleaf-layout-dialect.mdc`).
+**Rule check:** If a task touches code or docs covered by a matching `.cursor/rules/*.mdc` file, read that rule first and follow it alongside this file.
+**Rule metadata:** Respect each rule file's frontmatter. `globs` defines the file scope, and `alwaysApply` marks a rule as always active when it is relevant.
 
 **Tradeoff:** These rules bias toward caution over speed. For trivial tasks (typo, one-line fix), use judgment.
 
@@ -95,7 +97,7 @@ Before any **non-trivial** task, produce three artifacts. Do not start coding wi
 
 | Artifact | Path | Purpose |
 |----------|------|---------|
-| Plan | Short summary in chat or `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` | What we build and why |
+| Plan | Short summary in chat or `docs/clear/<분류>/YYYY-MM-DD-<topic>-design.md` | What we build and why |
 | Checklist | `docs/checklist.md` | Concrete checkbox tasks; tick as you go |
 | Context notes | `docs/context-notes.md` | Decisions and reasoning; append continuously |
 

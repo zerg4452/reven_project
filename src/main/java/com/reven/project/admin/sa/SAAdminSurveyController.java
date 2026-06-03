@@ -1,7 +1,8 @@
 package com.reven.project.admin.sa;
 
-import com.reven.project.service.sa.dto.SASurveyDto;
+import com.reven.project.common.web.LenientLocalDateEditor;
 import com.reven.project.service.sa.SASurveyService;
+import com.reven.project.service.sa.dto.SASurveyDto;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,6 +35,8 @@ public class SAAdminSurveyController {
     void initBinder(WebDataBinder binder) {
         // SASurveyDto는 화면 form binding을 위해 public field 기반 DTO를 사용하므로 직접 필드 접근을 활성화한다.
         binder.initDirectFieldAccess();
+        // 잘못된 날짜 문자열은 BindException 대신 null로 흡수해 목록 진입 실패를 막는다.
+        binder.registerCustomEditor(LocalDate.class, new LenientLocalDateEditor());
     }
 
     /**
@@ -39,6 +44,7 @@ public class SAAdminSurveyController {
      */
     @GetMapping("/list.do")
     public String list(@ModelAttribute SASurveyDto.SurveySearchRequest request, Model model) {
+        normalizeSearch(request);
         List<SASurveyDto.SurveyListItem> surveys = surveyService.findAdminSurveys(request);
         model.addAttribute("surveys", surveys);
         model.addAttribute("totalCount", surveys.size());
@@ -46,7 +52,26 @@ public class SAAdminSurveyController {
         model.addAttribute("dateTo", request.endDate);
         model.addAttribute("keywordType", request.keywordType);
         model.addAttribute("keyword", request.keyword);
+        model.addAttribute("useYn", request.useYn == null ? "" : request.useYn);
         return "admin/survey/list";
+    }
+
+    /**
+     * 설문 관리 검색 조건을 허용값 기준으로 보정한다.
+     */
+    private void normalizeSearch(SASurveyDto.SurveySearchRequest request) {
+        if (request.startDate == null) {
+            request.startDate = LocalDate.now(java.time.ZoneId.of("Asia/Seoul")).minusDays(60);
+        }
+        if (request.endDate == null) {
+            request.endDate = LocalDate.now(java.time.ZoneId.of("Asia/Seoul")).plusDays(1);
+        }
+        if (!"설문명".equals(request.keywordType)) {
+            request.keywordType = "전체";
+        }
+        if (!"Y".equals(request.useYn) && !"N".equals(request.useYn)) {
+            request.useYn = null;
+        }
     }
 
     /**
@@ -60,16 +85,31 @@ public class SAAdminSurveyController {
     }
 
     /**
+     * 저장된 설문을 사용자 화면 형태로 미리 본다.
+     */
+    @GetMapping("/preview.do")
+    public String preview(@RequestParam String surveyUid, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            model.addAttribute("survey", surveyService.findSurvey(surveyUid));
+            model.addAttribute("previewMode", true);
+            return "client/survey/form";
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("surveySavedMessage", "비정상적인 접근입니다.");
+            return "redirect:/admin/surveys/list.do";
+        }
+    }
+
+    /**
      * 설문 신규 등록 요청을 저장한다.
      */
     @PostMapping("/insert.do")
     public String insert(
-            @RequestParam(required = false) String surveyUid,
             @Valid @ModelAttribute SASurveyDto.SurveySaveRequest request,
             BindingResult bindingResult,
-            Model model
+            Model model,
+            RedirectAttributes redirectAttributes
     ) {
-        return saveSurvey(null, request, bindingResult, model);
+        return saveSurvey(null, request, bindingResult, model, redirectAttributes);
     }
 
     /**
@@ -80,17 +120,22 @@ public class SAAdminSurveyController {
             @RequestParam(required = false) String surveyUid,
             @Valid @ModelAttribute SASurveyDto.SurveySaveRequest request,
             BindingResult bindingResult,
-            Model model
+            Model model,
+            RedirectAttributes redirectAttributes
     ) {
-        return saveSurvey(surveyUid, request, bindingResult, model);
+        return saveSurvey(surveyUid, request, bindingResult, model, redirectAttributes);
     }
 
     /**
      * 설문 삭제 요청을 처리한다.
      */
     @PostMapping("/delete.do")
-    public String delete(@RequestParam String surveyUid) {
+    public String delete(
+            @RequestParam String surveyUid,
+            RedirectAttributes redirectAttributes
+    ) {
         surveyService.deleteSurvey(surveyUid);
+        redirectAttributes.addFlashAttribute("surveySavedMessage", "삭제되었습니다.");
         return "redirect:/admin/surveys/list.do";
     }
 
@@ -98,17 +143,20 @@ public class SAAdminSurveyController {
             String surveyUid,
             SASurveyDto.SurveySaveRequest request,
             BindingResult bindingResult,
-            Model model
+            Model model,
+            RedirectAttributes redirectAttributes
     ) {
-        surveyUid = surveyUid == null || surveyUid.isBlank() ? null : surveyUid;
+        boolean isNewSurvey = surveyUid == null || surveyUid.isBlank();
+        surveyUid = isNewSurvey ? null : surveyUid;
         validateSurveyOptions(request, bindingResult);
         if (bindingResult.hasErrors()) {
-            model.addAttribute("survey", surveyUid == null ? surveyService.newSurveyForm() : surveyService.findSurvey(surveyUid));
+            model.addAttribute("survey", isNewSurvey ? surveyService.newSurveyForm() : surveyService.findSurvey(surveyUid));
             model.addAttribute("errors", collectFieldErrors(bindingResult));
             return "admin/survey/detail";
         }
-        SASurveyDto.SurveyDetail saved = surveyService.saveSurvey(surveyUid, request);
-        return "redirect:/admin/surveys/write.do?surveyUid=" + saved.surveyUid;
+        surveyService.saveSurvey(surveyUid, request);
+        redirectAttributes.addFlashAttribute("surveySavedMessage", "저장되었습니다.");
+        return "redirect:/admin/surveys/list.do";
     }
 
     private void validateSurveyOptions(SASurveyDto.SurveySaveRequest request, BindingResult bindingResult) {
@@ -126,13 +174,13 @@ public class SAAdminSurveyController {
                     continue;
                 }
                 if (labels.contains(label)) {
-                    bindingResult.rejectValue("fields[" + index + "].optionsText", "survey.option.duplicate", "보기 라벨이 중복되었습니다.");
+                    bindingResult.rejectValue("fields[" + index + "].options", "survey.option.duplicate", "보기 라벨이 중복되었습니다.");
                     break;
                 }
                 labels.add(label);
             }
             if (labels.isEmpty()) {
-                bindingResult.rejectValue("fields[" + index + "].optionsText", "survey.option.required", "객관식 문항에는 보기를 1개 이상 입력해야 합니다.");
+                bindingResult.rejectValue("fields[" + index + "].options", "survey.option.required", "객관식 문항에는 보기를 1개 이상 입력해야 합니다.");
             }
         }
     }

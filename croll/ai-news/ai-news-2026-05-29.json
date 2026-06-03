@@ -1,44 +1,34 @@
 {
-  "status": "N",
-  "title": "오늘의 Codex/Cursor/Claude + Harness 소식",
-  "slug": "ai-news-2026-05-29",
-  "category": "AI News",
-  "tags": [
-    "Codex",
-    "Cursor",
-    "Claude",
-    "Harness"
-  ],
-  "summary": "오늘은 Cursor/Claude/Codex의 팀 단위 역할 분리 논의와 함께, Codex 플러그인 등록 문제 및 Claude Code에서 Codex CLI로 위임하는 하네스형 도구가 주요 신호로 확인됐습니다.",
-  "content_markdown": "오늘의 Codex/Cursor/Claude + Harness 소식\n\n1. Max 플랜 기준 Cursor vs Claude Code vs ChatGPT Codex 비교 질문\n- 출처: Reddit r/AI_Agents\n- 링크: https://www.reddit.com/r/AI_Agents/comments/1tpu7uk/cursor_vs_claude_vs_chatgpt_codex_on_max_plans/\n- 핵심 요약: 스타트업 팀이 Cursor, Claude Code, Codex Max 플랜을 모두 쓸 수 있는 상황에서 실제 경험을 묻는 글입니다. 가격 제약이 줄어든 환경에서는 “어떤 도구가 싸냐”보다 어떤 작업을 어떤 도구에 맡길지가 핵심이 됩니다.\n- 왜 중요한지: 팀 단위에서는 개인 생산성보다 role routing, 리뷰 흐름, 변경 검증, 컨텍스트 공유 방식이 더 중요합니다.\n- 다음 행동: 팀/개인 워크플로를 나눠서 Codex=검증/비동기 작업, Claude Code=복잡한 구현, Cursor=IDE 편집으로 실험하세요.\n\n2. Cursor가 Claude/Codex 다음 선택지인지 묻는 논의\n- 출처: Reddit r/cursor\n- 링크: https://www.reddit.com/r/cursor/comments/1toxlhy/is_cursor_currently_the_next_best_thing_after/\n- 핵심 요약: Cursor를 Claude Code나 Codex 다음으로 볼 수 있는지 묻는 글입니다. 댓글 흐름은 Cursor 자체의 모델 성능보다 Composer, IDE 통합, 계획/감사 루프를 어떻게 쓰는지가 중요하다는 쪽입니다.\n- 왜 중요한지: Cursor의 강점은 단일 모델이 아니라 작업 표면입니다. Codex/Claude와 비교할 때 IDE 안 반복 속도를 따로 평가해야 합니다.\n- 다음 행동: 같은 PHP 수정 작업을 Cursor Composer와 Codex 비동기 작업으로 각각 처리해 최종 diff와 수동 수정량을 비교하세요.\n\n3. OpenClaw Codex plugin regression: “agent harness codex is not registered”\n- 출처: GitHub openclaw/openclaw Issue #82368\n- 링크: https://github.com/openclaw/openclaw/issues/82368\n- 핵심 요약: OpenClaw 2026.5.12 업데이트 이후 Codex 플러그인/runtime migration이 빠져 Codex agent harness가 등록되지 않는 문제가 보고됐습니다.\n- 왜 중요한지: Codex용 하네스/플러그인은 아직 버전 결합이 강합니다. 설치 가능 여부보다 업데이트 후 유지되는지가 더 중요한 평가 기준입니다.\n- 다음 행동: 하네스 후보를 볼 때 release note, migration, plugin registration test를 먼저 확인하세요.\n\n4. codex-agent-plugin: Claude Code에서 Codex CLI로 위임하는 플러그인\n- 출처: GitHub mustafaakben/codex-agent-plugin\n- 링크: https://github.com/mustafaakben/codex-agent-plugin\n- 핵심 요약: Claude Code 플러그인 형태로 OpenAI Codex CLI에 delegation, review, research 작업을 넘기는 프로젝트입니다. MCP 검색 명령도 포함되어 있습니다.\n- 왜 중요한지: Codex를 단독 도구가 아니라 Claude Code의 보조 agent로 붙이는 패턴입니다. 사용자가 관심 둔 “harness/plugin” 흐름에 직접 가깝습니다.\n- 다음 행동: 실제 명령이 Codex CLI를 어떻게 호출하는지, 권한/작업 디렉터리/결과 회수 방식을 확인하세요.\n\n5. ai-cli-mcp: MCP 클라이언트에서 Claude/Codex/Gemini CLI agent 실행\n- 출처: GitHub mkXultra/ai-cli-mcp\n- 링크: https://github.com/mkXultra/claude-code-mcp/\n- 핵심 요약: MCP 서버를 통해 Claude Code, Codex, Gemini CLI agent를 백그라운드에서 실행하는 프로젝트입니다. IDE나 CLI가 MCP를 지원하면 여러 agent CLI를 공통 인터페이스로 호출하는 방향입니다.\n- 왜 중요한지: Cursor, Claude, Codex를 연결하는 실용적인 접점은 MCP가 될 가능성이 큽니다. 단, agent를 agent 안에서 실행하는 구조라 권한 경계와 로그 추적이 중요합니다.\n- 다음 행동: read-only 명령부터 테스트하고, 쓰기 작업은 별도 workspace와 승인 규칙을 둔 뒤 연결하세요.\n\n오늘의 추천 액션\n1. Codex 하네스 후보는 설치보다 “업데이트 후 등록/마이그레이션이 깨지지 않는가”를 먼저 보세요.\n2. Claude Code ↔ Codex 위임형 플러그인(codex-agent-plugin, ai-cli-mcp)을 별도 카테고리로 추적하세요.\n3. PHP 사이트 importer는 status=Y 보호와 slug unique 처리를 먼저 구현하세요.",
-  "sources": [
-    {
-      "title": "Cursor vs Claude vs ChatGPT Codex on Max Plans",
-      "source": "Reddit r/AI_Agents",
-      "url": "https://www.reddit.com/r/AI_Agents/comments/1tpu7uk/cursor_vs_claude_vs_chatgpt_codex_on_max_plans/"
-    },
-    {
-      "title": "Is Cursor currently the next best thing after Claude and Codex?",
-      "source": "Reddit r/cursor",
-      "url": "https://www.reddit.com/r/cursor/comments/1toxlhy/is_cursor_currently_the_next_best_thing_after/"
-    },
-    {
-      "title": "2026.5.12 update disables Codex plugin / drops runtime migration",
-      "source": "GitHub openclaw/openclaw Issue #82368",
-      "url": "https://github.com/openclaw/openclaw/issues/82368"
-    },
-    {
-      "title": "codex-agent-plugin",
-      "source": "GitHub mustafaakben/codex-agent-plugin",
-      "url": "https://github.com/mustafaakben/codex-agent-plugin"
-    },
-    {
-      "title": "ai-cli-mcp",
-      "source": "GitHub mkXultra/ai-cli-mcp",
-      "url": "https://github.com/mkXultra/claude-code-mcp/"
-    }
-  ],
-  "published_at": "2026-05-29T09:05:38+09:00",
-  "inserted_at": null,
-  "error": null
+  "status" : "P",
+  "title" : "오늘의 Codex/Cursor/Claude + Harness 소식",
+  "slug" : "ai-news-2026-05-29",
+  "category" : "AI News",
+  "tags" : [ "Codex", "Cursor", "Claude", "Harness" ],
+  "summary" : "오늘은 Cursor/Claude/Codex의 팀 단위 역할 분리 논의와 함께, Codex 플러그인 등록 문제 및 Claude Code에서 Codex CLI로 위임하는 하네스형 도구가 주요 신호로 확인됐습니다.",
+  "content_markdown" : "오늘의 Codex/Cursor/Claude + Harness 소식\n\n1. Max 플랜 기준 Cursor vs Claude Code vs ChatGPT Codex 비교 질문\n- 출처: Reddit r/AI_Agents\n- 링크: https://www.reddit.com/r/AI_Agents/comments/1tpu7uk/cursor_vs_claude_vs_chatgpt_codex_on_max_plans/\n- 핵심 요약: 스타트업 팀이 Cursor, Claude Code, Codex Max 플랜을 모두 쓸 수 있는 상황에서 실제 경험을 묻는 글입니다. 가격 제약이 줄어든 환경에서는 “어떤 도구가 싸냐”보다 어떤 작업을 어떤 도구에 맡길지가 핵심이 됩니다.\n- 왜 중요한지: 팀 단위에서는 개인 생산성보다 role routing, 리뷰 흐름, 변경 검증, 컨텍스트 공유 방식이 더 중요합니다.\n- 다음 행동: 팀/개인 워크플로를 나눠서 Codex=검증/비동기 작업, Claude Code=복잡한 구현, Cursor=IDE 편집으로 실험하세요.\n\n2. Cursor가 Claude/Codex 다음 선택지인지 묻는 논의\n- 출처: Reddit r/cursor\n- 링크: https://www.reddit.com/r/cursor/comments/1toxlhy/is_cursor_currently_the_next_best_thing_after/\n- 핵심 요약: Cursor를 Claude Code나 Codex 다음으로 볼 수 있는지 묻는 글입니다. 댓글 흐름은 Cursor 자체의 모델 성능보다 Composer, IDE 통합, 계획/감사 루프를 어떻게 쓰는지가 중요하다는 쪽입니다.\n- 왜 중요한지: Cursor의 강점은 단일 모델이 아니라 작업 표면입니다. Codex/Claude와 비교할 때 IDE 안 반복 속도를 따로 평가해야 합니다.\n- 다음 행동: 같은 PHP 수정 작업을 Cursor Composer와 Codex 비동기 작업으로 각각 처리해 최종 diff와 수동 수정량을 비교하세요.\n\n3. OpenClaw Codex plugin regression: “agent harness codex is not registered”\n- 출처: GitHub openclaw/openclaw Issue #82368\n- 링크: https://github.com/openclaw/openclaw/issues/82368\n- 핵심 요약: OpenClaw 2026.5.12 업데이트 이후 Codex 플러그인/runtime migration이 빠져 Codex agent harness가 등록되지 않는 문제가 보고됐습니다.\n- 왜 중요한지: Codex용 하네스/플러그인은 아직 버전 결합이 강합니다. 설치 가능 여부보다 업데이트 후 유지되는지가 더 중요한 평가 기준입니다.\n- 다음 행동: 하네스 후보를 볼 때 release note, migration, plugin registration test를 먼저 확인하세요.\n\n4. codex-agent-plugin: Claude Code에서 Codex CLI로 위임하는 플러그인\n- 출처: GitHub mustafaakben/codex-agent-plugin\n- 링크: https://github.com/mustafaakben/codex-agent-plugin\n- 핵심 요약: Claude Code 플러그인 형태로 OpenAI Codex CLI에 delegation, review, research 작업을 넘기는 프로젝트입니다. MCP 검색 명령도 포함되어 있습니다.\n- 왜 중요한지: Codex를 단독 도구가 아니라 Claude Code의 보조 agent로 붙이는 패턴입니다. 사용자가 관심 둔 “harness/plugin” 흐름에 직접 가깝습니다.\n- 다음 행동: 실제 명령이 Codex CLI를 어떻게 호출하는지, 권한/작업 디렉터리/결과 회수 방식을 확인하세요.\n\n5. ai-cli-mcp: MCP 클라이언트에서 Claude/Codex/Gemini CLI agent 실행\n- 출처: GitHub mkXultra/ai-cli-mcp\n- 링크: https://github.com/mkXultra/claude-code-mcp/\n- 핵심 요약: MCP 서버를 통해 Claude Code, Codex, Gemini CLI agent를 백그라운드에서 실행하는 프로젝트입니다. IDE나 CLI가 MCP를 지원하면 여러 agent CLI를 공통 인터페이스로 호출하는 방향입니다.\n- 왜 중요한지: Cursor, Claude, Codex를 연결하는 실용적인 접점은 MCP가 될 가능성이 큽니다. 단, agent를 agent 안에서 실행하는 구조라 권한 경계와 로그 추적이 중요합니다.\n- 다음 행동: read-only 명령부터 테스트하고, 쓰기 작업은 별도 workspace와 승인 규칙을 둔 뒤 연결하세요.\n\n오늘의 추천 액션\n1. Codex 하네스 후보는 설치보다 “업데이트 후 등록/마이그레이션이 깨지지 않는가”를 먼저 보세요.\n2. Claude Code ↔ Codex 위임형 플러그인(codex-agent-plugin, ai-cli-mcp)을 별도 카테고리로 추적하세요.\n3. PHP 사이트 importer는 status=Y 보호와 slug unique 처리를 먼저 구현하세요.",
+  "sources" : [ {
+    "title" : "Cursor vs Claude vs ChatGPT Codex on Max Plans",
+    "source" : "Reddit r/AI_Agents",
+    "url" : "https://www.reddit.com/r/AI_Agents/comments/1tpu7uk/cursor_vs_claude_vs_chatgpt_codex_on_max_plans/"
+  }, {
+    "title" : "Is Cursor currently the next best thing after Claude and Codex?",
+    "source" : "Reddit r/cursor",
+    "url" : "https://www.reddit.com/r/cursor/comments/1toxlhy/is_cursor_currently_the_next_best_thing_after/"
+  }, {
+    "title" : "2026.5.12 update disables Codex plugin / drops runtime migration",
+    "source" : "GitHub openclaw/openclaw Issue #82368",
+    "url" : "https://github.com/openclaw/openclaw/issues/82368"
+  }, {
+    "title" : "codex-agent-plugin",
+    "source" : "GitHub mustafaakben/codex-agent-plugin",
+    "url" : "https://github.com/mustafaakben/codex-agent-plugin"
+  }, {
+    "title" : "ai-cli-mcp",
+    "source" : "GitHub mkXultra/ai-cli-mcp",
+    "url" : "https://github.com/mkXultra/claude-code-mcp/"
+  } ],
+  "published_at" : "2026-05-29T09:05:38+09:00",
+  "inserted_at" : "2026-06-03 09:21:28",
+  "error" : null,
+  "news_seq" : 8
 }

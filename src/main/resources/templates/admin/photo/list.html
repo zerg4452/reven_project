@@ -1,13 +1,20 @@
-<!doctype html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('포토게시판 관리')}"></head>
-<body>
 <!-- screen: 포토게시판 관리 / purpose: 사진 게시판을 검색 없이 목록으로 관리하는 화면 / created: 2026-05-27 -->
-<header th:replace="~{fragments/layout :: gnb('board')}"></header>
-<div class="admin-shell">
-    <aside th:replace="~{fragments/layout :: lnb('board')}"></aside>
-    <main class="admin-content">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin}">
+<head>
+    <title layout:fragment="title">포토게시판 관리</title>
+</head>
+<body>
+<th:block layout:fragment="content">
+
+
+        <!-- 브레드크럼 시작 -->
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '게시판', '포토게시판 관리')}"></div>
+        <!-- 브레드크럼 끝 -->
+
+        <!-- 알림 시작 -->
         <div class="alert" th:if="${error}" th:text="${error}">오류가 발생했습니다.</div>
         <th:block th:if="${photoSavedMessage != null}">
             <script th:inline="javascript">
@@ -16,12 +23,27 @@
                 });
             </script>
         </th:block>
-        <section class="page-head"><h1>포토게시판 관리</h1><p>이미지와 동영상 첨부를 관리합니다.</p></section>
+        <!-- 알림 끝 -->
+
+        <!-- 페이지 헤더 시작 -->
+        <section class="page-head">
+            <h1>포토게시판 관리</h1>
+            <p>이미지와 동영상 첨부를 관리합니다.</p>
+        </section>
+        <!-- 페이지 헤더 끝 -->
+
+        <!-- 목록 상단 버튼 시작 -->
         <div class="list-action-bar">
-            <a class="btn btn-register" th:href="@{/admin/board/photo/write.do}">포토 등록</a>
+            <a class="btn btn-register" th:href="@{/admin/board/photo/write.do}">등록</a>
         </div>
+        <!-- 목록 상단 버튼 끝 -->
+
+        <!-- 리스트 시작 -->
         <section class="content-panel no-pad">
-            <div class="panel-head"><h2>포토게시판 목록</h2><span th:text="|${totalCount ?: 0}개|">0개</span></div>
+            <div class="panel-head">
+                <h2>포토게시판 목록</h2>
+                <span th:text="|${totalCount ?: 0}개|">0개</span>
+            </div>
             <div class="table-scroll">
                 <table>
                     <thead>
@@ -37,20 +59,26 @@
                     <tbody>
                     <tr th:each="photo, stat : ${photoList}">
                         <td th:text="${stat.count}">1</td>
-                        <td><a th:href="@{/admin/board/photo/detail.do(photoSeq=${photo.photoSeq})}" th:text="${photo.title}">제목</a></td>
+                        <td>
+                            <a th:href="@{/admin/board/photo/detail.do(photoSeq=${photo.photoSeq})}" th:text="${photo.title}">제목</a>
+                        </td>
                         <td th:text="${photo.fileCount}">0</td>
-                        <td><span class="badge badge-info" th:text="${photo.publishText()}">게시</span></td>
+                        <td>
+                            <span class="badge badge-info" th:text="${photo.publishText()}">게시</span>
+                        </td>
                         <td th:text="${photo.registeredDate}">2026-05-27</td>
                         <td th:text="${photo.updatedDate}">2026-05-27</td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(photoList)}"><td colspan="6" class="empty">현재 등록된 내용이 없습니다.</td></tr>
+                    <tr th:if="${#lists.isEmpty(photoList)}">
+                        <td colspan="6" class="empty">현재 등록된 내용이 없습니다.</td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
         </section>
-    </main>
-</div>
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+        <!-- 리스트 끝 -->
+
+
+</th:block>
 </body>
 </html>

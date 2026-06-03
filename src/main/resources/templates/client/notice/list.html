@@ -5,17 +5,29 @@
 <body>
 <header th:replace="~{fragments/layout :: publicGnb('board')}"></header>
 <main class="public-content">
-    <section class="page-head"><h1>공지사항</h1><p>게시된 공지사항을 확인합니다.</p></section>
 
+    <!-- 페이지 헤더 시작 -->
+    <section class="page-head">
+        <h1>공지사항</h1>
+        <p>게시된 공지사항을 확인합니다.</p>
+    </section>
+    <!-- 페이지 헤더 끝 -->
+
+    <!-- 검색 시작 -->
     <form class="search-panel public-notice-search" method="get" th:action="@{/board/notice/list.do}">
         <label class="search-label" for="keyword">제목·내용</label>
         <input class="form-control" id="keyword" name="keyword" th:value="${page?.search()?.keyword()}" placeholder="제목 또는 내용 검색">
         <button class="btn btn-register btn-sm" type="submit">검색</button>
         <a class="btn btn-neutral btn-sm" th:href="@{/board/notice/list.do}">초기화</a>
     </form>
+    <!-- 검색 끝 -->
 
+    <!-- 리스트 시작 -->
     <section class="content-panel no-pad">
-        <div class="panel-head"><h2>공지 목록</h2><span th:text="|${page?.totalCount() ?: 0}개|">0개</span></div>
+        <div class="panel-head">
+            <h2>공지 목록</h2>
+            <span th:text="|${page?.totalCount() ?: 0}개|">0개</span>
+        </div>
         <div class="table-scroll">
             <table class="notice-list-table">
                 <thead>
@@ -46,7 +58,9 @@
             </table>
         </div>
     </section>
+    <!-- 리스트 끝 -->
 
+    <!-- 페이지네이션 시작 -->
     <nav class="detail-action-bar" th:if="${page != null and page.totalPages() > 1}" aria-label="공지사항 페이지">
         <a class="btn btn-neutral btn-sm"
            th:if="${page.hasPrevious()}"
@@ -56,6 +70,8 @@
            th:if="${page.hasNext()}"
            th:href="@{/board/notice/list.do(keyword=${page.search().keyword()},page=${page.nextPage()})}">다음</a>
     </nav>
+    <!-- 페이지네이션 끝 -->
+
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>

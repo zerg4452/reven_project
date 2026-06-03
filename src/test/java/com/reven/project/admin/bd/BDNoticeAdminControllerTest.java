@@ -1,6 +1,7 @@
 package com.reven.project.admin.bd;
 
 import com.reven.project.service.bd.BDNoticeService;
+import com.reven.project.service.bd.support.BDFileStorageConstants;
 import com.reven.project.service.bd.dto.BDNoticeAdminSearchRequestDto;
 import com.reven.project.service.bd.dto.BDNoticeDetailResponseDto;
 import com.reven.project.service.bd.dto.BDNoticeListItemResponseDto;
@@ -52,7 +53,7 @@ class BDNoticeAdminControllerTest {
         BDNoticeService service = mock(BDNoticeService.class);
         when(service.findNotice(1L)).thenReturn(noticeDetail(1L, "수정 공지"));
         when(service.findNoticeThumbnail(1L)).thenReturn(null);
-        when(service.findNoticeFiles(1L, "ATTACH")).thenReturn(List.of());
+        when(service.findNoticeFiles(1L, BDFileStorageConstants.FILE_TYPE_ATTACH)).thenReturn(List.of());
         when(service.saveNotice(any(), any(), any(), any())).thenReturn(1L);
 
         MockMvc mvc = MockMvcBuilders.standaloneSetup(new BDNoticeAdminController(service)).build();

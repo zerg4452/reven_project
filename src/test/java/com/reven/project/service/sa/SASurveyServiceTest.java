@@ -10,7 +10,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -105,6 +109,43 @@ class SASurveyServiceTest {
     }
 
     @Test
+    void saveSurveyPersistsFieldOrderFromRequestListOrder() {
+        SASurveyMapper mapper = mock(SASurveyMapper.class);
+        SASurveyDto.SurveyDetail persisted = survey(1L, "survey-uid");
+        when(mapper.selectSurvey("survey-uid")).thenReturn(null, persisted);
+        when(mapper.selectSurveyFields(1L)).thenReturn(List.of());
+        when(mapper.selectSurveyOptions(1L)).thenReturn(List.of());
+        doAnswer(invocation -> {
+            SASurveyDto.SurveyDetail survey = invocation.getArgument(0);
+            survey.surveySeq = 1L;
+            return null;
+        }).when(mapper).insertSurvey(any());
+
+        SASurveyService service = new SASurveyService(mapper);
+        SASurveyDto.SurveySaveRequest request = new SASurveyDto.SurveySaveRequest();
+        request.surveyUid = "survey-uid";
+        request.title = "순서 테스트";
+        request.useYn = "Y";
+        request.fields = List.of(
+                fieldRequest("세 번째", "objective", "select", "A"),
+                fieldRequest("첫 번째", "subjective", "text", null),
+                fieldRequest("두 번째", "objective", "radio", "B\nC")
+        );
+
+        service.saveSurvey(null, request);
+
+        ArgumentCaptor<SASurveyDto.SurveyField> captor = ArgumentCaptor.forClass(SASurveyDto.SurveyField.class);
+        verify(mapper, times(3)).insertSurveyField(captor.capture());
+        assertThat(captor.getAllValues())
+                .extracting(field -> field.label, field -> field.sortOrd)
+                .containsExactly(
+                        tuple("세 번째", 1),
+                        tuple("첫 번째", 2),
+                        tuple("두 번째", 3)
+                );
+    }
+
+    @Test
     void surveyFieldRenderTypeFallsBackBySurveyType() {
         SASurveyDto.SurveyField objectiveField = field(30L, 1L, "objective", "textarea");
         SASurveyDto.SurveyField subjectiveField = field(31L, 1L, "subjective", "radio");
@@ -123,6 +164,22 @@ class SASurveyServiceTest {
         survey.regDate = LocalDate.of(2026, 6, 1);
         survey.modDate = LocalDate.of(2026, 6, 1);
         return survey;
+    }
+
+    private SASurveyDto.SurveyFieldSaveRequest fieldRequest(
+            String label,
+            String surveyType,
+            String fieldType,
+            String optionsText
+    ) {
+        SASurveyDto.SurveyFieldSaveRequest field = new SASurveyDto.SurveyFieldSaveRequest();
+        field.label = label;
+        field.surveyType = surveyType;
+        field.fieldType = fieldType;
+        if (optionsText != null) {
+            field.optionsText = optionsText;
+        }
+        return field;
     }
 
     private SASurveyDto.SurveyField field(Long fieldSeq, Long surveySeq, String surveyType, String fieldType) {

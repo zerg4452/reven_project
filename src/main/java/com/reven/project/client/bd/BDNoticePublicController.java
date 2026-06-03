@@ -2,6 +2,7 @@
 package com.reven.project.client.bd;
 
 import com.reven.project.service.bd.BDNoticeService;
+import com.reven.project.service.bd.support.BDFileStorageConstants;
 import com.reven.project.service.bd.dto.BDNoticeDetailResponseDto;
 import com.reven.project.service.bd.dto.BDNoticeFileResponseDto;
 import com.reven.project.service.bd.dto.BDNoticePublicSearchRequestDto;
@@ -69,8 +70,8 @@ public class BDNoticePublicController {
                 () -> noticeService.increaseViewCount(noticeSeq));
 
         model.addAttribute("notice", notice);
-        model.addAttribute("thumbnail", firstOrNull(noticeService.findPublicNoticeFilesForDetail(noticeSeq, "THUMB")));
-        model.addAttribute("attachments", noticeService.findPublicNoticeFilesForDetail(noticeSeq, "ATTACH"));
+        model.addAttribute("thumbnail", firstOrNull(noticeService.findPublicNoticeFilesForDetail(noticeSeq, BDFileStorageConstants.FILE_TYPE_THUMB)));
+        model.addAttribute("attachments", noticeService.findPublicNoticeFilesForDetail(noticeSeq, BDFileStorageConstants.FILE_TYPE_ATTACH));
         return "client/notice/detail";
     }
 

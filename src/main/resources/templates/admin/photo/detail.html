@@ -1,28 +1,49 @@
-<!doctype html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head(${photo?.title} ?: '포토게시판 상세')}"></head>
-<body>
 <!-- screen: 포토게시판 상세 / purpose: 사진 게시글과 첨부 파일을 읽기 전용으로 확인하는 화면 / created: 2026-05-27 -->
-<header th:replace="~{fragments/layout :: gnb('board')}"></header>
-<div class="admin-shell">
-    <aside th:replace="~{fragments/layout :: lnb('board')}"></aside>
-    <main class="admin-content">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin}">
+<head>
+    <title layout:fragment="title" th:text="${photo?.title} ?: '포토게시판 상세'">포토게시판 상세</title>
+</head>
+<body>
+<th:block layout:fragment="content">
+
+
+        <!-- 브레드크럼 시작 -->
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '게시판', '포토게시판 상세')}"></div>
+        <!-- 브레드크럼 끝 -->
+
+        <!-- 페이지 헤더 시작 -->
         <section class="page-head">
             <h1 th:text="${photo?.title} ?: '포토게시판 상세'">포토게시판 상세</h1>
             <p th:text="${photo?.registeredAt != null ? #temporals.format(photo.registeredAt, 'yyyy-MM-dd') : '2026-05-27'}">2026-05-27</p>
         </section>
+        <!-- 페이지 헤더 끝 -->
+
+        <!-- 상세 정보 시작 -->
         <section class="content-panel">
             <dl class="detail-list">
-                <dt>제목</dt><dd th:text="${photo?.title}">제목</dd>
-                <dt>게시여부</dt><dd th:text="${photo?.publishText()}">게시</dd>
-                <dt>첨부수</dt><dd th:text="${#lists.size(photoFiles)}">0</dd>
-                <dt>등록일</dt><dd th:text="${photo?.registeredAt != null ? #temporals.format(photo.registeredAt, 'yyyy-MM-dd') : '2026-05-27'}">2026-05-27</dd>
-                <dt>수정일</dt><dd th:text="${photo?.modifiedAt != null ? #temporals.format(photo.modifiedAt, 'yyyy-MM-dd') : '2026-05-27'}">2026-05-27</dd>
+                <dt>제목</dt>
+                <dd th:text="${photo?.title}">제목</dd>
+                <dt>게시여부</dt>
+                <dd th:text="${photo?.publishText()}">게시</dd>
+                <dt>첨부수</dt>
+                <dd th:text="${#lists.size(photoFiles)}">0</dd>
+                <dt>등록일</dt>
+                <dd th:text="${photo?.registeredAt != null ? #temporals.format(photo.registeredAt, 'yyyy-MM-dd') : '2026-05-27'}">2026-05-27</dd>
+                <dt>수정일</dt>
+                <dd th:text="${photo?.modifiedAt != null ? #temporals.format(photo.modifiedAt, 'yyyy-MM-dd') : '2026-05-27'}">2026-05-27</dd>
             </dl>
         </section>
+        <!-- 상세 정보 끝 -->
+
+        <!-- 첨부 파일 시작 -->
         <section class="content-panel photo-attachment-panel photo-detail-attachments">
-            <div class="panel-head"><h2>첨부 파일</h2><span th:text="|${#lists.size(photoFiles)}개|">0개</span></div>
+            <div class="panel-head">
+                <h2>첨부 파일</h2>
+                <span th:text="|${#lists.size(photoFiles)}개|">0개</span>
+            </div>
             <div class="photo-file-scroll">
                 <div class="photo-file-grid">
                     <article class="photo-file-card photo-readonly-card" th:each="file : ${photoFiles}">
@@ -53,6 +74,9 @@
             </div>
             <p class="empty" th:if="${#lists.isEmpty(photoFiles)}">등록된 첨부 파일이 없습니다.</p>
         </section>
+        <!-- 첨부 파일 끝 -->
+
+        <!-- 하단 버튼 시작 -->
         <div class="detail-action-bar">
             <a class="btn btn-neutral" th:href="@{/admin/board/photo/list.do}">목록</a>
             <div>
@@ -63,8 +87,11 @@
                 <a class="btn btn-edit" th:href="@{/admin/board/photo/write.do(photoSeq=${photo?.photoSeq})}">수정</a>
             </div>
         </div>
-    </main>
-</div>
+        <!-- 하단 버튼 끝 -->
+
+
+</th:block>
+<th:block layout:fragment="pageExtras">
 <div class="photo-modal" data-photo-modal aria-hidden="true">
     <div class="photo-modal-backdrop" data-photo-modal-close></div>
     <div class="photo-modal-dialog" role="dialog" aria-modal="true" aria-label="이미지 확대 보기">
@@ -72,7 +99,6 @@
         <img class="photo-modal-image" data-photo-modal-image alt="">
     </div>
 </div>
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</th:block>
 </body>
 </html>

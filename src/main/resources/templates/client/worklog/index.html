@@ -6,15 +6,22 @@
 <header th:replace="~{fragments/layout :: publicGnb('worklog')}"></header>
 <main class="public-content worklog-content">
 
+    <!-- 페이지 헤더 시작 -->
     <section class="page-head worklog-page-head">
         <h1>개발 일지</h1>
         <p>이 사이트가 만들어진 기록입니다.</p>
     </section>
+    <!-- 페이지 헤더 끝 -->
 
+    <!-- 일러스트 시작 -->
     <div class="worklog-illustration" aria-hidden="true"></div>
+    <!-- 일러스트 끝 -->
 
+    <!-- 빈 상태 시작 -->
     <div th:if="${months.isEmpty()}" class="worklog-empty">기록이 없습니다.</div>
+    <!-- 빈 상태 끝 -->
 
+    <!-- 타임라인 시작 -->
     <div class="worklog-timeline" th:unless="${months.isEmpty()}">
         <div class="worklog-month-block" th:each="month : ${months}">
             <div class="worklog-month-label">
@@ -35,6 +42,7 @@
             </div>
         </div>
     </div>
+    <!-- 타임라인 끝 -->
 
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>

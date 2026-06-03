@@ -195,7 +195,6 @@ public final class SASurveyDto {
         public String requiredYn = "N";
         public String optionsText;
         public int sortOrd;
-        @Valid
         public List<SurveyOptionSaveRequest> options = new ArrayList<>();
 
         public void setType(String type) {
@@ -206,10 +205,25 @@ public final class SASurveyDto {
             this.requiredYn = required;
         }
 
-        /** 줄바꿈 textarea 입력을 선택형 보기 DTO 목록으로 변환한다. */
+        /** form에 입력된 보기 목록에서 빈 값을 제외한 선택형 보기 DTO 목록을 만든다. */
         public List<SurveyOptionSaveRequest> normalizedOptions() {
             if (options != null && !options.isEmpty()) {
-                return options;
+                return options.stream()
+                        .map(option -> {
+                            SurveyOptionSaveRequest normalized = new SurveyOptionSaveRequest();
+                            normalized.optionSeq = option.optionSeq;
+                            normalized.optionLabel = option.optionLabel == null ? "" : option.optionLabel.trim();
+                            normalized.optionValue = option.optionValue;
+                            normalized.sortOrd = option.sortOrd;
+                            return normalized;
+                        })
+                        .filter(option -> !option.optionLabel.isBlank())
+                        .peek(option -> {
+                            if (option.optionValue == null || option.optionValue.isBlank()) {
+                                option.optionValue = option.optionLabel;
+                            }
+                        })
+                        .toList();
             }
             if (optionsText == null || optionsText.isBlank()) {
                 return List.of();
@@ -232,7 +246,6 @@ public final class SASurveyDto {
     /** 설문 등록/수정 form의 보기 요청 DTO다. */
     public static class SurveyOptionSaveRequest {
         public Long optionSeq;
-        @NotBlank
         public String optionLabel;
         public String optionValue;
         public int sortOrd;

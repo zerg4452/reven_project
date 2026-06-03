@@ -1,44 +1,34 @@
 {
-  "status": "N",
-  "title": "오늘의 Codex/Cursor/Claude + Harness 소식",
-  "slug": "ai-news-2026-05-28",
-  "category": "AI News",
-  "tags": [
-    "Codex",
-    "Cursor",
-    "Claude",
-    "Harness"
-  ],
-  "summary": "오늘은 Cursor/Claude/Codex의 역할 분리 논의가 계속 확인됐고, Codex와 Claude 양쪽에서 쓸 수 있는 subagent·harness 구성 후보가 실험 대상으로 남았습니다.",
-  "content_markdown": "오늘의 Codex/Cursor/Claude + Harness 소식\n\n1. Claude Code 또는 Cursor $20 플랜 선택 논의\n- 출처: Reddit r/cursor\n- 링크: https://www.reddit.com/r/cursor/comments/1tj41ph/claude_code_or_cursor_20_plan/\n- 핵심 요약: 제한된 예산에서 Claude Code와 Cursor 중 무엇을 먼저 쓸지 묻는 토론입니다. 반복 신호는 Cursor는 IDE 안에서 빠른 수정과 탐색에 강하고, Claude Code는 여러 파일을 오가는 긴 작업과 repo-context 추론에서 강하다는 쪽입니다.\n- 왜 중요한지: 실제 구매/운영 판단은 모델 성능 하나가 아니라 작업 단위, IDE 통합, 사용량 제한, 실패 복구 비용으로 갈립니다.\n- 다음 행동: 본인 PHP 프로젝트에서 같은 이슈 하나를 Cursor와 Claude Code에 각각 맡기고 수정 횟수, 실행 시간, 최종 diff 품질을 비교하세요.\n\n2. Cursor v Claude v Codex 실사용 비교\n- 출처: Reddit r/OnlyAICoding\n- 링크: https://www.reddit.com/r/OnlyAICoding/comments/1tjpmrp/cursor_v_claude_v_codex/\n- 핵심 요약: Cursor, Claude, Codex를 함께 써본 사용자가 각 도구의 강점과 불편함을 비교하는 글입니다. Codex/OpenAI 계열은 속도와 생태계 접근성, Claude는 복잡한 변경의 안정성, Cursor는 IDE 통합 경험이 주로 언급됩니다.\n- 왜 중요한지: 자동화 수집에서 봐야 할 포인트가 “누가 이겼나”가 아니라 “어떤 작업에서 실패가 적었나”로 명확해집니다.\n- 다음 행동: 다음부터 비교 글은 기능 나열보다 실패 사례와 복구 패턴을 우선 채집하세요.\n\n3. wshobson/agents: Codex와 Claude Code 양쪽에서 쓰는 subagent 컬렉션\n- 출처: GitHub wshobson/agents\n- 링크: https://github.com/wshobson/agents\n- 핵심 요약: 75개 이상의 전문 subagent를 제공하며 Claude Code와 Codex CLI 모두에서 쓰는 구성을 설명합니다. 각 agent가 독립 context window를 가진다는 점을 강조합니다.\n- 왜 중요한지: Codex용 “harness plugin”을 직접 만들 때 agent 정의, 역할 분리, marketplace 배포 구조를 참고하기 좋습니다.\n- 다음 행동: 설치 전 agents 정의 파일 형식과 Codex 쪽 로딩 방식을 확인하고, 필요한 agent만 부분 적용하는 방식을 검토하세요.\n\n4. Awesome Harness Engineering: agent harness 설계 참고 인덱스\n- 출처: GitHub ai-boost/awesome-harness-engineering\n- 링크: https://github.com/ai-boost/awesome-harness-engineering\n- 핵심 요약: LLM agent harness engineering 관련 리소스를 모으는 큐레이션 저장소입니다. Codex 전용은 아니지만 agent 실행, 평가, 오케스트레이션, 툴 연결을 설계할 때 참고할 수 있습니다.\n- 왜 중요한지: Codex 플러그인을 만들더라도 결국 필요한 것은 prompt보다 실행 루프, state, tool 권한, 평가 구조입니다.\n- 다음 행동: 개인 하네스 설계 기준을 “실행 격리, 로그, 재시도, 평가, 권한” 다섯 축으로 정리하세요.\n\n5. Harness CI/CD skills: Codex용 MCP/AGENTS.md 예시\n- 출처: GitHub harness/harness-skills\n- 링크: https://github.com/harness/harness-skills\n- 핵심 요약: Harness CI/CD를 Claude Code, Cursor, GitHub Copilot, OpenAI Codex에서 쓰도록 구성한 skills 저장소입니다. Codex 쪽은 AGENTS.md와 MCP 설정 흐름을 안내합니다.\n- 왜 중요한지: 여기서 harness는 agent harness가 아니라 Harness 제품명이지만, Codex용 skill/MCP 패키징 사례로는 실용적입니다.\n- 다음 행동: PHP 사이트 배포/CI 자동화까지 연결할 계획이면 Codex MCP 설정 예시로 따로 보관하세요.\n\n오늘의 추천 액션\n1. Codex 플러그인 후보는 wshobson/agents처럼 부분 적용 가능한 구조를 우선 보세요.\n2. Reddit 비교 글은 “도구 순위”가 아니라 “작업별 실패/복구 패턴”만 추출하세요.\n3. PHP 사이트 importer에는 slug unique 처리와 status=Y 덮어쓰기 방지를 먼저 구현하세요.",
-  "sources": [
-    {
-      "title": "Claude Code or Cursor $20 plan",
-      "source": "Reddit r/cursor",
-      "url": "https://www.reddit.com/r/cursor/comments/1tj41ph/claude_code_or_cursor_20_plan/"
-    },
-    {
-      "title": "cursor v claude v codex",
-      "source": "Reddit r/OnlyAICoding",
-      "url": "https://www.reddit.com/r/OnlyAICoding/comments/1tjpmrp/cursor_v_claude_v_codex/"
-    },
-    {
-      "title": "agents",
-      "source": "GitHub wshobson/agents",
-      "url": "https://github.com/wshobson/agents"
-    },
-    {
-      "title": "awesome-harness-engineering",
-      "source": "GitHub ai-boost/awesome-harness-engineering",
-      "url": "https://github.com/ai-boost/awesome-harness-engineering"
-    },
-    {
-      "title": "harness-skills",
-      "source": "GitHub harness/harness-skills",
-      "url": "https://github.com/harness/harness-skills"
-    }
-  ],
-  "published_at": "2026-05-28T09:06:11+09:00",
-  "inserted_at": null,
-  "error": null
+  "status" : "P",
+  "title" : "오늘의 Codex/Cursor/Claude + Harness 소식",
+  "slug" : "ai-news-2026-05-28",
+  "category" : "AI News",
+  "tags" : [ "Codex", "Cursor", "Claude", "Harness" ],
+  "summary" : "오늘은 Cursor/Claude/Codex의 역할 분리 논의가 계속 확인됐고, Codex와 Claude 양쪽에서 쓸 수 있는 subagent·harness 구성 후보가 실험 대상으로 남았습니다.",
+  "content_markdown" : "오늘의 Codex/Cursor/Claude + Harness 소식\n\n1. Claude Code 또는 Cursor $20 플랜 선택 논의\n- 출처: Reddit r/cursor\n- 링크: https://www.reddit.com/r/cursor/comments/1tj41ph/claude_code_or_cursor_20_plan/\n- 핵심 요약: 제한된 예산에서 Claude Code와 Cursor 중 무엇을 먼저 쓸지 묻는 토론입니다. 반복 신호는 Cursor는 IDE 안에서 빠른 수정과 탐색에 강하고, Claude Code는 여러 파일을 오가는 긴 작업과 repo-context 추론에서 강하다는 쪽입니다.\n- 왜 중요한지: 실제 구매/운영 판단은 모델 성능 하나가 아니라 작업 단위, IDE 통합, 사용량 제한, 실패 복구 비용으로 갈립니다.\n- 다음 행동: 본인 PHP 프로젝트에서 같은 이슈 하나를 Cursor와 Claude Code에 각각 맡기고 수정 횟수, 실행 시간, 최종 diff 품질을 비교하세요.\n\n2. Cursor v Claude v Codex 실사용 비교\n- 출처: Reddit r/OnlyAICoding\n- 링크: https://www.reddit.com/r/OnlyAICoding/comments/1tjpmrp/cursor_v_claude_v_codex/\n- 핵심 요약: Cursor, Claude, Codex를 함께 써본 사용자가 각 도구의 강점과 불편함을 비교하는 글입니다. Codex/OpenAI 계열은 속도와 생태계 접근성, Claude는 복잡한 변경의 안정성, Cursor는 IDE 통합 경험이 주로 언급됩니다.\n- 왜 중요한지: 자동화 수집에서 봐야 할 포인트가 “누가 이겼나”가 아니라 “어떤 작업에서 실패가 적었나”로 명확해집니다.\n- 다음 행동: 다음부터 비교 글은 기능 나열보다 실패 사례와 복구 패턴을 우선 채집하세요.\n\n3. wshobson/agents: Codex와 Claude Code 양쪽에서 쓰는 subagent 컬렉션\n- 출처: GitHub wshobson/agents\n- 링크: https://github.com/wshobson/agents\n- 핵심 요약: 75개 이상의 전문 subagent를 제공하며 Claude Code와 Codex CLI 모두에서 쓰는 구성을 설명합니다. 각 agent가 독립 context window를 가진다는 점을 강조합니다.\n- 왜 중요한지: Codex용 “harness plugin”을 직접 만들 때 agent 정의, 역할 분리, marketplace 배포 구조를 참고하기 좋습니다.\n- 다음 행동: 설치 전 agents 정의 파일 형식과 Codex 쪽 로딩 방식을 확인하고, 필요한 agent만 부분 적용하는 방식을 검토하세요.\n\n4. Awesome Harness Engineering: agent harness 설계 참고 인덱스\n- 출처: GitHub ai-boost/awesome-harness-engineering\n- 링크: https://github.com/ai-boost/awesome-harness-engineering\n- 핵심 요약: LLM agent harness engineering 관련 리소스를 모으는 큐레이션 저장소입니다. Codex 전용은 아니지만 agent 실행, 평가, 오케스트레이션, 툴 연결을 설계할 때 참고할 수 있습니다.\n- 왜 중요한지: Codex 플러그인을 만들더라도 결국 필요한 것은 prompt보다 실행 루프, state, tool 권한, 평가 구조입니다.\n- 다음 행동: 개인 하네스 설계 기준을 “실행 격리, 로그, 재시도, 평가, 권한” 다섯 축으로 정리하세요.\n\n5. Harness CI/CD skills: Codex용 MCP/AGENTS.md 예시\n- 출처: GitHub harness/harness-skills\n- 링크: https://github.com/harness/harness-skills\n- 핵심 요약: Harness CI/CD를 Claude Code, Cursor, GitHub Copilot, OpenAI Codex에서 쓰도록 구성한 skills 저장소입니다. Codex 쪽은 AGENTS.md와 MCP 설정 흐름을 안내합니다.\n- 왜 중요한지: 여기서 harness는 agent harness가 아니라 Harness 제품명이지만, Codex용 skill/MCP 패키징 사례로는 실용적입니다.\n- 다음 행동: PHP 사이트 배포/CI 자동화까지 연결할 계획이면 Codex MCP 설정 예시로 따로 보관하세요.\n\n오늘의 추천 액션\n1. Codex 플러그인 후보는 wshobson/agents처럼 부분 적용 가능한 구조를 우선 보세요.\n2. Reddit 비교 글은 “도구 순위”가 아니라 “작업별 실패/복구 패턴”만 추출하세요.\n3. PHP 사이트 importer에는 slug unique 처리와 status=Y 덮어쓰기 방지를 먼저 구현하세요.",
+  "sources" : [ {
+    "title" : "Claude Code or Cursor $20 plan",
+    "source" : "Reddit r/cursor",
+    "url" : "https://www.reddit.com/r/cursor/comments/1tj41ph/claude_code_or_cursor_20_plan/"
+  }, {
+    "title" : "cursor v claude v codex",
+    "source" : "Reddit r/OnlyAICoding",
+    "url" : "https://www.reddit.com/r/OnlyAICoding/comments/1tjpmrp/cursor_v_claude_v_codex/"
+  }, {
+    "title" : "agents",
+    "source" : "GitHub wshobson/agents",
+    "url" : "https://github.com/wshobson/agents"
+  }, {
+    "title" : "awesome-harness-engineering",
+    "source" : "GitHub ai-boost/awesome-harness-engineering",
+    "url" : "https://github.com/ai-boost/awesome-harness-engineering"
+  }, {
+    "title" : "harness-skills",
+    "source" : "GitHub harness/harness-skills",
+    "url" : "https://github.com/harness/harness-skills"
+  } ],
+  "published_at" : "2026-05-28T09:06:11+09:00",
+  "inserted_at" : "2026-06-03 09:21:28",
+  "error" : null,
+  "news_seq" : 7
 }

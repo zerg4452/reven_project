@@ -1,35 +1,61 @@
-<!doctype html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head(${news?.id} != null ? 'AI News 상세' : 'AI News 등록')}"></head>
-<body>
 <!-- screen: AI News 등록/수정 / purpose: AI News 원고와 게시 상태를 등록하거나 수정하는 화면 / created: 2026-05-23 -->
-<header th:replace="~{fragments/layout :: gnb('board')}"></header>
-<div class="admin-shell">
-    <aside th:replace="~{fragments/layout :: lnb('board')}"></aside>
-    <main class="admin-content">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin}">
+<head>
+    <title layout:fragment="title" th:text="${news?.id} != null ? 'AI News 상세' : 'AI News 등록'">AI News 등록</title>
+</head>
+<body>
+<th:block layout:fragment="content">
+
+
+        <!-- 브레드크럼 시작 -->
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '게시판', ${news?.id} != null ? 'AI News 상세' : 'AI News 등록')}"></div>
-        <section class="page-head"><h1 th:text="${news?.id} != null ? 'AI News 상세' : 'AI News 등록'">AI News 등록</h1><p>AI News 원고와 게시 상태를 편집합니다.</p></section>
+        <!-- 브레드크럼 끝 -->
+
+        <!-- 페이지 헤더 시작 -->
+        <section class="page-head">
+            <h1 th:text="${news?.id} != null ? 'AI News 상세' : 'AI News 등록'">AI News 등록</h1>
+            <p>AI News 원고와 게시 상태를 편집합니다.</p>
+        </section>
+        <!-- 페이지 헤더 끝 -->
+
+        <!-- 원고 폼 시작 -->
         <form class="form-stack" method="post" th:action="${news?.id} != null ? @{/admin/board/ai-news/update.do(newsSeq=${news.id})} : @{/admin/board/ai-news/insert.do}">
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <input type="hidden" name="newsSeq" th:value="${news?.id}">
             <section class="content-panel">
-                <label>제목 <span class="required">*</span><input class="form-control" name="title" th:value="${news?.title}" required></label>
-                <label>상태<select class="form-control" name="status"><option value="Y">게시</option><option value="N">대기</option></select></label>
-                <label>내용<textarea class="form-control" name="content" rows="12" th:text="${news?.content}"></textarea></label>
+                <label>제목 <span class="required">*</span>
+                    <input class="form-control" name="title" th:value="${news?.title}" required>
+                </label>
+                <label>상태
+                    <select class="form-control" name="status">
+                        <option value="P" th:selected="${(formStatus != null ? formStatus : news?.status) == null or (formStatus != null ? formStatus : news?.status) == 'P'}">처리중</option>
+                        <option value="Y" th:selected="${(formStatus != null ? formStatus : news?.status) == 'Y'}">완료</option>
+                        <option value="E" th:selected="${(formStatus != null ? formStatus : news?.status) == 'E'}">에러</option>
+                    </select>
+                </label>
+                <label>내용
+                    <textarea class="form-control" name="content" rows="12" th:text="${news?.content}"></textarea>
+                </label>
             </section>
+
+            <!-- 하단 버튼 시작 -->
             <div class="detail-action-bar">
                 <a class="btn btn-neutral" th:href="@{/admin/board/ai-news/list.do}">목록</a>
                 <div>
                     <button class="btn btn-delete" type="submit" th:if="${news?.id != null}"
                             th:formaction="@{/admin/board/ai-news/delete.do(newsSeq=${news.id})}"
                             onclick="return confirm('이 뉴스를 삭제하시겠습니까?');">삭제</button>
-                    <button class="btn btn-edit" type="submit" th:text="${news?.id} != null ? '수정' : '등록'">저장</button>
+                    <button class="btn btn-edit" type="submit" th:text="${news?.id != null ? '수정' : '등록'">저장</button>
                 </div>
             </div>
+            <!-- 하단 버튼 끝 -->
         </form>
-    </main>
-</div>
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+        <!-- 원고 폼 끝 -->
+
+
+</th:block>
 </body>
 </html>

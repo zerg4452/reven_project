@@ -5,6 +5,8 @@
 <body>
 <header th:replace="~{fragments/layout :: publicGnb('board')}"></header>
 <main class="public-content">
+
+    <!-- 페이지 헤더 시작 -->
     <section class="page-head">
         <h1 th:text="${photo?.title()} ?: '포토 게시판 상세'">포토 게시판 상세</h1>
         <p>
@@ -12,9 +14,14 @@
             <span th:text="|· 조회수 ${photo?.viewCnt() ?: 0}|">· 조회수 0</span>
         </p>
     </section>
+    <!-- 페이지 헤더 끝 -->
 
+    <!-- 첨부 파일 시작 -->
     <section class="content-panel photo-attachment-panel photo-detail-attachments">
-        <div class="panel-head"><h2>첨부 파일</h2><span th:text="|${#lists.size(photoFiles)}개|">0개</span></div>
+        <div class="panel-head">
+            <h2>첨부 파일</h2>
+            <span th:text="|${#lists.size(photoFiles)}개|">0개</span>
+        </div>
         <div class="photo-file-scroll" th:if="${!#lists.isEmpty(photoFiles)}">
             <div class="public-photo-file-grid">
                 <button th:each="file : ${photoFiles}"
@@ -40,8 +47,14 @@
         </div>
         <p class="empty" th:if="${#lists.isEmpty(photoFiles)}">등록된 첨부 파일이 없습니다.</p>
     </section>
+    <!-- 첨부 파일 끝 -->
 
-    <div class="detail-action-bar"><a class="btn btn-neutral" th:href="@{/board/photo/list.do}">목록</a></div>
+    <!-- 하단 버튼 시작 -->
+    <div class="detail-action-bar">
+        <a class="btn btn-neutral" th:href="@{/board/photo/list.do}">목록</a>
+    </div>
+    <!-- 하단 버튼 끝 -->
+
 </main>
 <div class="public-photo-modal" data-public-photo-modal aria-hidden="true">
     <div class="public-photo-modal-backdrop" data-public-photo-modal-close></div>

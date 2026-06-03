@@ -1,16 +1,32 @@
-<!doctype html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('관리자 관리')}"></head>
-<body>
 <!-- screen: 관리자 관리 / purpose: 관리자 계정 목록을 관리하는 화면 / created: 2026-05-23 -->
-<header th:replace="~{fragments/layout :: gnb('management')}"></header>
-<div class="admin-shell">
-    <aside th:replace="~{fragments/layout :: lnb('management')}"></aside>
-    <main class="admin-content">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin}">
+<head>
+    <title layout:fragment="title">관리자 관리</title>
+</head>
+<body>
+<th:block layout:fragment="content">
+
+
+        <!-- 브레드크럼 시작 -->
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '관리자 관리', '관리자 목록')}"></div>
-        <section class="page-head"><h1>관리자 관리</h1><p>관리자 계정과 사용 상태를 확인합니다.</p></section>
+        <!-- 브레드크럼 끝 -->
+
+        <!-- 페이지 헤더 시작 -->
+        <section class="page-head">
+            <h1>관리자 관리</h1>
+            <p>관리자 계정과 사용 상태를 확인합니다.</p>
+        </section>
+        <!-- 페이지 헤더 끝 -->
+
+        <!-- 알림 시작 -->
         <div class="alert" th:if="${error}" th:text="${error}">오류가 발생했습니다.</div>
         <div class="alert alert-success" th:if="${message}" th:text="${message}">처리가 완료되었습니다.</div>
+        <!-- 알림 끝 -->
+
+        <!-- 검색 시작 -->
         <form class="search-panel news-search-panel" method="get" th:action="@{/admin/management/list.do}">
             <div class="news-search-row">
                 <span class="search-label">등록일자</span>
@@ -35,30 +51,57 @@
                 </div>
             </div>
         </form>
-        <div class="list-action-bar"><a class="btn btn-register" th:href="@{/admin/management/write.do}">관리자 등록</a></div>
+        <!-- 검색 끝 -->
+
+        <!-- 목록 상단 버튼 시작 -->
+        <div class="list-action-bar">
+            <a class="btn btn-register" th:href="@{/admin/management/write.do}">관리자 등록</a>
+        </div>
+        <!-- 목록 상단 버튼 끝 -->
+
+        <!-- 리스트 시작 -->
         <section class="content-panel no-pad">
-            <div class="panel-head"><h2>관리자 목록</h2><span th:text="|${totalCount ?: 0}개|">0개</span></div>
+            <div class="panel-head">
+                <h2>관리자 목록</h2>
+                <span th:text="|${totalCount ?: 0}개|">0개</span>
+            </div>
             <div class="table-scroll">
                 <table>
-                    <thead><tr><th>순번</th><th>아이디</th><th>이름</th><th>권한</th><th>사용여부</th><th>등록일</th><th>수정일</th></tr></thead>
+                    <thead>
+                    <tr>
+                        <th>순번</th>
+                        <th>아이디</th>
+                        <th>이름</th>
+                        <th>권한</th>
+                        <th>사용여부</th>
+                        <th>등록일</th>
+                        <th>수정일</th>
+                    </tr>
+                    </thead>
                     <tbody>
                     <tr th:each="admin, stat : ${admins}">
                         <td th:text="${stat.count}">1</td>
                         <td th:text="${admin.loginId}">admin</td>
                         <td th:text="${admin.name}">관리자</td>
                         <td th:text="${admin.role == 'super' ? '최고관리자' : '관리자'}">관리자</td>
-                        <td><span class="badge" th:classappend="${admin.status == 'active'} ? ' badge-success' : ' badge-muted'" th:text="${admin.status == 'active'} ? '사용중' : '미사용'">사용중</span></td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${admin.status == 'active'} ? ' badge-success' : ' badge-muted'"
+                                  th:text="${admin.status == 'active'} ? '사용중' : '미사용'">사용중</span>
+                        </td>
                         <td th:text="${admin.registeredDate}">2026-05-23</td>
                         <td th:text="${admin.updatedDate}">2026-05-23</td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(admins)}"><td colspan="7" class="empty">현재 등록된 내용이 없습니다.</td></tr>
+                    <tr th:if="${#lists.isEmpty(admins)}">
+                        <td colspan="7" class="empty">현재 등록된 내용이 없습니다.</td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
         </section>
-    </main>
-</div>
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+        <!-- 리스트 끝 -->
+
+
+</th:block>
 </body>
 </html>

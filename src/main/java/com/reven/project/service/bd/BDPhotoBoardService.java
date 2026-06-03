@@ -10,13 +10,13 @@ import com.reven.project.service.bd.dto.BDPhotoBoardPublicSearchRequestDto;
 import com.reven.project.service.bd.dto.BDPhotoBoardSaveCommand;
 import com.reven.project.service.bd.dto.BDPhotoBoardSaveRequestDto;
 import com.reven.project.service.bd.mapper.BDPhotoBoardMapper;
+import com.reven.project.service.bd.support.BDFileStorageConstants;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -33,8 +33,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class BDPhotoBoardService {
 
-    private static final DateTimeFormatter STORAGE_PATH_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif", "mp4");
     private static final String MAX_UPLOAD_MESSAGE = "최대 업로드 갯수는 5개입니다.";
     private static final String MIN_UPLOAD_MESSAGE = "첨부 파일을 최소 1개 이상 업로드해 주세요.";
     private final BDPhotoBoardMapper photoBoardMapper;
@@ -344,7 +342,7 @@ public class BDPhotoBoardService {
     private void storePhotoFile(Long photoSeq, MultipartFile file, int sortOrder, String actorId, List<Path> writtenFiles) throws IOException {
         String originalFileName = sanitizeFileName(firstText(file.getOriginalFilename(), "photo"));
         String extension = fileExtension(originalFileName);
-        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+        if (!BDFileStorageConstants.PHOTO_BOARD_EXTENSIONS.contains(extension)) {
             throw new IllegalArgumentException("허용되지 않는 파일 형식입니다.");
         }
         String contentType = firstText(file.getContentType()).toLowerCase(Locale.ROOT);
@@ -352,7 +350,7 @@ public class BDPhotoBoardService {
             throw new IllegalArgumentException("허용되지 않는 MIME 타입입니다.");
         }
         String storedFileName = UUID.randomUUID().toString().replace("-", "") + "." + extension;
-        String storedPath = STORAGE_PATH_FORMATTER.format(LocalDate.now());
+        String storedPath = BDFileStorageConstants.STORAGE_PATH_FORMATTER.format(LocalDate.now());
         Path directory = rootPath.resolve(storedPath).normalize();
         Files.createDirectories(directory);
         Path target = directory.resolve(storedFileName);

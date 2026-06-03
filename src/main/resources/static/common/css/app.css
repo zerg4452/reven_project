@@ -1718,10 +1718,29 @@ textarea.form-control {
 }
 
 .survey-option {
-    display: inline-flex;
-    align-items: center;
+    display: flex;
+    align-items: flex-start;
     gap: 8px;
     font-weight: 700;
+    cursor: pointer;
+}
+
+.survey-option input[type="radio"],
+.survey-option input[type="checkbox"] {
+    flex-shrink: 0;
+    margin: 3px 0 0;
+}
+
+.survey-option-number {
+    flex-shrink: 0;
+    min-width: 1.6em;
+    color: #263849;
+}
+
+.survey-option-label {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.5;
 }
 
 .menu-management-grid {
@@ -1812,8 +1831,44 @@ textarea.form-control {
     justify-content: space-between;
 }
 
+.field-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-compact {
+    min-width: 36px;
+    padding: 6px 10px;
+}
+
 .field-row .wide {
     grid-column: 1 / -1;
+}
+
+.survey-field-options {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 10px;
+}
+
+.survey-field-options-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.survey-option-input-list {
+    display: grid;
+    gap: 8px;
+}
+
+.survey-option-input-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
 }
 
 .check-label {

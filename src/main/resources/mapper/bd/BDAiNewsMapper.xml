@@ -9,7 +9,7 @@
           and published_dtm &gt;= #{startDate}
           and published_dtm &lt; date_add(#{endDate}, interval 1 day)
         <if test="statuses != null and statuses.size() &gt; 0">
-          and status in
+          and (case when status = 'N' then 'P' else status end) in
           <foreach collection="statuses" item="status" open="(" separator="," close=")">
             #{status}
           </foreach>
@@ -23,13 +23,13 @@
               and tags_json like concat('%', #{keyword}, '%')
             </when>
             <when test="keywordType == 'status'">
-              and status like concat('%', #{keyword}, '%')
+              and (case when status = 'N' then 'P' else status end) like concat('%', #{keyword}, '%')
             </when>
             <otherwise>
               and (
                 title like concat('%', #{keyword}, '%')
                 or tags_json like concat('%', #{keyword}, '%')
-                or status like concat('%', #{keyword}, '%')
+                or (case when status = 'N' then 'P' else status end) like concat('%', #{keyword}, '%')
               )
             </otherwise>
           </choose>
@@ -48,7 +48,7 @@
             title,
             slug,
             category,
-            status,
+            case when status = 'N' then 'P' else status end as status,
             date(published_dtm) as publishedDate,
             date(reg_dtm) as registeredDate,
             date(mod_dtm) as updatedDate
@@ -68,7 +68,7 @@
             content,
             tags_json as tagsJson,
             source_url as sourcesJson,
-            status,
+            case when status = 'N' then 'P' else status end as status,
             delete_flg as deleteFlg,
             date(published_dtm) as publishedDate,
             null as sourceFile,
@@ -101,7 +101,7 @@
             content,
             tags_json as tagsJson,
             source_url as sourcesJson,
-            status,
+            case when status = 'N' then 'P' else status end as status,
             delete_flg as deleteFlg,
             date(published_dtm) as publishedDate,
             null as sourceFile,
@@ -126,7 +126,7 @@
             content,
             tags_json as tagsJson,
             source_url as sourcesJson,
-            status,
+            case when status = 'N' then 'P' else status end as status,
             delete_flg as deleteFlg,
             date(published_dtm) as publishedDate,
             null as sourceFile,
@@ -152,7 +152,7 @@
             content,
             tags_json as tagsJson,
             source_url as sourcesJson,
-            status,
+            case when status = 'N' then 'P' else status end as status,
             delete_flg as deleteFlg,
             date(published_dtm) as publishedDate,
             null as sourceFile,

@@ -129,4 +129,46 @@ This is the step LLMs skip most often after "run tests". They guess from error k
 
 ---
 
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.ß
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+---
+
+## 11. Cursor Rules (`.cursor/rules/*.mdc`)
+
+**세션 시작 시, 그리고 관련 파일 편집 전 반드시 해당 rule을 읽고 준수한다.**
+
+각 `.mdc` 파일 상단 frontmatter의 두 필드를 기준으로 적용 범위를 판단한다.
+
+| 필드 | 값 | 동작 |
+|------|----|------|
+| `alwaysApply` | `true` | 파일 종류 무관, 항상 적용 |
+| `alwaysApply` | `false` | `globs` 패턴에 매칭되는 파일 편집 시에만 적용 |
+| `globs` | 패턴 (예: `**/*.java`) | 해당 파일 편집 시 rule을 먼저 읽는다 |
+
+현재 등록된 rules.
+
+- `.cursor/rules/survey-rebuild-project.mdc` — `alwaysApply: true`. 설문 재구축 프로젝트 전반 규칙 (용어, UI, 검색, 데이터, 작업로그). 모든 작업에 적용.
+- `.cursor/rules/java-method-layout.mdc` — `globs: **/*.java`. Java 메서드 시그니처·블록 레이아웃. `.java` 파일 편집 시 적용.
+- `.cursor/rules/java-record-schema.mdc` — `globs: **/*.java`. Java record `@Schema` 어노테이션 및 컴포넌트 간격. `.java` 파일 편집 시 적용.
+- `.cursor/rules/html-markup-layout.mdc` — `globs: **/*.html`. HTML·Thymeleaf 요소 단위 줄바꿈, 큰 블록 구분용 빈 줄, 구역 시작·끝 주석. `.html` 파일 편집 시 적용.
+- `.cursor/rules/thymeleaf-layout-dialect.mdc` — `globs: **/*.html`. Layout Dialect `layouts/*` shell, `layout:decorate`, controller layout model. `.html` 파일 편집 시 적용.
+
+새 `.mdc` 파일이 추가되면 이 목록도 함께 갱신한다.
+
+## 12. Superpowers Skills
+
+**세션 시작 시 `using-superpowers` skill을 먼저 확인하고, 작업 성격에 맞는 skill을 반드시 사용한다.**
+
+주요 skill 목록 (전체 목록은 시스템 프롬프트의 available skills 참고).
+
+| Trigger | Skill |
+|---------|-------|
+| 새 기능·컴포넌트 구현 전 | `superpowers:brainstorming` |
+| 버그·테스트 실패 발생 시 | `superpowers:systematic-debugging` |
+| 구현 완료 후 검증 전 | `superpowers:verification-before-completion` |
+| 멀티스텝 구현 계획 수립 | `superpowers:writing-plans` |
+| 계획 실행 | `superpowers:executing-plans` |
+| 브랜치 통합 결정 시 | `superpowers:finishing-a-development-branch` |
+| 코드리뷰 수신 시 | `superpowers:receiving-code-review` |
+
+"1%라도 관련 skill이 있을 것 같으면 반드시 호출한다"는 원칙을 따른다.

@@ -1,13 +1,20 @@
-<!doctype html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('공지사항 관리')}"></head>
-<body>
 <!-- screen: 공지사항 관리 / purpose: 공지사항을 목록으로 관리하고 상단 고정/노출을 확인하는 화면 / created: 2026-05-31 -->
-<header th:replace="~{fragments/layout :: gnb('board')}"></header>
-<div class="admin-shell">
-    <aside th:replace="~{fragments/layout :: lnb('board')}"></aside>
-    <main class="admin-content">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin}">
+<head>
+    <title layout:fragment="title">공지사항 관리</title>
+</head>
+<body>
+<th:block layout:fragment="content">
+
+
+        <!-- 브레드크럼 시작 -->
         <div th:replace="~{fragments/layout :: breadcrumb('관리자', '게시판', '공지사항 관리')}"></div>
+        <!-- 브레드크럼 끝 -->
+
+        <!-- 알림 시작 -->
         <div class="alert" th:if="${error}" th:text="${error}">오류가 발생했습니다.</div>
         <th:block th:if="${noticeSavedMessage != null}">
             <script th:inline="javascript">
@@ -16,7 +23,16 @@
                 });
             </script>
         </th:block>
-        <section class="page-head"><h1>공지사항 관리</h1><p>공지 등록과 상단 고정, 노출 여부를 관리합니다.</p></section>
+        <!-- 알림 끝 -->
+
+        <!-- 페이지 헤더 시작 -->
+        <section class="page-head">
+            <h1>공지사항 관리</h1>
+            <p>공지 등록과 상단 고정, 노출 여부를 관리합니다.</p>
+        </section>
+        <!-- 페이지 헤더 끝 -->
+
+        <!-- 검색 시작 -->
         <form class="search-panel news-search-panel" method="get" th:action="@{/admin/board/notice/list.do}">
             <div class="news-search-row">
                 <span class="search-label">게시일자</span>
@@ -31,11 +47,20 @@
                 </div>
             </div>
         </form>
+        <!-- 검색 끝 -->
+
+        <!-- 목록 상단 버튼 시작 -->
         <div class="list-action-bar">
-            <a class="btn btn-register" th:href="@{/admin/board/notice/write.do}">공지 등록</a>
+            <a class="btn btn-register" th:href="@{/admin/board/notice/write.do}">등록</a>
         </div>
+        <!-- 목록 상단 버튼 끝 -->
+
+        <!-- 리스트 시작 -->
         <section class="content-panel no-pad">
-            <div class="panel-head"><h2>공지사항 목록</h2><span th:text="|${totalCount ?: 0}개|">0개</span></div>
+            <div class="panel-head">
+                <h2>공지사항 목록</h2>
+                <span th:text="|${totalCount ?: 0}개|">0개</span>
+            </div>
             <div class="table-scroll">
                 <table>
                     <thead>
@@ -52,21 +77,29 @@
                     <tbody>
                     <tr th:each="notice, stat : ${noticeList}" th:classappend="${notice.pinned()} ? ' notice-row-pinned'">
                         <td th:text="${stat.count}">1</td>
-                        <td><span class="badge badge-warning" th:if="${notice.pinned()}">고정</span></td>
-                        <td><a th:href="@{/admin/board/notice/write.do(noticeSeq=${notice.noticeSeq})}" th:text="${notice.title}">제목</a></td>
+                        <td>
+                            <span class="badge badge-warning" th:if="${notice.pinned()}">고정</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/admin/board/notice/write.do(noticeSeq=${notice.noticeSeq})}" th:text="${notice.title}">제목</a>
+                        </td>
                         <td th:text="${notice.publishDate}">2026-05-31</td>
-                        <td><span class="badge badge-info" th:text="${notice.publishText()}">노출</span></td>
+                        <td>
+                            <span class="badge badge-info" th:text="${notice.publishText()}">노출</span>
+                        </td>
                         <td th:text="${notice.viewCnt}">0</td>
                         <td th:text="${notice.updatedDate}">2026-05-31</td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(noticeList)}"><td colspan="7" class="empty">현재 등록된 내용이 없습니다.</td></tr>
+                    <tr th:if="${#lists.isEmpty(noticeList)}">
+                        <td colspan="7" class="empty">현재 등록된 내용이 없습니다.</td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
         </section>
-    </main>
-</div>
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+        <!-- 리스트 끝 -->
+
+
+</th:block>
 </body>
 </html>

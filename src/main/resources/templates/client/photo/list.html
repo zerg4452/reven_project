@@ -5,8 +5,15 @@
 <body>
 <header th:replace="~{fragments/layout :: publicGnb('board')}"></header>
 <main class="public-content">
-    <section class="page-head"><h1>포토 게시판</h1><p>게시된 이미지와 동영상을 확인합니다.</p></section>
 
+    <!-- 페이지 헤더 시작 -->
+    <section class="page-head">
+        <h1>포토 게시판</h1>
+        <p>게시된 이미지와 동영상을 확인합니다.</p>
+    </section>
+    <!-- 페이지 헤더 끝 -->
+
+    <!-- 검색 시작 -->
     <form class="search-panel public-photo-search" method="get" th:action="@{/board/photo/list.do}">
         <label class="search-label" for="keyword">제목</label>
         <input class="form-control" id="keyword" name="keyword" th:value="${page?.search()?.keyword()}" placeholder="제목 검색">
@@ -21,9 +28,14 @@
         <button class="btn btn-register btn-sm" type="submit">검색</button>
         <a class="btn btn-neutral btn-sm" th:href="@{/board/photo/list.do}">초기화</a>
     </form>
+    <!-- 검색 끝 -->
 
+    <!-- 리스트 시작 -->
     <section class="content-panel no-pad">
-        <div class="panel-head"><h2>포토 게시글</h2><span th:text="|${page?.totalCount() ?: 0}개|">0개</span></div>
+        <div class="panel-head">
+            <h2>포토 게시글</h2>
+            <span th:text="|${page?.totalCount() ?: 0}개|">0개</span>
+        </div>
         <div class="public-photo-grid" th:if="${page != null and !#lists.isEmpty(page.photos())}">
             <a class="public-photo-card"
                th:each="photo : ${page.photos()}"
@@ -41,7 +53,9 @@
         </div>
         <p class="empty" th:if="${page == null or #lists.isEmpty(page.photos())}">현재 등록된 내용이 없습니다.</p>
     </section>
+    <!-- 리스트 끝 -->
 
+    <!-- 페이지네이션 시작 -->
     <nav class="detail-action-bar" th:if="${page != null and page.totalPages() > 1}" aria-label="포토 게시판 페이지">
         <a class="btn btn-neutral btn-sm"
            th:if="${page.hasPrevious()}"
@@ -51,6 +65,8 @@
            th:if="${page.hasNext()}"
            th:href="@{/board/photo/list.do(keyword=${page.search().keyword()},imageOnly=${page.search().imageOnly()},videoOnly=${page.search().videoOnly()},page=${page.nextPage()})}">다음</a>
     </nav>
+    <!-- 페이지네이션 끝 -->
+
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>

@@ -60,12 +60,43 @@
 
 ---
 
+### 설문 P4: 문항 순서 변경 (전체 완료)
+
+**구현 완료 파일:**
+- `detail.html` — 문항 row 헤더에 ▲/▼ 순서 버튼 + `.field-row-actions` 추가
+- `survey-field-editor.js` — move up/down, `refreshRows` disabled 갱신, DOM swap 후 `fields[n]` 재부여
+- `app.css` — `.field-row-actions`, `.btn-compact` 스타일
+
+**TDD 검증:**
+- `SASurveyServiceTest.saveSurveyPersistsFieldOrderFromRequestListOrder` — POST 리스트 순서 → `sort_ord` 1..N
+- `SAAdminSurveyControllerTest.saveSurveyPreservesPostedFieldOrder` — 컨트롤러 바인딩 순서 유지
+- `SASurveyFieldReorderViewTest` — 템플릿·JS에 reorder 마크업/핸들러 존재
+- `./gradlew test` BUILD SUCCESSFUL
+
+---
+
+### 설문 P5: 미리보기 화면 (전체 완료)
+
+**구현 완료 파일:**
+- `SAAdminSurveyController` — GET `/admin/surveys/preview.do` 추가
+- `admin/survey/detail.html` — 저장된 설문에 새 창 미리보기 버튼 추가
+- `client/survey/form.html` — `previewMode` 안내, 제출 차단, 제출 버튼 숨김
+- `client/survey/field.html` — 미리보기 모드 입력 비활성화
+
+**검증 결과:**
+- ✅ 저장된 설문만 미리보기 버튼 노출
+- ✅ 미리보기 새 창 링크 `target="_blank"` + `rel="noopener noreferrer"` 확인
+- ✅ 미리보기 화면 제출 버튼 제거, form submit 차단, 입력 비활성화
+- ✅ 잘못된 `surveyUid`는 관리자 설문 목록으로 이동하고 비정상 접근 알림 표시
+- ✅ `SAAdminSurveyControllerTest`, `SASurveyPreviewViewTest` 추가
+- ✅ `./gradlew test` BUILD SUCCESSFUL
+
+---
+
 ## 앞으로 할 일 (우선순위 순)
 
 | 순위 | 항목 | 비고 |
 |------|------|------|
-| P4 | 문항 순서 변경 기능 | drag-and-drop 또는 위/아래 버튼 |
-| P5 | 설문 미리보기 화면 | 관리자에서 사용자 폼 미리 보기 |
 | P6 | 목록/이력 검색 조건 강화 | 날짜범위, 상태 필터 등 |
 | P7 | 설문 복사 기능 | |
 | P8 | 응답 통계/집계 화면 | |

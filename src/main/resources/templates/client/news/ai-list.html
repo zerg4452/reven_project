@@ -5,17 +5,29 @@
 <!-- screen: AI News / purpose: 게시 상태 AI News를 아코디언 목록으로 조회하는 화면 / created: 2026-05-26 -->
 <header th:replace="~{fragments/layout :: publicGnb('board')}"></header>
 <main class="public-content">
-    <section class="page-head"><h1>AI News</h1><p>게시된 AI News를 확인합니다.</p></section>
 
+    <!-- 페이지 헤더 시작 -->
+    <section class="page-head">
+        <h1>AI News</h1>
+        <p>게시된 AI News를 확인합니다.</p>
+    </section>
+    <!-- 페이지 헤더 끝 -->
+
+    <!-- 검색 시작 -->
     <form class="search-panel public-news-search" method="get" th:action="@{/board/ai-news/list.do}">
         <label class="search-label" for="keyword">검색어</label>
         <input class="form-control" id="keyword" name="keyword" th:value="${keyword}" placeholder="제목 또는 내용">
         <button class="btn btn-register btn-sm" type="submit">검색</button>
         <a class="btn btn-neutral btn-sm" th:href="@{/board/ai-news/list.do}">초기화</a>
     </form>
+    <!-- 검색 끝 -->
 
+    <!-- 리스트 시작 -->
     <section class="content-panel no-pad">
-        <div class="panel-head"><h2>AI 뉴스 목록</h2><span th:text="|${#lists.size(newsList)}개|">0개</span></div>
+        <div class="panel-head">
+            <h2>AI 뉴스 목록</h2>
+            <span th:text="|${#lists.size(newsList)}개|">0개</span>
+        </div>
         <div class="accordion-list">
             <details class="news-accordion" th:each="news : ${newsList}">
                 <summary>
@@ -30,6 +42,8 @@
             <p class="empty" th:if="${#lists.isEmpty(newsList)}">현재 등록된 내용이 없습니다.</p>
         </div>
     </section>
+    <!-- 리스트 끝 -->
+
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>

@@ -75,9 +75,10 @@ public class BDAiNewsAdminController {
     @PostMapping("/insert.do")
     public String insert(
             @ModelAttribute("news") BDAiNewsSaveRequestDto requestDto,
-            Principal principal
+            Principal principal,
+            RedirectAttributes redirectAttributes
     ) {
-        Long savedSeq = aiNewsService.saveAiNews(withActor(new BDAiNewsSaveRequestDto(
+        aiNewsService.saveAiNews(withActor(new BDAiNewsSaveRequestDto(
                 null,
                 requestDto.slug(),
                 requestDto.title(),
@@ -90,7 +91,8 @@ public class BDAiNewsAdminController {
                 requestDto.status(),
                 requestDto.actorId()
         ), principal));
-        return "redirect:/admin/board/ai-news/write.do?newsSeq=" + savedSeq;
+        redirectAttributes.addFlashAttribute("aiNewsSavedMessage", "AI News를 등록했습니다.");
+        return "redirect:/admin/board/ai-news/list.do";
     }
 
     /**
@@ -100,9 +102,10 @@ public class BDAiNewsAdminController {
     public String update(
             @RequestParam Long newsSeq,
             @ModelAttribute("news") BDAiNewsSaveRequestDto requestDto,
-            Principal principal
+            Principal principal,
+            RedirectAttributes redirectAttributes
     ) {
-        Long savedSeq = aiNewsService.saveAiNews(withActor(new BDAiNewsSaveRequestDto(
+        aiNewsService.saveAiNews(withActor(new BDAiNewsSaveRequestDto(
                 newsSeq,
                 requestDto.slug(),
                 requestDto.title(),
@@ -115,7 +118,8 @@ public class BDAiNewsAdminController {
                 requestDto.status(),
                 requestDto.actorId()
         ), principal));
-        return "redirect:/admin/board/ai-news/write.do?newsSeq=" + savedSeq;
+        redirectAttributes.addFlashAttribute("aiNewsSavedMessage", "AI News를 수정했습니다.");
+        return "redirect:/admin/board/ai-news/list.do";
     }
 
     /**
@@ -131,8 +135,9 @@ public class BDAiNewsAdminController {
      * AI News를 화면에서 제외하도록 soft delete 처리한다.
      */
     @PostMapping("/delete.do")
-    public String delete(@RequestParam Long newsSeq) {
+    public String delete(@RequestParam Long newsSeq, RedirectAttributes redirectAttributes) {
         aiNewsService.deleteAiNews(newsSeq);
+        redirectAttributes.addFlashAttribute("aiNewsSavedMessage", "AI News를 삭제했습니다.");
         return "redirect:/admin/board/ai-news/list.do";
     }
 
@@ -172,7 +177,6 @@ public class BDAiNewsAdminController {
      */
     private List<BDAiNewsStatusOptionDto> statusOptions() {
         return List.of(
-                new BDAiNewsStatusOptionDto("N", "대기"),
                 new BDAiNewsStatusOptionDto("P", "처리중"),
                 new BDAiNewsStatusOptionDto("Y", "완료"),
                 new BDAiNewsStatusOptionDto("E", "에러")

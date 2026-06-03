@@ -5,12 +5,30 @@
 <!-- screen: AI News 상세 / purpose: 게시 상태 AI News 본문을 조회하는 화면 / created: 2026-05-26 -->
 <header th:replace="~{fragments/layout :: publicGnb('board')}"></header>
 <main class="public-content">
-    <section class="page-head"><h1 th:text="${news?.title} ?: 'AI News 상세'">AI News 상세</h1><p><span th:text="${news?.publishedDate}">2026-05-26</span> <span th:text="|· 조회수 ${news?.viewCnt ?: 0}|">· 조회수 0</span></p></section>
+
+    <!-- 페이지 헤더 시작 -->
+    <section class="page-head">
+        <h1 th:text="${news?.title} ?: 'AI News 상세'">AI News 상세</h1>
+        <p>
+            <span th:text="${news?.publishedDate}">2026-05-26</span>
+            <span th:text="|· 조회수 ${news?.viewCnt ?: 0}|">· 조회수 0</span>
+        </p>
+    </section>
+    <!-- 페이지 헤더 끝 -->
+
+    <!-- 본문 시작 -->
     <section class="content-panel news-detail-content">
         <p th:if="${news?.summary}" class="news-summary" th:text="${news.summary}">요약</p>
         <div th:text="${news?.content}">본문</div>
     </section>
-    <div class="detail-action-bar"><a class="btn btn-neutral" th:href="@{/board/ai-news/list.do}">목록</a></div>
+    <!-- 본문 끝 -->
+
+    <!-- 하단 버튼 시작 -->
+    <div class="detail-action-bar">
+        <a class="btn btn-neutral" th:href="@{/board/ai-news/list.do}">목록</a>
+    </div>
+    <!-- 하단 버튼 끝 -->
+
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>

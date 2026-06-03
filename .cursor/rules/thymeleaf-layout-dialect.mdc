@@ -1,0 +1,97 @@
+---
+description: Thymeleaf Layout Dialect — layouts/* shell과 페이지 decorate 규칙
+globs: **/*.html
+alwaysApply: false
+---
+
+# Thymeleaf Layout Dialect
+
+When creating or editing full-page Thymeleaf templates, use **Thymeleaf Layout Dialect** instead of repeating GNB/LNB/footer/scripts in every file.
+
+Reference pilot: `admin/news/detail.html` + `layouts/admin.html`.
+
+## Layout files
+
+| File | Use for |
+|------|---------|
+| `layouts/admin.html` | 관리자 화면 (GNB + LNB + admin shell) |
+| `layouts/auth.html` | 관리자 로그인 (auth shell, GNB/LNB 없음) |
+| `layouts/public.html` | (추후) 사용자 공개 화면 |
+
+- Shell markup lives in `layouts/*.html` only.
+- Reusable partials stay in `fragments/layout.html` (`head`, `gnb`, `lnb`, `breadcrumb`, `footer`, `scripts`).
+- Do **not** duplicate `th:replace` for gnb/lnb/footer/scripts in pages that use a layout.
+
+## Page template pattern
+
+Every new or migrated page must declare the layout decorator and put **page body only** in `layout:fragment="content"`.
+
+```html
+<!-- screen: … / purpose: … / created: yyyy-mm-dd -->
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin}">
+<head>
+    <title layout:fragment="title">화면 제목</title>
+</head>
+<body>
+<th:block layout:fragment="content">
+
+    <!-- 브레드크럼 시작 -->
+    ...
+    <!-- 하단 버튼 끝 -->
+
+</th:block>
+</body>
+</html>
+```
+
+## Controller model (admin layout)
+
+- GNB/LNB active state comes from `adminNavigation` (`COAdminNavigationAdvice`) — do **not** set `layoutGnbActive` / `layoutLnbActive` per controller.
+- Set the page `<title layout:fragment="title">` in the template. Use `th:text` when the title is dynamic.
+
+```html
+<title th:text="${survey?.surveySeq} != null ? '설문 상세' : '설문 등록'">설문 상세</title>
+```
+
+## Optional layout fragments
+
+| Fragment | Purpose |
+|----------|---------|
+| `content` | **Required.** Main page body inside `<main class="admin-content">` |
+| `pageScripts` | Page-only `<script>` tags after common scripts |
+| `pageExtras` | Modal markup etc. between admin shell and footer |
+| `pageComment` | Optional screen-purpose HTML comment at body start |
+
+## Layout-side fragment placement (critical)
+
+Pages use `<th:block layout:fragment="content">`, which **replaces** the matching layout node including its tag. Never put `layout:fragment="content"` on `<main class="admin-content">` in the layout — that drops the wrapper and scatters page nodes as direct children of `.admin-shell`, breaking the CSS grid.
+
+```html
+<!-- layouts/admin.html — correct -->
+<main class="admin-content">
+    <th:block layout:fragment="content"></th:block>
+</main>
+```
+
+```html
+<!-- wrong — th:block on the page replaces <main> entirely -->
+<main class="admin-content" layout:fragment="content"></main>
+```
+
+## Legacy pages
+
+- All admin templates under `templates/admin/` use Layout Dialect.
+- Client templates still use inline shell until migrated separately.
+
+## With markup rules
+
+- Inside `layout:fragment="content"`, follow `html-markup-layout.mdc` (element line breaks, block region comments, blank lines between regions).
+
+## Do not
+
+- Add Apache Tiles or duplicate full HTML shell in every page.
+- Put gnb/footer/scripts in page templates that already use `layouts/admin.html`.
+- Omit `layout:decorate` on a page that only defines `layout:fragment="content"` (shell will not render).

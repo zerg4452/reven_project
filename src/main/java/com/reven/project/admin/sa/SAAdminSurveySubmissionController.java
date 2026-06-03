@@ -1,8 +1,9 @@
 package com.reven.project.admin.sa;
 
-import com.reven.project.service.sa.dto.SASurveyDto;
+import com.reven.project.common.web.LenientLocalDateEditor;
 import com.reven.project.service.sa.SASurveyCsvService;
 import com.reven.project.service.sa.SASurveySubmitService;
+import com.reven.project.service.sa.dto.SASurveyDto;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Controller
@@ -35,6 +38,8 @@ public class SAAdminSurveySubmissionController {
     void initBinder(WebDataBinder binder) {
         // 검색 DTO가 public field 기반이라 Spring MVC가 setter 없이 값을 주입하도록 설정한다.
         binder.initDirectFieldAccess();
+        // 잘못된 날짜 문자열은 BindException 대신 null로 흡수해 목록 진입 실패를 막는다.
+        binder.registerCustomEditor(LocalDate.class, new LenientLocalDateEditor());
     }
 
     /**
@@ -102,19 +107,36 @@ public class SAAdminSurveySubmissionController {
     }
 
     /**
-     * 설문 이력 검색 조건의 날짜/상태 기본값을 보정한다.
+     * 설문 이력 검색 조건의 날짜/상태/검색조건 기본값을 보정한다.
      */
     private SASurveyDto.SubmissionSearchRequest normalizeSearch(SASurveyDto.SubmissionSearchRequest request) {
+        List<String> allowedStatuses = statusOptions().stream()
+                .map(SASurveyDto.SubmissionStatusOption::getCode)
+                .toList();
         List<String> statuses = request.statuses == null || request.statuses.isEmpty()
-                ? statusOptions().stream().map(SASurveyDto.SubmissionStatusOption::getCode).toList()
-                : request.statuses;
+                ? allowedStatuses
+                : request.statuses.stream().filter(allowedStatuses::contains).toList();
+        if (statuses.isEmpty()) {
+            statuses = allowedStatuses;
+        }
         SASurveyDto.SubmissionSearchRequest normalized = new SASurveyDto.SubmissionSearchRequest();
-        normalized.startDate = request.startDate;
-        normalized.endDate = request.endDate;
-        normalized.keywordType = request.keywordType;
+        normalized.startDate = request.startDate != null
+                ? request.startDate
+                : LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(60);
+        normalized.endDate = request.endDate != null
+                ? request.endDate
+                : LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(1);
+        normalized.keywordType = isAllowedKeywordType(request.keywordType) ? request.keywordType : "전체";
         normalized.keyword = request.keyword;
         normalized.statuses = statuses;
         return normalized;
+    }
+
+    /**
+     * 설문 이력 검색조건 허용값(전체/설문명/작성자명) 여부를 확인한다.
+     */
+    private boolean isAllowedKeywordType(String keywordType) {
+        return "설문명".equals(keywordType) || "작성자명".equals(keywordType);
     }
 
     /**

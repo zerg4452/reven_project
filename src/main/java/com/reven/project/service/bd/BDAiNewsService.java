@@ -8,7 +8,9 @@ import com.reven.project.service.bd.dto.BDAiNewsSearchRequestDto;
 import com.reven.project.service.bd.mapper.BDAiNewsMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -130,26 +132,47 @@ public class BDAiNewsService {
         int total = 0;
 
         for (Path path : jsonFiles) {
-            total++;
+            JsonNode payload = null;
             try {
-                JsonNode payload = objectMapper.readTree(path.toFile());
+                payload = objectMapper.readTree(path.toFile());
+                if (!"N".equalsIgnoreCase(text(payload, "status", "N"))) {
+                    continue;
+                }
+
+                total++;
+                String slug = text(payload, "slug", generatedSlug());
+                BDAiNewsDetailResponseDto existing = aiNewsMapper.selectAiNewsBySlug(slug);
+                if (existing != null && "Y".equalsIgnoreCase(existing.status())) {
+                    markLegacyJsonFile(path, payload, "P", existing.newsSeq(), null);
+                    success++;
+                    continue;
+                }
+
                 BDAiNewsSaveRequestDto request = new BDAiNewsSaveRequestDto(
                         null,
-                        text(payload, "slug", generatedSlug()),
-                        text(payload, "title", "제목 없음"),
+                        slug,
+                        formatCrawlTitle(text(payload, "title", "제목 없음"), parsePublishedDate(payload.path("published_at"))),
                         text(payload, "category", "AI News"),
                         text(payload, "summary", ""),
                         text(payload, "content_markdown", text(payload, "content", "")),
                         toJsonArrayString(payload.path("tags")),
                         toJsonArrayString(payload.path("sources")),
                         parsePublishedDate(payload.path("published_at")),
-                        text(payload, "status", "P"),
+                        "P",
                         actorId
                 );
-                upsertAiNews(request);
+                Long savedSeq = upsertAiNews(request, existing);
+                markLegacyJsonFile(path, payload, "P", savedSeq, null);
                 success++;
             } catch (Exception exception) {
                 failed++;
+                if (payload != null) {
+                    try {
+                        markLegacyJsonFile(path, payload, "E", null, exception.getMessage());
+                    } catch (Exception ignored) {
+                        // 원본 파일 상태 갱신 실패는 크롤링 실패를 덮어쓰지 않는다.
+                    }
+                }
             }
         }
 
@@ -165,9 +188,7 @@ public class BDAiNewsService {
         String keywordType = search.keywordType() != null && List.of("all", "title", "tag", "status").contains(search.keywordType())
                 ? search.keywordType()
                 : "all";
-        List<String> statuses = search.statuses() == null || search.statuses().isEmpty()
-                ? List.of("N", "P", "Y", "E")
-                : search.statuses();
+        List<String> statuses = normalizeStatuses(search.statuses());
         int limit = search.limit() == null || search.limit() <= 0 ? 10 : search.limit();
         int offset = search.offset() == null || search.offset() < 0 ? 0 : search.offset();
         return new BDAiNewsSearchRequestDto(
@@ -194,7 +215,7 @@ public class BDAiNewsService {
         String category = firstText(requestDto.category(), existing == null ? null : existing.category(), "AI News");
         String summary = firstText(requestDto.summary(), existing == null ? null : existing.summary(), title);
         String content = firstText(requestDto.content(), existing == null ? null : existing.content(), "");
-        String status = firstText(requestDto.status(), existing == null ? null : existing.status(), "P");
+        String status = normalizeAiNewsStatus(firstText(requestDto.status(), existing == null ? null : existing.status(), "P"));
         LocalDate publishedDate = requestDto.publishedDate() != null
                 ? requestDto.publishedDate()
                 : existing == null ? LocalDate.now() : existing.publishedDate();
@@ -216,8 +237,7 @@ public class BDAiNewsService {
     /**
      * slug 기준으로 기존 원고가 있으면 수정하고, 없으면 새로 등록한다.
      */
-    private void upsertAiNews(BDAiNewsSaveRequestDto requestDto) {
-        BDAiNewsDetailResponseDto existing = aiNewsMapper.selectAiNewsBySlug(requestDto.slug());
+    private Long upsertAiNews(BDAiNewsSaveRequestDto requestDto, BDAiNewsDetailResponseDto existing) {
         BDAiNewsSaveRequestDto payload = new BDAiNewsSaveRequestDto(
                 existing == null ? null : existing.newsSeq(),
                 requestDto.slug(),
@@ -231,7 +251,52 @@ public class BDAiNewsService {
                 requestDto.status(),
                 requestDto.actorId()
         );
-        saveAiNews(payload);
+        return saveAiNews(payload);
+    }
+
+    private void markLegacyJsonFile(Path path, JsonNode payload, String status, Long newsSeq, String error) throws IOException {
+        ObjectNode file = payload != null && payload.isObject()
+                ? ((ObjectNode) payload).deepCopy()
+                : objectMapper.createObjectNode();
+        String normalizedStatus = status == null || status.isBlank() ? "P" : status.trim().toUpperCase();
+        file.put("status", normalizedStatus);
+        if (newsSeq != null && newsSeq > 0) {
+            file.put("news_seq", newsSeq);
+        }
+        if ("E".equals(normalizedStatus)) {
+            file.put("error", error == null ? "" : error);
+        } else {
+            file.put("inserted_at", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            file.putNull("error");
+        }
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), file);
+    }
+
+    private List<String> normalizeStatuses(List<String> statuses) {
+        if (statuses == null || statuses.isEmpty()) {
+            return List.of("P", "Y", "E");
+        }
+
+        List<String> normalizedStatuses = new ArrayList<>();
+        for (String status : statuses) {
+            String normalizedStatus = normalizeAiNewsStatus(status);
+            if (!normalizedStatuses.contains(normalizedStatus)) {
+                normalizedStatuses.add(normalizedStatus);
+            }
+        }
+        return normalizedStatuses.isEmpty() ? List.of("P", "Y", "E") : normalizedStatuses;
+    }
+
+    private String normalizeAiNewsStatus(String value) {
+        if (value == null || value.isBlank()) {
+            return "P";
+        }
+
+        return switch (value.trim().toUpperCase()) {
+            case "N" -> "P";
+            case "P", "Y", "E" -> value.trim().toUpperCase();
+            default -> "P";
+        };
     }
 
     private String firstText(String... values) {
@@ -245,6 +310,15 @@ public class BDAiNewsService {
 
     private String generatedSlug() {
         return "news-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+    }
+
+    private String formatCrawlTitle(String title, LocalDate publishedDate) {
+        String normalizedTitle = title == null ? "" : title.trim();
+        String prefix = "[" + publishedDate + "] ";
+        if (normalizedTitle.startsWith(prefix)) {
+            return normalizedTitle;
+        }
+        return prefix + normalizedTitle;
     }
 
     /**

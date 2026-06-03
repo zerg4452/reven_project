@@ -12,6 +12,7 @@ import com.reven.project.service.bd.dto.BDNoticePublicSearchRequestDto;
 import com.reven.project.service.bd.dto.BDNoticeSaveCommand;
 import com.reven.project.service.bd.dto.BDNoticeSaveRequestDto;
 import com.reven.project.service.bd.mapper.BDNoticeMapper;
+import com.reven.project.service.bd.support.BDFileStorageConstants;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -19,7 +20,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -35,14 +35,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class BDNoticeService {
-
-    private static final DateTimeFormatter STORAGE_PATH_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-    private static final String THUMB = "THUMB";
-    private static final String ATTACH = "ATTACH";
-    private static final Set<String> THUMBNAIL_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif");
-    private static final Set<String> ATTACHMENT_EXTENSIONS = Set.of(
-            "jpg", "jpeg", "png", "gif", "webp", "bmp", "avif",
-            "pdf", "hwp", "hwpx", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "zip", "txt", "csv");
 
     private final BDNoticeMapper noticeMapper;
     private final Path rootPath;
@@ -105,7 +97,7 @@ public class BDNoticeService {
      * 공지사항 썸네일 단건을 조회한다(관리자).
      */
     public BDNoticeFileResponseDto findNoticeThumbnail(Long noticeSeq) {
-        List<BDNoticeFileResponseDto> thumbs = noticeMapper.selectNoticeFiles(noticeSeq, THUMB);
+        List<BDNoticeFileResponseDto> thumbs = noticeMapper.selectNoticeFiles(noticeSeq, BDFileStorageConstants.FILE_TYPE_THUMB);
         return thumbs.isEmpty() ? null : withFileUrl(thumbs.get(0));
     }
 
@@ -238,7 +230,7 @@ public class BDNoticeService {
 
         List<BDNoticeFileResponseDto> existingAttachments = normalized.noticeSeq() == null
                 ? List.of()
-                : noticeMapper.selectNoticeFiles(normalized.noticeSeq(), ATTACH);
+                : noticeMapper.selectNoticeFiles(normalized.noticeSeq(), BDFileStorageConstants.FILE_TYPE_ATTACH);
         Set<Long> keepSeqs = normalizeKeepSeqs(keepAttachFileSeqs, existingAttachments);
         List<BDNoticeFileResponseDto> removedAttachments = existingAttachments.stream()
                 .filter(file -> !keepSeqs.contains(file.noticeFileSeq()))
@@ -275,7 +267,7 @@ public class BDNoticeService {
                     .orElse(0);
             for (MultipartFile file : newAttachments) {
                 sortOrder++;
-                storeNoticeFile(noticeSeq, file, ATTACH, sortOrder, normalized.actorId(), writtenFiles);
+                storeNoticeFile(noticeSeq, file, BDFileStorageConstants.FILE_TYPE_ATTACH, sortOrder, normalized.actorId(), writtenFiles);
             }
             return noticeSeq;
         } catch (RuntimeException exception) {
@@ -331,14 +323,14 @@ public class BDNoticeService {
     }
 
     private void replaceThumbnail(Long noticeSeq, MultipartFile thumbnailFile, String actorId, List<Path> writtenFiles) throws IOException {
-        List<BDNoticeFileResponseDto> existingThumbs = noticeMapper.selectNoticeFiles(noticeSeq, THUMB);
+        List<BDNoticeFileResponseDto> existingThumbs = noticeMapper.selectNoticeFiles(noticeSeq, BDFileStorageConstants.FILE_TYPE_THUMB);
         for (BDNoticeFileResponseDto thumb : existingThumbs) {
             noticeMapper.deleteNoticeFile(thumb.noticeFileSeq(), actorId);
         }
         if (!existingThumbs.isEmpty()) {
             schedulePhysicalCleanupAfterCommit(existingThumbs);
         }
-        storeNoticeFile(noticeSeq, thumbnailFile, THUMB, 0, actorId, writtenFiles);
+        storeNoticeFile(noticeSeq, thumbnailFile, BDFileStorageConstants.FILE_TYPE_THUMB, 0, actorId, writtenFiles);
     }
 
     private void validateAttachmentCount(int retainedCount, int newCount) {
@@ -392,16 +384,18 @@ public class BDNoticeService {
     private void storeNoticeFile(Long noticeSeq, MultipartFile file, String fileType, int sortOrder, String actorId, List<Path> writtenFiles) throws IOException {
         String originalFileName = sanitizeFileName(firstText(file.getOriginalFilename(), "notice"));
         String extension = fileExtension(originalFileName);
-        Set<String> allowed = THUMB.equals(fileType) ? THUMBNAIL_EXTENSIONS : ATTACHMENT_EXTENSIONS;
+        Set<String> allowed = BDFileStorageConstants.FILE_TYPE_THUMB.equals(fileType)
+                ? BDFileStorageConstants.IMAGE_EXTENSIONS
+                : BDFileStorageConstants.NOTICE_ATTACHMENT_EXTENSIONS;
         if (!allowed.contains(extension)) {
             throw new IllegalArgumentException("허용되지 않는 파일 형식입니다.");
         }
         String contentType = firstText(file.getContentType()).toLowerCase(Locale.ROOT);
-        if (THUMB.equals(fileType) && !contentType.startsWith("image/")) {
+        if (BDFileStorageConstants.FILE_TYPE_THUMB.equals(fileType) && !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("썸네일은 이미지 파일만 등록할 수 있습니다.");
         }
         String storedFileName = UUID.randomUUID().toString().replace("-", "") + "." + extension;
-        String storedPath = STORAGE_PATH_FORMATTER.format(LocalDate.now());
+        String storedPath = BDFileStorageConstants.STORAGE_PATH_FORMATTER.format(LocalDate.now());
         Path directory = rootPath.resolve(storedPath).normalize();
         Files.createDirectories(directory);
         Path target = directory.resolve(storedFileName);

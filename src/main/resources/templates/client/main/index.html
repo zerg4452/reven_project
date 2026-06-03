@@ -5,13 +5,20 @@
 <!-- screen: 사용자 메인 / purpose: 진행중인 설문과 신규 AI News를 안내하는 사용자 첫 화면 / created: 2026-05-26 -->
 <header th:replace="~{fragments/layout :: publicGnb('board')}"></header>
 <main class="public-content public-main">
+
+    <!-- 메인 히어로 시작 -->
     <section class="main-hero" aria-label="Reven 메인 이미지">
         <img th:src="@{/common/images/main-fontaine-hero.png}" alt="폰타인 실내를 배경으로 한 폰타인 캐릭터 일러스트">
     </section>
+    <!-- 메인 히어로 끝 -->
 
+    <!-- 기능 그리드 시작 -->
     <section class="main-feature-grid">
         <div class="content-panel no-pad main-list-panel">
-            <div class="panel-head"><h2>진행중인 설문</h2><a th:href="@{/surveys/list.do}">더보기</a></div>
+            <div class="panel-head">
+                <h2>진행중인 설문</h2>
+                <a th:href="@{/surveys/list.do}">더보기</a>
+            </div>
             <div class="main-card-list">
                 <a class="main-survey-card" th:each="survey : ${surveys}" th:href="@{/surveys/detail.do(surveyUid=${survey.surveyUid})}">
                     <span class="badge badge-success">접수중</span>
@@ -23,7 +30,10 @@
         </div>
 
         <div class="content-panel no-pad main-list-panel">
-            <div class="panel-head"><h2>AI News 신규 글</h2><a th:href="@{/board/ai-news/list.do}">더보기</a></div>
+            <div class="panel-head">
+                <h2>AI News 신규 글</h2>
+                <a th:href="@{/board/ai-news/list.do}">더보기</a>
+            </div>
             <div class="main-card-list">
                 <a class="main-news-card" th:each="news : ${newsList}" th:href="@{/board/ai-news/detail.do(newsSeq=${news.newsSeq})}">
                     <strong th:text="${news.title}">뉴스 제목</strong>
@@ -33,10 +43,14 @@
             </div>
         </div>
     </section>
+    <!-- 기능 그리드 끝 -->
 
+    <!-- 하단 일러스트 시작 -->
     <section class="main-pending-section" aria-label="추후 확장 예정 영역">
         <img th:src="@{/common/images/main-chiori-bottom.png}" alt="침대에 편안히 기대어 있는 치오리풍 일러스트">
     </section>
+    <!-- 하단 일러스트 끝 -->
+
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
