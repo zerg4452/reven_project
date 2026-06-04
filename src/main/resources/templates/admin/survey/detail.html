@@ -42,7 +42,7 @@
         <!-- 설문 폼 시작 -->
         <form class="form-stack survey-admin-form" method="post" th:action="${survey?.surveySeq} != null ? @{/admin/surveys/update.do(surveyUid=${survey.surveyUid})} : @{/admin/surveys/insert.do}">
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-            <input type="hidden" name="surveyUid" th:value="${survey?.surveyUid}">
+            <input type="hidden" name="surveyUid" th:value="${survey?.surveyUid}" th:if="${survey?.surveySeq == null}">
 
             <!-- 설문 기본 정보 시작 -->
             <section class="content-panel">

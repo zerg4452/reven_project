@@ -11,6 +11,17 @@ public record BDNoticeAdminSearchRequestDto(
 
 
         @Schema(description = "게시일 검색 종료일", example = "2026-05-31")
-        LocalDate endDate
+        LocalDate endDate,
+
+
+        @Schema(description = "페이지 번호", example = "1")
+        int page,
+
+
+        @Schema(description = "페이지 크기", example = "10")
+        int size
 ) {
+    public int offset() {
+        return (page - 1) * size;
+    }
 }

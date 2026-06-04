@@ -1,6 +1,7 @@
 // 공지사항 등록/조회/파일/조회수 처리를 담당하는 서비스
 package com.reven.project.service.bd;
 
+import com.reven.project.service.bd.dto.BDNoticeAdminPageResponseDto;
 import com.reven.project.service.bd.dto.BDNoticeAdminSearchRequestDto;
 import com.reven.project.service.bd.dto.BDNoticeDetailResponseDto;
 import com.reven.project.service.bd.dto.BDNoticeFileResponseDto;
@@ -64,10 +65,22 @@ public class BDNoticeService {
     }
 
     /**
-     * 관리자 공지사항 목록을 조회한다.
+     * 관리자 공지사항 목록을 페이징 조회한다.
      */
-    public List<BDNoticeListItemResponseDto> findNotices(BDNoticeAdminSearchRequestDto search) {
-        return noticeMapper.selectNoticeList(normalizeAdminSearch(search));
+    public BDNoticeAdminPageResponseDto searchAdminNotices(BDNoticeAdminSearchRequestDto search) {
+        BDNoticeAdminSearchRequestDto normalized = normalizeAdminSearch(search);
+        int totalCount = noticeMapper.selectNoticeCount(normalized);
+        int totalPages = totalCount == 0 ? 0 : (int) Math.ceil((double) totalCount / normalized.size());
+        if (totalPages > 0 && normalized.page() > totalPages) {
+            normalized = new BDNoticeAdminSearchRequestDto(
+                    normalized.startDate(),
+                    normalized.endDate(),
+                    totalPages,
+                    normalized.size()
+            );
+        }
+        List<BDNoticeListItemResponseDto> notices = noticeMapper.selectNoticeList(normalized);
+        return new BDNoticeAdminPageResponseDto(normalized, notices, totalCount, totalPages);
     }
 
     /**
@@ -132,6 +145,9 @@ public class BDNoticeService {
                 .toList();
         int totalCount = noticeMapper.selectPublicNoticeCount(normalized);
         int totalPages = totalCount == 0 ? 0 : (int) Math.ceil((double) totalCount / normalized.size());
+        if (totalPages > 0 && normalized.page() > totalPages) {
+            normalized = new BDNoticePublicSearchRequestDto(normalized.keyword(), totalPages, normalized.size());
+        }
         List<BDNoticePublicListItemResponseDto> notices = noticeMapper.selectPublicNoticeList(normalized).stream()
                 .map(this::withPublicThumbnailUrl)
                 .toList();
@@ -296,11 +312,13 @@ public class BDNoticeService {
 
     private BDNoticeAdminSearchRequestDto normalizeAdminSearch(BDNoticeAdminSearchRequestDto search) {
         BDNoticeAdminSearchRequestDto request = search == null
-                ? new BDNoticeAdminSearchRequestDto(null, null)
+                ? new BDNoticeAdminSearchRequestDto(null, null, 1, 10)
                 : search;
         LocalDate endDate = request.endDate() == null ? LocalDate.now().plusDays(1) : request.endDate();
         LocalDate startDate = request.startDate() == null ? LocalDate.now().minusDays(60) : request.startDate();
-        return new BDNoticeAdminSearchRequestDto(startDate, endDate);
+        int page = request.page() < 1 ? 1 : request.page();
+        int size = request.size() < 1 ? 10 : request.size();
+        return new BDNoticeAdminSearchRequestDto(startDate, endDate, page, size);
     }
 
     private BDNoticeSaveRequestDto normalize(BDNoticeSaveRequestDto requestDto) {

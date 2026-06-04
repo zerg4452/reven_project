@@ -18,6 +18,9 @@ public interface BDNoticeMapper {
     /** 관리자 공지사항 목록을 조회한다. */
     List<BDNoticeListItemResponseDto> selectNoticeList(BDNoticeAdminSearchRequestDto search);
 
+    /** 관리자 공지사항 목록 건수를 조회한다. */
+    int selectNoticeCount(BDNoticeAdminSearchRequestDto search);
+
     /** 공지사항 단건 상세를 조회한다. */
     BDNoticeDetailResponseDto selectNoticeDetail(@Param("noticeSeq") Long noticeSeq);
 

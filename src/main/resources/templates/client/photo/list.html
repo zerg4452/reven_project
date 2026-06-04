@@ -56,14 +56,45 @@
     <!-- 리스트 끝 -->
 
     <!-- 페이지네이션 시작 -->
-    <nav class="detail-action-bar" th:if="${page != null and page.totalPages() > 1}" aria-label="포토 게시판 페이지">
+    <nav class="public-pagination" th:if="${page != null and page.totalPages() > 1}" aria-label="포토 게시판 페이지">
         <a class="btn btn-neutral btn-sm"
-           th:if="${page.hasPrevious()}"
-           th:href="@{/board/photo/list.do(keyword=${page.search().keyword()},imageOnly=${page.search().imageOnly()},videoOnly=${page.search().videoOnly()},page=${page.previousPage()})}">이전</a>
-        <span th:text="|${page.search().page()} / ${page.totalPages()}|">1 / 1</span>
+           th:if="${page.hasPreviousGroup()}"
+           th:href="@{/board/photo/list.do(keyword=${page.search().keyword()},imageOnly=${page.search().imageOnly()},videoOnly=${page.search().videoOnly()},page=${page.firstPage()})}">&lt;&lt;</a>
+        <span class="btn btn-neutral btn-sm is-disabled"
+              th:unless="${page.hasPreviousGroup()}"
+              aria-disabled="true">&lt;&lt;</span>
+
         <a class="btn btn-neutral btn-sm"
-           th:if="${page.hasNext()}"
-           th:href="@{/board/photo/list.do(keyword=${page.search().keyword()},imageOnly=${page.search().imageOnly()},videoOnly=${page.search().videoOnly()},page=${page.nextPage()})}">다음</a>
+           th:if="${page.hasPreviousGroup()}"
+           th:href="@{/board/photo/list.do(keyword=${page.search().keyword()},imageOnly=${page.search().imageOnly()},videoOnly=${page.search().videoOnly()},page=${page.previousGroupPage()})}">&lt;</a>
+        <span class="btn btn-neutral btn-sm is-disabled"
+              th:unless="${page.hasPreviousGroup()}"
+              aria-disabled="true">&lt;</span>
+
+        <th:block th:each="pageNo : ${page.pageNumbers()}">
+            <a class="btn btn-neutral btn-sm"
+               th:if="${pageNo != page.currentPage()}"
+               th:href="@{/board/photo/list.do(keyword=${page.search().keyword()},imageOnly=${page.search().imageOnly()},videoOnly=${page.search().videoOnly()},page=${pageNo})}"
+               th:text="${pageNo}">1</a>
+            <span class="btn btn-register btn-sm"
+                  th:if="${pageNo == page.currentPage()}"
+                  aria-current="page"
+                  th:text="${pageNo}">1</span>
+        </th:block>
+
+        <a class="btn btn-neutral btn-sm"
+           th:if="${page.hasNextGroup()}"
+           th:href="@{/board/photo/list.do(keyword=${page.search().keyword()},imageOnly=${page.search().imageOnly()},videoOnly=${page.search().videoOnly()},page=${page.nextGroupPage()})}">&gt;</a>
+        <span class="btn btn-neutral btn-sm is-disabled"
+              th:unless="${page.hasNextGroup()}"
+              aria-disabled="true">&gt;</span>
+
+        <a class="btn btn-neutral btn-sm"
+           th:if="${page.hasNextGroup()}"
+           th:href="@{/board/photo/list.do(keyword=${page.search().keyword()},imageOnly=${page.search().imageOnly()},videoOnly=${page.search().videoOnly()},page=${page.lastPage()})}">&gt;&gt;</a>
+        <span class="btn btn-neutral btn-sm is-disabled"
+              th:unless="${page.hasNextGroup()}"
+              aria-disabled="true">&gt;&gt;</span>
     </nav>
     <!-- 페이지네이션 끝 -->
 

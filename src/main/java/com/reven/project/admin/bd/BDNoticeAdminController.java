@@ -48,15 +48,15 @@ public class BDNoticeAdminController {
     public String list(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(defaultValue = "1") int page,
             Model model
     ) {
-        var searchRequest = new BDNoticeAdminSearchRequestDto(dateFrom, dateTo);
-        var normalizedSearch = noticeService.normalizedAdminSearch(searchRequest);
-        var noticeList = noticeService.findNotices(searchRequest);
-        model.addAttribute("noticeList", noticeList);
-        model.addAttribute("totalCount", noticeList.size());
-        model.addAttribute("dateFrom", normalizedSearch.startDate());
-        model.addAttribute("dateTo", normalizedSearch.endDate());
+        var pageResult = noticeService.searchAdminNotices(new BDNoticeAdminSearchRequestDto(dateFrom, dateTo, page, 10));
+        model.addAttribute("page", pageResult);
+        model.addAttribute("noticeList", pageResult.notices());
+        model.addAttribute("totalCount", pageResult.totalCount());
+        model.addAttribute("dateFrom", pageResult.search().startDate());
+        model.addAttribute("dateTo", pageResult.search().endDate());
         return "admin/notice/list";
     }
 
@@ -64,7 +64,17 @@ public class BDNoticeAdminController {
      * 공지사항 등록/수정 화면을 표시한다.
      */
     @GetMapping("/write.do")
-    public String writeForm(@RequestParam(required = false) Long noticeSeq, Model model) {
+    public String writeForm(
+            @RequestParam(required = false) Long noticeSeq,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(defaultValue = "1") int page,
+            Model model
+    ) {
+        var listContext = noticeService.normalizedAdminSearch(new BDNoticeAdminSearchRequestDto(dateFrom, dateTo, page, 10));
+        model.addAttribute("listDateFrom", listContext.startDate());
+        model.addAttribute("listDateTo", listContext.endDate());
+        model.addAttribute("listPage", listContext.page());
         if (noticeSeq != null) {
             var notice = noticeService.findNotice(noticeSeq);
             if (notice == null) {

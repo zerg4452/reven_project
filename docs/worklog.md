@@ -111,3 +111,16 @@
 - 설문 P5 미리보기 화면을 구현했다. 저장된 관리자 설문 상세에서 새 창 미리보기 버튼을 제공하고, 공개 설문 폼을 재사용하되 `previewMode`에서 안내 표시, 제출 버튼 제거, form submit 차단, 제출자·문항 입력 비활성화를 적용했다. 잘못된 `surveyUid`는 관리자 설문 목록으로 돌려보내고 비정상 접근 알림을 표시한다. `SAAdminSurveyControllerTest`, `SASurveyPreviewViewTest`를 추가했고 `./gradlew test`를 통과했다.
 - 관리자 전 화면 레이아웃 깨짐을 수정했다. `layouts/admin.html`의 `layout:fragment="content"`가 `<main class="admin-content">`에 직접 붙어 있어 페이지의 `<th:block layout:fragment="content">`가 main wrapper를 통째로 대체하고, 본문 노드가 `.admin-shell` grid 직속 자식으로 흩어졌다. layout 쪽은 `<main>` 안에 `<th:block layout:fragment="content">`를 두도록 바꿨고, `AdminLayoutRenderIntegrationTest`에 main wrapper 검증을 추가했다. IDE 기동 실패를 유발하던 중복 `COThymeleafLayoutConfig`는 제거했다(Spring Boot auto-config 사용).
 - 설문 P6 검색 강화를 구현했다. `LenientLocalDateEditor`로 잘못된 날짜 바인딩을 null로 흡수하고, 설문 관리·이력 컨트롤러에서 날짜·keywordType·useYn·statuses를 허용값 기준으로 보정한다. 설문 관리 목록에 사용여부 select를 추가했고, 컨트롤러·이력 회귀 테스트를 추가한 뒤 `./gradlew test`를 통과했다.
+
+## 2026-06-04
+
+- 관리자 설문 상세 저장 오류를 고쳤다. 수정 화면에서 `surveyUid`가 action query param과 hidden input으로 중복 전송되던 것을, 기존 설문일 때는 hidden input을 렌더링하지 않도록 바꿔서 정리했다.
+- `SASurveyPreviewViewTest`에 템플릿 회귀를 추가해 `surveyUid` hidden input이 신규 설문에서만 렌더링되는지 확인했다.
+- 8081 임시 서버에서 실제 저장 후 `/admin/surveys/list.do`로 302 리다이렉트되는 흐름을 브라우저로 확인했다.
+
+## 2026-06-05
+
+- 사용자 게시판 공지사항과 포토 게시판의 페이징을 `<< < 1..10 > >>` 형태의 그룹 단위 네비게이션으로 바꿨다. 페이지 DTO에 10개 묶음 계산과 그룹 이동 메서드를 추가하고, 두 공개 목록 템플릿은 첫/이전/다음/마지막과 현재 페이지 강조를 렌더링하도록 정리했다.
+- `BDPublicPaginationTest`와 `BDPublicPaginationViewTest`를 추가해 페이지 묶음 계산과 템플릿 마크업을 회귀로 고정했다.
+- 8081 임시 서버의 공지사항 목록을 브라우저에서 확인해 `<< < 1 2 3 4 5 6 7 > >>` 형태로 렌더되고, 첫/이전/다음/마지막 화살표는 현재 데이터에서는 비활성 상태로 표시되는 것을 검증했다.
+- 관리자 공지사항 목록에 페이징(10건/페이지)과 목록 복귀 시 검색·페이지 유지를 추가했다. `페이징테스트-01`~`34` 데이터로 4페이지·검색+상세+목록 복귀 흐름을 브라우저·HTTP로 검증했다.

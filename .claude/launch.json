@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Spring Boot (local)",
+      "runtimeExecutable": "java",
+      "runtimeArgs": ["-jar", "/Users/kims/Documents/reven_project/build/libs/reven-project-0.0.1-SNAPSHOT.jar", "--spring.profiles.active=local"],
+      "port": 8080,
+      "autoPort": false
+    }
+  ]
+}

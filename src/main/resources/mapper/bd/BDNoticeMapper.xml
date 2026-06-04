@@ -61,6 +61,19 @@
           and date(publish_dtm) &lt;= #{endDate}
         </if>
         order by pin_yn desc, publish_dtm desc, notice_seq desc
+        limit #{size} offset #{offset}
+    </select>
+
+    <select id="selectNoticeCount" resultType="int">
+        select count(*)
+        from bd_notice_mst
+        where delete_flg = 'N'
+        <if test="startDate != null">
+          and date(publish_dtm) &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+          and date(publish_dtm) &lt;= #{endDate}
+        </if>
     </select>
 
     <select id="selectNoticeDetail" resultType="com.reven.project.service.bd.dto.BDNoticeDetailResponseDto">

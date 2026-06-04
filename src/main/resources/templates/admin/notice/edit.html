@@ -118,7 +118,8 @@
                 <div class="notice-file-grid" data-notice-new-list></div>
             </section>
             <div class="detail-action-bar">
-                <a class="btn btn-neutral" th:href="@{/admin/board/notice/list.do}">목록</a>
+                <a class="btn btn-neutral"
+                   th:href="@{/admin/board/notice/list.do(dateFrom=${listDateFrom}, dateTo=${listDateTo}, page=${listPage})}">목록</a>
                 <div>
                     <button class="btn btn-delete" type="submit" th:if="${notice?.noticeSeq != null}"
                             th:formaction="@{/admin/board/notice/delete.do(noticeSeq=${notice.noticeSeq})}"

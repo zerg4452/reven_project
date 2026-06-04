@@ -76,12 +76,13 @@
                     </thead>
                     <tbody>
                     <tr th:each="notice, stat : ${noticeList}" th:classappend="${notice.pinned()} ? ' notice-row-pinned'">
-                        <td th:text="${stat.count}">1</td>
+                        <td th:text="${(page.search().page() - 1) * page.search().size() + stat.count}">1</td>
                         <td>
                             <span class="badge badge-warning" th:if="${notice.pinned()}">고정</span>
                         </td>
                         <td>
-                            <a th:href="@{/admin/board/notice/write.do(noticeSeq=${notice.noticeSeq})}" th:text="${notice.title}">제목</a>
+                            <a th:href="@{/admin/board/notice/write.do(noticeSeq=${notice.noticeSeq}, dateFrom=${dateFrom}, dateTo=${dateTo}, page=${page.search().page()})}"
+                               th:text="${notice.title}">제목</a>
                         </td>
                         <td th:text="${notice.publishDate}">2026-05-31</td>
                         <td>
@@ -98,6 +99,18 @@
             </div>
         </section>
         <!-- 리스트 끝 -->
+
+        <!-- 페이징 시작 -->
+        <nav class="detail-action-bar" th:if="${page != null and page.totalPages() > 1}" aria-label="공지사항 페이지">
+            <a class="btn btn-neutral btn-sm"
+               th:if="${page.hasPrevious()}"
+               th:href="@{/admin/board/notice/list.do(dateFrom=${dateFrom}, dateTo=${dateTo}, page=${page.previousPage()})}">이전</a>
+            <span th:text="|${page.search().page()} / ${page.totalPages()}|">1 / 1</span>
+            <a class="btn btn-neutral btn-sm"
+               th:if="${page.hasNext()}"
+               th:href="@{/admin/board/notice/list.do(dateFrom=${dateFrom}, dateTo=${dateTo}, page=${page.nextPage()})}">다음</a>
+        </nav>
+        <!-- 페이징 끝 -->
 
 
 </th:block>

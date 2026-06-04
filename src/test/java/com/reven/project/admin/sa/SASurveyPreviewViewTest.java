@@ -23,6 +23,14 @@ class SASurveyPreviewViewTest {
     }
 
     @Test
+    void detailTemplateSendsSurveyUidOnlyForNewSurvey() throws IOException {
+        String html = readClasspath("/templates/admin/survey/detail.html");
+
+        assertThat(html).contains("th:if=\"${survey?.surveySeq == null}\"");
+        assertThat(html.indexOf("name=\"surveyUid\"")).isEqualTo(html.lastIndexOf("name=\"surveyUid\""));
+    }
+
+    @Test
     void publicSurveyFormBlocksSubmitInPreviewMode() throws IOException {
         String html = readClasspath("/templates/client/survey/form.html");
 

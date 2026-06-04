@@ -150,7 +150,7 @@ public class SAAdminSurveyController {
         surveyUid = isNewSurvey ? null : surveyUid;
         validateSurveyOptions(request, bindingResult);
         if (bindingResult.hasErrors()) {
-            model.addAttribute("survey", isNewSurvey ? surveyService.newSurveyForm() : surveyService.findSurvey(surveyUid));
+            model.addAttribute("survey", requestToDetail(surveyUid, request));
             model.addAttribute("errors", collectFieldErrors(bindingResult));
             return "admin/survey/detail";
         }
@@ -183,6 +183,45 @@ public class SAAdminSurveyController {
                 bindingResult.rejectValue("fields[" + index + "].options", "survey.option.required", "객관식 문항에는 보기를 1개 이상 입력해야 합니다.");
             }
         }
+    }
+
+    /** 제출된 SurveySaveRequest를 SurveyDetail로 변환해 검증 실패 시 입력값을 화면에 보존한다. */
+    private SASurveyDto.SurveyDetail requestToDetail(String surveyUid, SASurveyDto.SurveySaveRequest request) {
+        SASurveyDto.SurveyDetail detail = new SASurveyDto.SurveyDetail();
+        detail.surveyUid = surveyUid;
+        detail.title = request.title;
+        detail.description = request.description;
+        detail.useYn = request.useYn;
+
+        List<SASurveyDto.SurveyField> fields = new ArrayList<>();
+        if (request.fields != null) {
+            for (int i = 0; i < request.fields.size(); i++) {
+                SASurveyDto.SurveyFieldSaveRequest src = request.fields.get(i);
+                SASurveyDto.SurveyField field = new SASurveyDto.SurveyField();
+                field.fieldSeq = src.fieldSeq;
+                field.fieldKey = src.fieldKey;
+                field.label = src.label;
+                field.surveyType = src.surveyType;
+                field.fieldType = src.fieldType;
+                field.requiredYn = src.requiredYn;
+                field.sortOrd = i;
+
+                List<SASurveyDto.SurveyOption> options = new ArrayList<>();
+                for (SASurveyDto.SurveyOptionSaveRequest opt : src.normalizedOptions()) {
+                    SASurveyDto.SurveyOption o = new SASurveyDto.SurveyOption();
+                    o.optionSeq = opt.optionSeq;
+                    o.optionLabel = opt.optionLabel;
+                    o.optionValue = opt.optionValue;
+                    o.sortOrd = opt.sortOrd;
+                    options.add(o);
+                }
+                field.options = options;
+                fields.add(field);
+            }
+        }
+        detail.fields = fields;
+
+        return detail;
     }
 
     private Map<String, String> collectFieldErrors(BindingResult bindingResult) {

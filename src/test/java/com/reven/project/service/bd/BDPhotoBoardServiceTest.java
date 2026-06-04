@@ -80,6 +80,50 @@ class BDPhotoBoardServiceTest {
     }
 
     @Test
+    void searchPublicPhotoBoardsClampsPageBeyondLastPage() {
+        BDPhotoBoardMapper mapper = mock(BDPhotoBoardMapper.class);
+        BDPhotoBoardPublicListItemResponseDto item = new BDPhotoBoardPublicListItemResponseDto(
+                1L,
+                "봄 행사",
+                LocalDate.of(2026, 5, 30),
+                10L,
+                "image/png",
+                null,
+                true,
+                false
+        );
+        when(mapper.selectPublicPhotoBoardCount(any(BDPhotoBoardPublicSearchRequestDto.class))).thenReturn(10);
+        when(mapper.selectPublicPhotoBoardList(any(BDPhotoBoardPublicSearchRequestDto.class))).thenReturn(List.of(item));
+
+        BDPhotoBoardService service = newService(mapper);
+
+        BDPhotoBoardPublicPageResponseDto page = service.searchPublicPhotoBoards(
+                new BDPhotoBoardPublicSearchRequestDto("  봄  ", true, false, 99, 100)
+        );
+
+        ArgumentCaptor<BDPhotoBoardPublicSearchRequestDto> searchCaptor =
+                ArgumentCaptor.forClass(BDPhotoBoardPublicSearchRequestDto.class);
+        verify(mapper).selectPublicPhotoBoardCount(searchCaptor.capture());
+        verify(mapper).selectPublicPhotoBoardList(searchCaptor.capture());
+        assertThat(searchCaptor.getAllValues()).hasSize(2);
+        assertThat(searchCaptor.getAllValues().get(0).keyword()).isEqualTo("봄");
+        assertThat(searchCaptor.getAllValues().get(0).page()).isEqualTo(99);
+        assertThat(searchCaptor.getAllValues().get(0).size()).isEqualTo(9);
+        assertThat(searchCaptor.getAllValues().get(0).offset()).isEqualTo(882);
+        assertThat(searchCaptor.getAllValues().get(0).imageOnly()).isTrue();
+        assertThat(searchCaptor.getAllValues().get(0).videoOnly()).isFalse();
+        assertThat(searchCaptor.getAllValues().get(1).keyword()).isEqualTo("봄");
+        assertThat(searchCaptor.getAllValues().get(1).page()).isEqualTo(2);
+        assertThat(searchCaptor.getAllValues().get(1).size()).isEqualTo(9);
+        assertThat(searchCaptor.getAllValues().get(1).offset()).isEqualTo(9);
+        assertThat(searchCaptor.getAllValues().get(1).imageOnly()).isTrue();
+        assertThat(searchCaptor.getAllValues().get(1).videoOnly()).isFalse();
+        assertThat(page.search().page()).isEqualTo(2);
+        assertThat(page.totalPages()).isEqualTo(2);
+        assertThat(page.pageNumbers()).containsExactly(1, 2);
+    }
+
+    @Test
     void findPublicPhotoBoardReturnsMapperPublicDetail() {
         BDPhotoBoardMapper mapper = mock(BDPhotoBoardMapper.class);
         BDPhotoBoardDetailResponseDto detail = detail(1L, "공개 포토");

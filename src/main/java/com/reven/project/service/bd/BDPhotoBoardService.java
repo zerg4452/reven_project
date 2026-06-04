@@ -113,6 +113,15 @@ public class BDPhotoBoardService {
                 : search.normalized();
         int totalCount = photoBoardMapper.selectPublicPhotoBoardCount(normalized);
         int totalPages = totalCount == 0 ? 0 : (int) Math.ceil((double) totalCount / normalized.size());
+        if (totalPages > 0 && normalized.page() > totalPages) {
+            normalized = new BDPhotoBoardPublicSearchRequestDto(
+                    normalized.keyword(),
+                    normalized.imageOnly(),
+                    normalized.videoOnly(),
+                    totalPages,
+                    normalized.size()
+            );
+        }
         List<BDPhotoBoardPublicListItemResponseDto> photos = photoBoardMapper.selectPublicPhotoBoardList(normalized)
                 .stream()
                 .map(this::withThumbnailUrl)
