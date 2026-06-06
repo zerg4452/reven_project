@@ -191,3 +191,19 @@
 - `/admin/surveys/copy.do`는 `surveyUid`가 빠져도 400으로 끝나지 않게 하고, null/blank를 비정상 접근 알림 후 목록 이동으로 처리한다.
 - 설문 목록의 `관리` 컬럼은 프로젝트 규칙의 목록 컬럼과 형식상 차이가 있지만, 기능 이상은 아니고 복사 버튼 노출 요구를 만족하는 UI라 이번 수정 범위에서는 유지한다.
 - 최신 focused 검증은 `SASurveySubmitServiceTest`, `SAAdminSurveyControllerTest`, `SASurveyServiceTest`, `SASurveyCopyViewTest`로 통과했다.
+
+## 2026-06-07 설문 P8 리뷰 수정
+
+- P8 통계 집계는 현재 설문 정의의 `field_seq`와 현재 보기 테이블을 기준으로 하면 안 된다.
+- 현재 설문 저장 정책은 수정 시 문항과 보기를 삭제 후 재생성하므로, 과거 제출 답변의 `field_seq`와 현재 문항의 `field_seq`가 달라질 수 있다.
+- 통계 문항은 제출 당시 답변 스냅샷의 `field_key_snapshot`, `field_label_snapshot`, `field_type_snapshot`, `answer_value`, `answer_json`, `sort_ord`를 기준으로 만든다.
+- 구현은 현재 문항을 0건 보기 표시용으로 먼저 넣고, 제출 스냅샷에만 남은 삭제 문항은 `selectStatisticFields` 결과로 추가 병합한다.
+- 문항별 객관식 빈도는 `fieldSeq` 대신 `fieldKey`로 `selectObjectiveOptionFrequencies`를 조회한다.
+- 문항별 주관식 최근 답변은 `fieldSeq` 대신 `fieldKey`로 `selectRecentTextAnswers`를 조회한다.
+- 체크박스 라벨에 쉼표가 들어가는 경우는 `answer_json`을 SQL에서 펼쳐 집계하므로 더 이상 `answer_value` 쉼표 분해에 의존하지 않는다.
+- P9의 더 자세한 보기 스냅샷 저장 전까지는 현재 보기 매핑에 없는 과거 값이 JSON raw 값으로 표시될 수 있다.
+- 회귀 테스트는 설문 수정 후 `fieldSeq`가 달라져도 과거 객관식 답변이 남는 경우, 삭제된 문항 스냅샷 유지, 체크박스 JSON 값 라벨 매핑, 주관식 최근 답변 20건 제한, 통계 화면 빈 상태를 다룬다.
+- MyBatis 통합 테스트는 실제 `sa_survey_submit_mst`, `sa_survey_answer_dtl` row를 넣고 `selectStatisticFields`, `selectObjectiveOptionFrequencies`, `selectRecentTextAnswers`가 `field_key_snapshot` 기준으로 읽는지 검증한다.
+- 추가 리뷰에서 체크박스 `answer_value` 쉼표 분해가 콤마 포함 보기 라벨을 오집계할 수 있음을 확인했다.
+- 체크박스 통계는 `answer_json` 배열 값을 SQL에서 펼쳐 집계하고, 서비스에서 현재 보기 `optionValue -> optionLabel` 매핑으로 표시 라벨을 복원한다. 매핑이 없으면 JSON 값을 그대로 표시한다.
+- 객관식 빈도는 SQL `group by`, 주관식 최근 답변은 SQL `limit 20`으로 처리해 대량 제출 설문에서 문항별 전건을 Java 메모리에 적재하지 않게 한다.

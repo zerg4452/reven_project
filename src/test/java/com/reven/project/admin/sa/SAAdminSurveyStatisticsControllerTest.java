@@ -8,8 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -72,5 +75,14 @@ class SAAdminSurveyStatisticsControllerTest {
                 .andExpect(status().is3xxRedirection());
 
         verifyNoInteractions(statsService);
+    }
+
+    @Test
+    void statisticsTemplateHasEmptyFieldStatisticsMessage() throws Exception {
+        String template = Files.readString(Path.of("src/main/resources/templates/admin/survey/statistics.html"));
+
+        assertThat(template)
+                .contains("th:if=\"${#lists.isEmpty(stats.fieldStatistics)}\"")
+                .contains("통계를 표시할 문항이 없습니다.");
     }
 }

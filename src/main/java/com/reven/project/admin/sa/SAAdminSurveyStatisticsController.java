@@ -18,18 +18,14 @@ public class SAAdminSurveyStatisticsController {
     private final SASurveyStatisticsService statisticsService;
     private final ObjectMapper objectMapper;
 
-    public SAAdminSurveyStatisticsController(SASurveyService surveyService,
-                                              SASurveyStatisticsService statisticsService,
-                                              ObjectMapper objectMapper) {
+    public SAAdminSurveyStatisticsController(SASurveyService surveyService, SASurveyStatisticsService statisticsService, ObjectMapper objectMapper) {
         this.surveyService = surveyService;
         this.statisticsService = statisticsService;
         this.objectMapper = objectMapper;
     }
 
     @GetMapping("/admin/surveys/{surveyUid}/statistics.do")
-    public String statistics(@PathVariable String surveyUid,
-                             Model model,
-                             RedirectAttributes redirectAttributes) {
+    public String statistics(@PathVariable String surveyUid, Model model, RedirectAttributes redirectAttributes) {
         SASurveyDto.SurveyDetail survey;
         try {
             survey = surveyService.findSurvey(surveyUid);

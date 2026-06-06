@@ -460,6 +460,7 @@ public final class SASurveyDto {
         public String fieldLabel;
         public String surveyType;
         public String fieldType;
+        public int sortOrd;
         public List<OptionFrequency> optionFrequencies = new ArrayList<>();
         public List<String> recentTextAnswers = new ArrayList<>();
     }

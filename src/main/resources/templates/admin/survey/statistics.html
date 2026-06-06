@@ -46,6 +46,10 @@
     <!-- 일자별 추이 끝 -->
 
     <!-- 문항별 통계 시작 -->
+    <section th:if="${#lists.isEmpty(stats.fieldStatistics)}" class="content-panel">
+        <p class="empty">통계를 표시할 문항이 없습니다.</p>
+    </section>
+
     <th:block th:each="field, stat : ${stats.fieldStatistics}">
         <section class="content-panel">
             <div class="panel-head">

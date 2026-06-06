@@ -129,3 +129,10 @@
 ## 2026-06-06
 
 - 설문 P7 리뷰를 반영했다. 복사 기능과 무관한 공개 제출 이메일 형식 검증 변경을 제거했고, `/admin/surveys/copy.do`에서 `surveyUid`가 빠진 요청도 비정상 접근 알림 후 목록으로 이동하도록 보정했다. `관리` 컬럼은 기능 이상이 아니고 복사 버튼 노출 요구에 맞아 유지했다. focused Gradle 테스트는 `BUILD SUCCESSFUL`을 확인했다.
+
+## 2026-06-07
+
+- 설문 P8 통계 리뷰 지적을 반영했다. 문항별 통계를 현재 설문 정의의 `field_seq`와 현재 보기 테이블 기준으로 집계하던 방식에서, 제출 답변 스냅샷의 `field_key_snapshot` 기준으로 조회하고 서비스에서 표시용 통계를 조립하는 방식으로 바꿨다. 현재 문항은 0건 보기 표시용으로 유지하고, 제출 스냅샷에만 남은 삭제 문항도 통계에 포함되도록 병합한다.
+- 객관식 빈도는 SQL `group by`로 집계하고, 체크박스 응답은 `answer_json` 배열 값을 SQL에서 펼쳐 집계한다. 서비스는 현재 보기의 `optionValue -> optionLabel` 매핑으로 표시 라벨을 복원하고, 매핑이 없는 과거 값은 JSON 값을 그대로 표시한다.
+- 주관식 최근 답변은 SQL `limit 20`으로 제한해 대량 제출 설문에서 문항별 전건을 Java 메모리에 적재하지 않도록 보강했다.
+- 통계 화면의 문항 없음 빈 상태와 컨트롤러 생성자 레이아웃 지적을 수정했다. `SASurveyStatisticsServiceTest`는 설문 수정 후 `fieldSeq`가 바뀌어도 과거 응답이 남는 경우, 삭제된 문항 스냅샷, 체크박스 JSON 값 라벨 매핑, 주관식 최근 답변 제한을 검증하도록 보강했다. `SASurveyStatisticsMapperIntegrationTest`는 실제 제출/답변 row를 넣어 MyBatis 스냅샷 조회와 체크박스 `answer_json` 집계를 검증한다. `SAAdminSurveyStatisticsControllerTest`는 빈 문항 메시지 템플릿 회귀를 추가했다. focused 테스트와 `./gradlew test` 모두 `BUILD SUCCESSFUL`을 확인했다.

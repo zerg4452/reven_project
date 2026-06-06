@@ -182,6 +182,15 @@
         <result property="count"         column="cnt"/>
     </resultMap>
 
+    <resultMap id="FieldStatisticsMap" type="com.reven.project.service.sa.dto.SASurveyDto$FieldStatistics">
+        <result property="fieldSeq"    column="field_seq"/>
+        <result property="fieldKey"    column="field_key"/>
+        <result property="fieldLabel"  column="field_label"/>
+        <result property="surveyType"  column="survey_type"/>
+        <result property="fieldType"   column="field_type"/>
+        <result property="sortOrd"     column="sort_ord"/>
+    </resultMap>
+
     <resultMap id="OptionFrequencyMap" type="com.reven.project.service.sa.dto.SASurveyDto$OptionFrequency">
         <result property="optionLabel" column="option_label"/>
         <result property="count"       column="cnt"/>
@@ -225,34 +234,69 @@
         order by ds.d
     </select>
 
-    <select id="selectOptionFrequencies" resultMap="OptionFrequencyMap">
-        select o.option_label,
-               count(a.answer_seq) as cnt
-        from sa_survey_field_opt_dtl o
-        left join sa_survey_answer_dtl a
-               on a.field_seq = o.field_seq
-              and (
-                      (a.answer_json is null     and a.answer_value = o.option_label)
-                   or (a.answer_json is not null and json_contains(a.answer_json, json_quote(o.option_value)))
-              )
-              and a.submit_seq in (
-                  select submit_seq
-                  from sa_survey_submit_mst
-                  where survey_seq = #{surveySeq}
-              )
-        where o.field_seq = #{fieldSeq}
-        group by o.option_label, o.sort_ord
-        order by o.sort_ord, o.field_opt_seq
+    <select id="selectStatisticFields" resultMap="FieldStatisticsMap">
+        select field_seq,
+               field_key,
+               field_label,
+               case
+                   when lower(field_type) in ('select', 'radio', 'checkbox') then 'objective'
+                   else 'subjective'
+               end as survey_type,
+               field_type,
+               sort_ord
+        from (
+            select null as field_seq,
+                   a.field_key_snapshot as field_key,
+                   a.field_label_snapshot as field_label,
+                   a.field_type_snapshot as field_type,
+                   a.sort_ord,
+                   row_number() over (partition by a.field_key_snapshot order by sm.submitted_dtm desc, a.answer_seq desc) as rn
+            from sa_survey_answer_dtl a
+            join sa_survey_submit_mst sm on sm.submit_seq = a.submit_seq
+            where sm.survey_seq = #{surveySeq}
+        ) snapshot_fields
+        where rn = 1
+        order by sort_ord, field_key
+    </select>
+
+    <select id="selectObjectiveOptionFrequencies" resultMap="OptionFrequencyMap">
+        select option_label,
+               count(*) as cnt
+        from (
+            select convert(a.answer_value using utf8mb4) collate utf8mb4_unicode_ci as option_label,
+                   a.answer_seq
+            from sa_survey_answer_dtl a
+            join sa_survey_submit_mst sm on sm.submit_seq = a.submit_seq
+            where sm.survey_seq        = #{surveySeq}
+              and a.field_key_snapshot = #{fieldKey}
+              and (a.answer_json is null or a.answer_json = '')
+              and a.answer_value       is not null
+              and a.answer_value       != ''
+            union all
+            select convert(checkbox_values.option_value using utf8mb4) collate utf8mb4_unicode_ci as option_label,
+                   a.answer_seq
+            from sa_survey_answer_dtl a
+            join sa_survey_submit_mst sm on sm.submit_seq = a.submit_seq
+            join json_table(a.answer_json, '$[*]' columns (option_value varchar(500) path '$')) checkbox_values
+            where sm.survey_seq        = #{surveySeq}
+              and a.field_key_snapshot = #{fieldKey}
+              and a.answer_json        is not null
+              and a.answer_json        != ''
+        ) option_values
+        where option_label is not null
+          and option_label != ''
+        group by option_label
+        order by min(answer_seq), option_label
     </select>
 
     <select id="selectRecentTextAnswers" resultType="string">
         select a.answer_value
         from sa_survey_answer_dtl a
         join sa_survey_submit_mst sm on sm.submit_seq = a.submit_seq
-        where sm.survey_seq    = #{surveySeq}
-          and a.field_seq      = #{fieldSeq}
-          and a.answer_value   is not null
-          and a.answer_value   != ''
+        where sm.survey_seq          = #{surveySeq}
+          and a.field_key_snapshot   = #{fieldKey}
+          and a.answer_value         is not null
+          and a.answer_value         != ''
         order by sm.submitted_dtm desc, a.answer_seq desc
         limit 20
     </select>

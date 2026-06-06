@@ -127,10 +127,30 @@
 
 ---
 
+### 설문 P8: 응답 통계와 집계 화면 (전체 완료)
+
+**구현 완료 내용:**
+- 설문 관리 목록 행에 `통계` 링크 추가
+- `/admin/surveys/{surveyUid}/statistics.do` 통계 화면 추가
+- 상태별 제출 건수, 최근 60일 일자별 제출 추이, 객관식 보기별 빈도, 주관식 최근 답변 표시
+- 문항별 통계 집계를 현재 `field_seq`가 아니라 제출 답변 스냅샷의 `field_key_snapshot` 기준으로 보강
+- 설문 수정 후 문항/보기가 재생성되어도 과거 제출 응답이 통계에 남도록 수정
+- 체크박스 통계는 `answer_json` 배열 값을 SQL에서 펼쳐 집계해 쉼표 포함 보기 라벨도 안전하게 처리
+- 객관식 보기별 빈도는 SQL `group by`, 주관식 최근 답변은 SQL `limit 20`으로 처리
+- 문항 없는 설문의 빈 상태 메시지 추가
+
+**검증 결과:**
+- ✅ 서비스와 컨트롤러/템플릿 회귀 테스트 보강
+- ✅ `./gradlew test --tests 'com.reven.project.service.sa.SASurveyStatisticsMapperIntegrationTest'` BUILD SUCCESSFUL
+- ✅ `./gradlew test --tests 'com.reven.project.service.sa.SASurveyStatisticsServiceTest'` BUILD SUCCESSFUL
+- ✅ `./gradlew test --tests 'com.reven.project.admin.sa.SAAdminSurveyStatisticsControllerTest'` BUILD SUCCESSFUL
+- ✅ `./gradlew test` BUILD SUCCESSFUL
+
+---
+
 ## 앞으로 할 일 (우선순위 순)
 
 | 순위 | 항목 | 비고 |
 |------|------|------|
-| P8 | 응답 통계/집계 화면 | |
 | P9 | 제출 스냅샷 상세화 | |
 | P10 | 설문 기간 관리 | |
