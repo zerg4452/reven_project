@@ -85,6 +85,24 @@ public class SAAdminSurveyController {
     }
 
     /**
+     * 기존 설문을 복제해 신규 설문 등록 화면에 채워 보여준다.
+     */
+    @GetMapping("/copy.do")
+    public String copy(@RequestParam(required = false) String surveyUid, Model model, RedirectAttributes redirectAttributes) {
+        if (surveyUid == null || surveyUid.isBlank()) {
+            redirectAttributes.addFlashAttribute("surveySavedMessage", "비정상적인 접근입니다.");
+            return "redirect:/admin/surveys/list.do";
+        }
+        try {
+            model.addAttribute("survey", surveyService.copySurveyForm(surveyUid));
+            return "admin/survey/detail";
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("surveySavedMessage", "비정상적인 접근입니다.");
+            return "redirect:/admin/surveys/list.do";
+        }
+    }
+
+    /**
      * 저장된 설문을 사용자 화면 형태로 미리 본다.
      */
     @GetMapping("/preview.do")

@@ -13,15 +13,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
 public class SASurveySubmitService {
     private static final Set<String> ALLOWED_STATUSES =
             Set.of("new", "reviewing", "contacted", "done", "hold");
-    private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
 
     private final SASurveyService surveyService;
     private final SASurveySubmitMapper submitMapper;
@@ -134,13 +131,6 @@ public class SASurveySubmitService {
             List<String> values = answersByFieldKey.getOrDefault(field.fieldKey, List.of());
             if (field.isRequired() && values.isEmpty()) {
                 errors.put(field.fieldKey, "필수 문항에 응답해 주세요.");
-                continue;
-            }
-            if ("email".equalsIgnoreCase(field.fieldType) && !values.isEmpty()) {
-                String emailValue = values.get(0);
-                if (!EMAIL_PATTERN.matcher(emailValue).matches()) {
-                    errors.put(field.fieldKey, "올바른 이메일 형식으로 입력해 주세요.");
-                }
             }
         }
         return errors;

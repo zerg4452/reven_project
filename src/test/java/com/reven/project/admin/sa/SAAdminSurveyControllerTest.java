@@ -56,6 +56,52 @@ class SAAdminSurveyControllerTest {
     }
 
     @Test
+    void copySurveyRendersDetailAsNewRecord() throws Exception {
+        SASurveyService surveyService = mock(SASurveyService.class);
+        SASurveyDto.SurveyDetail copy = survey();
+        copy.surveySeq = null;
+        copy.surveyUid = "new-uid";
+        copy.title = "설문 사본";
+        copy.useYn = "N";
+        when(surveyService.copySurveyForm("source-uid")).thenReturn(copy);
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new SAAdminSurveyController(surveyService)).build();
+
+        mvc.perform(get("/admin/surveys/copy.do").param("surveyUid", "source-uid"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/survey/detail"))
+                .andExpect(model().attributeExists("survey"));
+
+        verify(surveyService).copySurveyForm("source-uid");
+    }
+
+    @Test
+    void copySurveyRedirectsToListWhenSurveyUidIsInvalid() throws Exception {
+        SASurveyService surveyService = mock(SASurveyService.class);
+        when(surveyService.copySurveyForm("missing-uid")).thenThrow(new IllegalArgumentException("missing"));
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new SAAdminSurveyController(surveyService)).build();
+
+        mvc.perform(get("/admin/surveys/copy.do").param("surveyUid", "missing-uid"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/admin/surveys/list.do"))
+                .andExpect(flash().attribute("surveySavedMessage", "비정상적인 접근입니다."));
+
+        verify(surveyService).copySurveyForm("missing-uid");
+    }
+
+    @Test
+    void copySurveyRedirectsToListWhenSurveyUidIsMissing() throws Exception {
+        SASurveyService surveyService = mock(SASurveyService.class);
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new SAAdminSurveyController(surveyService)).build();
+
+        mvc.perform(get("/admin/surveys/copy.do"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/admin/surveys/list.do"))
+                .andExpect(flash().attribute("surveySavedMessage", "비정상적인 접근입니다."));
+
+        verify(surveyService, never()).copySurveyForm(any());
+    }
+
+    @Test
     void saveSurveyRejectsObjectiveFieldWithoutOptions() throws Exception {
         SASurveyService surveyService = mock(SASurveyService.class);
         when(surveyService.newSurveyForm()).thenReturn(survey());

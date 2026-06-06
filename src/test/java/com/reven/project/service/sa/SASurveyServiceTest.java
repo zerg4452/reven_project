@@ -146,6 +146,50 @@ class SASurveyServiceTest {
     }
 
     @Test
+    void copySurveyFormDuplicatesStructureAsNewRecord() {
+        SASurveyMapper mapper = mock(SASurveyMapper.class);
+        SASurveyDto.SurveyDetail source = survey(5L, "source-uid");
+        SASurveyDto.SurveyField sourceField = field(50L, 5L, "objective", "radio");
+        SASurveyDto.SurveyOption sourceOption = new SASurveyDto.SurveyOption();
+        sourceOption.optionSeq = 500L;
+        sourceOption.fieldSeq = 50L;
+        sourceOption.optionLabel = "보기 A";
+        // 관리 화면 폼은 보기 라벨만 전송해 저장 시 optionValue가 라벨로 재생성되므로 실데이터는 value==label이다.
+        sourceOption.optionValue = "보기 A";
+        sourceOption.sortOrd = 1;
+        when(mapper.selectSurvey("source-uid")).thenReturn(source);
+        when(mapper.selectSurveyFields(5L)).thenReturn(List.of(sourceField));
+        when(mapper.selectSurveyOptions(5L)).thenReturn(List.of(sourceOption));
+
+        SASurveyService service = new SASurveyService(mapper);
+        SASurveyDto.SurveyDetail copy = service.copySurveyForm("source-uid");
+
+        assertThat(copy.surveySeq).isNull();
+        assertThat(copy.surveyUid).isNotBlank().isNotEqualTo("source-uid");
+        assertThat(copy.title).isEqualTo("설문 사본");
+        assertThat(copy.description).isEqualTo("설명");
+        assertThat(copy.useYn).isEqualTo("N");
+        assertThat(copy.fields).hasSize(1);
+
+        SASurveyDto.SurveyField copiedField = copy.fields.get(0);
+        assertThat(copiedField.fieldSeq).isNull();
+        assertThat(copiedField.surveySeq).isNull();
+        assertThat(copiedField.label).isEqualTo("질문");
+        assertThat(copiedField.surveyType).isEqualTo("objective");
+        assertThat(copiedField.fieldType).isEqualTo("radio");
+        assertThat(copiedField.requiredYn).isEqualTo("N");
+        assertThat(copiedField.sortOrd).isEqualTo(1);
+        assertThat(copiedField.options).hasSize(1);
+
+        SASurveyDto.SurveyOption copiedOption = copiedField.options.get(0);
+        assertThat(copiedOption.optionSeq).isNull();
+        assertThat(copiedOption.fieldSeq).isNull();
+        assertThat(copiedOption.optionLabel).isEqualTo("보기 A");
+        assertThat(copiedOption.optionValue).isEqualTo("보기 A");
+        assertThat(copiedOption.sortOrd).isEqualTo(1);
+    }
+
+    @Test
     void surveyFieldRenderTypeFallsBackBySurveyType() {
         SASurveyDto.SurveyField objectiveField = field(30L, 1L, "objective", "textarea");
         SASurveyDto.SurveyField subjectiveField = field(31L, 1L, "subjective", "radio");

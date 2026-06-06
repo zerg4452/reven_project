@@ -68,6 +68,44 @@ public class SASurveyService {
     }
 
     /**
+     * 기존 설문 구조를 복제해 신규 설문 등록 화면에 채울 form 데이터를 만든다.
+     * 모든 seq를 비우고 새 UID를 부여해 저장 시 신규 설문으로 INSERT되게 한다. DB 쓰기는 하지 않는다.
+     * 보기 값(optionValue)은 관리 화면 폼이 보기 라벨만 전송하므로 저장 시 라벨에서 재생성된다.
+     * 따라서 복사본 저장 후 optionValue는 항상 optionLabel과 같아진다.
+     */
+    public SASurveyDto.SurveyDetail copySurveyForm(String surveyUid) {
+        SASurveyDto.SurveyDetail source = findSurvey(surveyUid);
+        SASurveyDto.SurveyDetail copy = new SASurveyDto.SurveyDetail();
+        copy.surveyUid = newUid();
+        copy.surveySeq = null;
+        copy.title = source.title + " 사본";
+        copy.description = source.description;
+        copy.useYn = "N";
+        for (SASurveyDto.SurveyField sourceField : source.fields) {
+            SASurveyDto.SurveyField field = new SASurveyDto.SurveyField();
+            field.fieldSeq = null;
+            field.surveySeq = null;
+            field.fieldKey = sourceField.fieldKey;
+            field.label = sourceField.label;
+            field.surveyType = sourceField.surveyType;
+            field.fieldType = sourceField.fieldType;
+            field.requiredYn = sourceField.requiredYn;
+            field.sortOrd = sourceField.sortOrd;
+            for (SASurveyDto.SurveyOption sourceOption : sourceField.options) {
+                SASurveyDto.SurveyOption option = new SASurveyDto.SurveyOption();
+                option.optionSeq = null;
+                option.fieldSeq = null;
+                option.optionLabel = sourceOption.optionLabel;
+                option.optionValue = sourceOption.optionValue;
+                option.sortOrd = sourceOption.sortOrd;
+                field.options.add(option);
+            }
+            copy.fields.add(field);
+        }
+        return copy;
+    }
+
+    /**
      * 설문 마스터를 저장하고 하위 문항/보기는 현재 요청 기준으로 다시 구성한다.
      */
     @Transactional
