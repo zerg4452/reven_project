@@ -1,0 +1,151 @@
+<!-- screen: 설문 통계 / purpose: 설문별 제출 현황 요약과 문항별 응답 분포를 보여주는 화면 / created: 2026-06-06 -->
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin}">
+<head>
+    <title layout:fragment="title">설문 통계</title>
+</head>
+<body>
+<th:block layout:fragment="content">
+
+    <!-- 브레드크럼 시작 -->
+    <div th:replace="~{fragments/layout :: breadcrumb('관리자', '설문 운영', '설문 통계')}"></div>
+    <!-- 브레드크럼 끝 -->
+
+    <!-- 페이지 헤더 시작 -->
+    <section class="page-head">
+        <h1 th:text="${survey.title}">설문 통계</h1>
+        <p>제출 건수 요약과 문항별 응답 분포를 확인합니다.</p>
+    </section>
+    <!-- 페이지 헤더 끝 -->
+
+    <!-- 상태별 요약 시작 -->
+    <section class="content-panel">
+        <div class="panel-head">
+            <h2>제출 현황</h2>
+        </div>
+        <div class="stats-summary-row">
+            <div th:each="sc : ${stats.statusCounts}" class="stats-summary-card">
+                <span class="stats-status-label" th:text="${sc.status}">상태</span>
+                <strong class="stats-count" th:text="${sc.count}">0</strong>
+            </div>
+        </div>
+    </section>
+    <!-- 상태별 요약 끝 -->
+
+    <!-- 일자별 추이 시작 -->
+    <section class="content-panel">
+        <div class="panel-head">
+            <h2>일자별 제출 추이 (최근 60일)</h2>
+        </div>
+        <div class="stats-chart-wrap">
+            <canvas id="dailyChart"></canvas>
+        </div>
+    </section>
+    <!-- 일자별 추이 끝 -->
+
+    <!-- 문항별 통계 시작 -->
+    <th:block th:each="field, stat : ${stats.fieldStatistics}">
+        <section class="content-panel">
+            <div class="panel-head">
+                <h2 th:text="${field.fieldLabel}">문항</h2>
+                <span class="badge"
+                      th:classappend="${field.surveyType == 'objective'} ? ' badge-info' : ' badge-muted'"
+                      th:text="${field.surveyType == 'objective'} ? '객관식' : '주관식'">객관식</span>
+            </div>
+
+            <!-- 객관식: 수평 막대 차트 -->
+            <div th:if="${field.surveyType == 'objective'}" class="stats-chart-wrap">
+                <canvas th:id="|fieldChart_${stat.index}|"></canvas>
+            </div>
+
+            <!-- 주관식: 최근 답변 목록 -->
+            <div th:if="${field.surveyType != 'objective'}">
+                <ul class="stats-text-answers">
+                    <li th:each="answer : ${field.recentTextAnswers}" th:text="${answer}">답변 텍스트</li>
+                    <li th:if="${#lists.isEmpty(field.recentTextAnswers)}" class="empty">답변이 없습니다.</li>
+                </ul>
+            </div>
+        </section>
+    </th:block>
+    <!-- 문항별 통계 끝 -->
+
+    <!-- 하단 버튼 시작 -->
+    <div class="detail-action-bar">
+        <a class="btn btn-neutral" th:href="@{/admin/surveys/list.do}">목록</a>
+    </div>
+    <!-- 하단 버튼 끝 -->
+
+</th:block>
+<th:block layout:fragment="pageScripts">
+<script th:src="@{/vendor/chartjs/chart.umd.min.js}"></script>
+<script th:inline="javascript">
+/*<![CDATA[*/
+const statsData = /*[[${statsJson}]]*/ {};
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    // 일자별 제출 추이 막대 차트
+    const dailyLabels = (statsData.dailyCounts || []).map(function (d) { return d.submittedDate; });
+    const dailyValues = (statsData.dailyCounts || []).map(function (d) { return d.count; });
+    const dailyCtx = document.getElementById('dailyChart');
+    if (dailyCtx) {
+        new Chart(dailyCtx, {
+            type: 'bar',
+            data: {
+                labels: dailyLabels,
+                datasets: [{
+                    label: '제출 건수',
+                    data: dailyValues,
+                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
+
+    // 문항별 객관식 수평 막대 차트
+    const colors = [
+        'rgba(59, 130, 246, 0.6)',
+        'rgba(16, 185, 129, 0.6)',
+        'rgba(245, 158, 11, 0.6)',
+        'rgba(239, 68, 68, 0.6)',
+        'rgba(139, 92, 246, 0.6)',
+        'rgba(236, 72, 153, 0.6)'
+    ];
+    const fields = statsData.fieldStatistics || [];
+    fields.forEach(function (field, index) {
+        if (field.surveyType !== 'objective') return;
+        const canvas = document.getElementById('fieldChart_' + index);
+        if (!canvas) return;
+        const labels = (field.optionFrequencies || []).map(function (o) { return o.optionLabel; });
+        const values = (field.optionFrequencies || []).map(function (o) { return o.count; });
+        new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: field.fieldLabel,
+                    data: values,
+                    backgroundColor: colors
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    });
+});
+/*]]>*/
+</script>
+</th:block>
+</body>
+</html>

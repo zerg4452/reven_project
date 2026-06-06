@@ -96,7 +96,10 @@
                         <td><span class="badge" th:classappend="${survey.enabled} ? ' badge-success' : ' badge-muted'" th:text="${survey.enabled} ? '사용' : '미사용'">사용</span></td>
                         <td th:text="${survey.createdDate}">2026-05-23</td>
                         <td th:text="${survey.updatedDate}">2026-05-23</td>
-                        <td><a class="btn btn-neutral btn-sm" th:href="@{/admin/surveys/copy.do(surveyUid=${survey.surveyUid})}">복사</a></td>
+                        <td>
+                            <a class="btn btn-neutral btn-sm" th:href="@{/admin/surveys/{uid}/statistics.do(uid=${survey.surveyUid})}">통계</a>
+                            <a class="btn btn-neutral btn-sm" th:href="@{/admin/surveys/copy.do(surveyUid=${survey.surveyUid})}">복사</a>
+                        </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(surveys)}">
                         <td colspan="7" class="empty">현재 등록된 내용이 없습니다.</td>

@@ -30,4 +30,18 @@ public interface SASurveySubmitMapper {
     void updateSubmission(@Param("submitUid") String submitUid,
                           @Param("status") String status,
                           @Param("adminMemo") String adminMemo);
+
+    /** 설문 제출 건의 상태별 건수를 조회한다. */
+    List<SASurveyDto.StatusCount> selectStatusCounts(@Param("surveySeq") Long surveySeq);
+
+    /** 최근 60일간 일자별 제출 건수를 조회한다. */
+    List<SASurveyDto.DailyCount> selectDailyCounts(@Param("surveySeq") Long surveySeq);
+
+    /** 객관식 문항의 보기별 선택 빈도를 조회한다. */
+    List<SASurveyDto.OptionFrequency> selectOptionFrequencies(@Param("surveySeq") Long surveySeq,
+                                                               @Param("fieldSeq") Long fieldSeq);
+
+    /** 주관식 문항의 최근 답변 텍스트 20건을 조회한다. */
+    List<String> selectRecentTextAnswers(@Param("surveySeq") Long surveySeq,
+                                         @Param("fieldSeq") Long fieldSeq);
 }

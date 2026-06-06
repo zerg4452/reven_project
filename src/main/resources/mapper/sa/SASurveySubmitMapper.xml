@@ -171,4 +171,86 @@
         <include refid="SubmissionSearchWhere"/>
         order by sm.submitted_dtm desc, sm.submit_seq desc, a.sort_ord, a.answer_seq
     </select>
+
+    <resultMap id="StatusCountMap" type="com.reven.project.service.sa.dto.SASurveyDto$StatusCount">
+        <result property="status" column="status"/>
+        <result property="count"  column="cnt"/>
+    </resultMap>
+
+    <resultMap id="DailyCountMap" type="com.reven.project.service.sa.dto.SASurveyDto$DailyCount">
+        <result property="submittedDate" column="submitted_date"/>
+        <result property="count"         column="cnt"/>
+    </resultMap>
+
+    <resultMap id="OptionFrequencyMap" type="com.reven.project.service.sa.dto.SASurveyDto$OptionFrequency">
+        <result property="optionLabel" column="option_label"/>
+        <result property="count"       column="cnt"/>
+    </resultMap>
+
+    <select id="selectStatusCounts" resultMap="StatusCountMap">
+        select s.status,
+               coalesce(counts.cnt, 0) as cnt
+        from (
+            select 'new'        as status, 1 as ord union all
+            select 'reviewing',            2        union all
+            select 'contacted',            3        union all
+            select 'done',                 4        union all
+            select 'hold',                 5
+        ) s
+        left join (
+            select status, count(*) as cnt
+            from sa_survey_submit_mst
+            where survey_seq = #{surveySeq}
+            group by status
+        ) counts on counts.status = s.status
+        order by s.ord
+    </select>
+
+    <select id="selectDailyCounts" resultMap="DailyCountMap">
+        with recursive date_spine as (
+            select date(now()) - interval 59 day as d
+            union all
+            select d + interval 1 day from date_spine where d &lt; date(now())
+        )
+        select date_format(ds.d, '%Y-%m-%d') as submitted_date,
+               coalesce(counts.cnt, 0)        as cnt
+        from date_spine ds
+        left join (
+            select date(submitted_dtm) as day, count(*) as cnt
+            from sa_survey_submit_mst
+            where survey_seq = #{surveySeq}
+              and date(submitted_dtm) >= date(now()) - interval 59 day
+            group by date(submitted_dtm)
+        ) counts on counts.day = ds.d
+        order by ds.d
+    </select>
+
+    <select id="selectOptionFrequencies" resultMap="OptionFrequencyMap">
+        select o.option_label,
+               count(a.answer_seq) as cnt
+        from sa_survey_field_opt_dtl o
+        left join sa_survey_answer_dtl a
+               on a.field_seq    = o.field_seq
+              and a.answer_value = o.option_label
+              and a.submit_seq in (
+                  select submit_seq
+                  from sa_survey_submit_mst
+                  where survey_seq = #{surveySeq}
+              )
+        where o.field_seq = #{fieldSeq}
+        group by o.option_label, o.sort_ord
+        order by o.sort_ord, o.field_opt_seq
+    </select>
+
+    <select id="selectRecentTextAnswers" resultType="string">
+        select a.answer_value
+        from sa_survey_answer_dtl a
+        join sa_survey_submit_mst sm on sm.submit_seq = a.submit_seq
+        where sm.survey_seq    = #{surveySeq}
+          and a.field_seq      = #{fieldSeq}
+          and a.answer_value   is not null
+          and a.answer_value   != ''
+        order by sm.submitted_dtm desc, a.answer_seq desc
+        limit 20
+    </select>
 </mapper>

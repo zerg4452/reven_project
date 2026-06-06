@@ -421,4 +421,40 @@ public final class SASurveyDto {
         public String answerJson;
         public int sortOrd;
     }
+
+    /** 설문 통계 대시보드 전체 결과를 담는 DTO다. */
+    public static class SurveyStatistics {
+        public List<StatusCount> statusCounts = new ArrayList<>();
+        public List<DailyCount> dailyCounts = new ArrayList<>();
+        public List<FieldStatistics> fieldStatistics = new ArrayList<>();
+    }
+
+    /** 상태별 제출 건수를 표현한다. */
+    public static class StatusCount {
+        public String status;
+        public long count;
+    }
+
+    /** 일자별 제출 건수(시계열)를 표현한다. submittedDate는 "yyyy-MM-dd" 형식이다. */
+    public static class DailyCount {
+        public String submittedDate;
+        public long count;
+    }
+
+    /** 문항별 통계 (객관식 선택 빈도 또는 주관식 최근 답변 목록)를 표현한다. */
+    public static class FieldStatistics {
+        public Long fieldSeq;
+        public String fieldKey;
+        public String fieldLabel;
+        public String surveyType;
+        public String fieldType;
+        public List<OptionFrequency> optionFrequencies = new ArrayList<>();
+        public List<String> recentTextAnswers = new ArrayList<>();
+    }
+
+    /** 객관식 문항에서 특정 보기가 선택된 빈도를 표현한다. */
+    public static class OptionFrequency {
+        public String optionLabel;
+        public long count;
+    }
 }
