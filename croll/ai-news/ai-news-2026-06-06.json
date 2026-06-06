@@ -1,0 +1,44 @@
+{
+  "status": "N",
+  "title": "오늘의 Codex/Cursor/Claude + Harness 소식",
+  "slug": "ai-news-2026-06-06",
+  "category": "AI News",
+  "tags": [
+    "Codex",
+    "Cursor",
+    "Claude",
+    "Harness"
+  ],
+  "summary": "오늘은 Cursor와 Claude Code의 최신 비교 토론에서 context 관리와 가격/사용량 문제가 다시 부각됐고, Codex/Claude/Cursor를 HTTP API나 multi-harness plugin 구조로 묶는 agentapi와 wshobson/agents가 계속 주요 후보로 남았습니다.",
+  "content_markdown": "오늘의 Codex/Cursor/Claude + Harness 소식\n\n1. Cursor vs Claude Code 최신 비교 토론\n- 출처: Reddit r/cursor\n- 링크: https://www.reddit.com/r/cursor/comments/1twy9k7/cursor_vs_claude_code/\n- 핵심 요약: 2026-06-04에 올라온 Cursor vs Claude Code 비교 글입니다. 검색 스니펫 기준으로는 Cursor Composer의 context bleed 문제 때문에 복잡한 작업은 Claude Code로 옮겼다는 의견이 보입니다.\n- 왜 중요한지: Cursor의 강점은 빠른 IDE 편집이지만, 긴 작업에서 context 관리가 흔들리면 Claude Code나 Codex 같은 별도 agent로 역할을 분리하는 편이 낫습니다.\n- 다음 행동: Cursor는 짧은 화면/문구/스타일 수정에 쓰고, 여러 파일이 얽힌 구조 변경은 Claude Code 또는 Codex 검증 루프로 보내는 기준을 두세요.\n\n2. Claude Code $100 vs Cursor $60 사용량/성능 비교\n- 출처: Reddit r/cursor\n- 링크: https://www.reddit.com/r/cursor/comments/1txczjl/claude_code_100_vs_cursor_60/\n- 핵심 요약: 2026-06-05에 올라온 글로, Claude Code $100 플랜과 Cursor $60 플랜 중 사용량과 성능이 더 안정적인 쪽을 묻습니다. 댓글 흐름은 플랜 가격보다 실제 quota, latency, 작업 종류, Composer/agent loop 품질을 봐야 한다는 쪽입니다.\n- 왜 중요한지: AI 코딩 도구 선택이 모델 품질만이 아니라 가격-사용량-작업 단위-검증 비용의 문제로 바뀌고 있습니다.\n- 다음 행동: 본인 작업을 “짧은 편집”, “긴 구현”, “검증/리뷰”로 나누고 각 도구의 월 사용량과 실패 복구 시간을 기록하세요.\n\n3. agentapi: Codex, Claude Code, Cursor CLI를 HTTP API로 제어\n- 출처: GitHub coder/agentapi\n- 링크: https://github.com/coder/agentapi\n- 핵심 요약: Claude Code, AmazonQ, Opencode, Goose, Aider, Gemini, Copilot, Amp, Codex, Auggie, Cursor CLI를 HTTP API로 제어하는 프로젝트입니다. MCP server backend로 써서 한 agent가 다른 coding agent를 제어하는 구조도 설명합니다.\n- 왜 중요한지: Codex를 PHP 사이트나 관리 UI에 붙이려면 CLI 직접 호출보다 HTTP API wrapper가 더 다루기 쉽습니다. 다만 권한 경계와 작업 디렉터리 격리는 반드시 필요합니다.\n- 다음 행동: read-only workspace에서 Codex 타입으로 실행하고 로그, 취소, 결과 회수, workspace 제한이 되는지 먼저 확인하세요.\n\n4. wshobson/agents: Codex CLI 지원 multi-harness plugin marketplace\n- 출처: GitHub wshobson/agents docs/harnesses.md\n- 링크: https://github.com/wshobson/agents/blob/main/docs/harnesses.md\n- 핵심 요약: Claude Code, Codex CLI, Cursor, OpenCode, Gemini CLI 같은 여러 하네스를 대상으로 agent/plugin 구조를 비교합니다. Codex CLI는 marketplace.json, .codex-plugin/plugin.json, .codex/skills, .codex/agents 흐름을 지원 대상으로 설명합니다.\n- 왜 중요한지: Codex용 agent/plugin을 직접 만들 때 하네스별 파일 구조와 marketplace 패키징을 비교할 수 있는 기준점입니다.\n- 다음 행동: 전체 설치 전에 Codex 생성 결과물의 디렉터리 구조와 plugin.json만 확인하고 필요한 agent만 부분 적용하세요.\n\n5. Awesome Harness Engineering: 하네스 설계 체크리스트\n- 출처: GitHub ai-boost/awesome-harness-engineering\n- 링크: https://github.com/ai-boost/awesome-harness-engineering\n- 핵심 요약: agent harness engineering 관련 도구, 패턴, eval, memory, MCP, permission, observability, orchestration 자료를 모은 큐레이션입니다. OpenAI의 skills/compaction/shell 기반 harness primitive와 OpenHarness류 프로젝트도 함께 정리됩니다.\n- 왜 중요한지: Codex 플러그인이나 agent wrapper만 붙인다고 안정적인 자동화가 되지 않습니다. 상태, 로그, 권한, 재시도, 평가가 함께 설계되어야 합니다.\n- 다음 행동: 현재 뉴스 자동화도 수집, 요약, JSON 생성, Gmail 발송, PHP insert를 각각 독립 단계로 보고 실패 로그를 남기세요.\n\n오늘의 추천 액션\n1. PHP importer에는 status=Y 보호, slug unique, JSON parse 실패 시 error 기록, 위험 카테고리 자동 승인 금지를 넣으세요.\n2. Codex 하네스 후보는 agentapi, wshobson/agents, awesome-harness-engineering을 우선 추적하세요.\n3. Cursor/Claude/Codex 비교는 모델 승패보다 context 관리, quota, tool loop, 실패 복구 비용을 기준으로 읽으세요.",
+  "sources": [
+    {
+      "title": "Cursor vs Claude Code",
+      "source": "Reddit r/cursor",
+      "url": "https://www.reddit.com/r/cursor/comments/1twy9k7/cursor_vs_claude_code/"
+    },
+    {
+      "title": "Claude Code 100$ vs Cursor 60$",
+      "source": "Reddit r/cursor",
+      "url": "https://www.reddit.com/r/cursor/comments/1txczjl/claude_code_100_vs_cursor_60/"
+    },
+    {
+      "title": "agentapi",
+      "source": "GitHub coder/agentapi",
+      "url": "https://github.com/coder/agentapi"
+    },
+    {
+      "title": "agents/docs/harnesses.md",
+      "source": "GitHub wshobson/agents",
+      "url": "https://github.com/wshobson/agents/blob/main/docs/harnesses.md"
+    },
+    {
+      "title": "awesome-harness-engineering",
+      "source": "GitHub ai-boost/awesome-harness-engineering",
+      "url": "https://github.com/ai-boost/awesome-harness-engineering"
+    }
+  ],
+  "published_at": "2026-06-06T18:11:11+09:00",
+  "inserted_at": null,
+  "error": null
+}
