@@ -433,6 +433,18 @@ public final class SASurveyDto {
     public static class StatusCount {
         public String status;
         public long count;
+
+        public String getStatusLabel() {
+            if (status == null) return "";
+            return switch (status.toLowerCase()) {
+                case "new"       -> "신규";
+                case "reviewing" -> "확인중";
+                case "contacted" -> "연락완료";
+                case "done"      -> "처리완료";
+                case "hold"      -> "보류";
+                default          -> status;
+            };
+        }
     }
 
     /** 일자별 제출 건수(시계열)를 표현한다. submittedDate는 "yyyy-MM-dd" 형식이다. */

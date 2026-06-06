@@ -230,8 +230,11 @@
                count(a.answer_seq) as cnt
         from sa_survey_field_opt_dtl o
         left join sa_survey_answer_dtl a
-               on a.field_seq    = o.field_seq
-              and a.answer_value = o.option_label
+               on a.field_seq = o.field_seq
+              and (
+                      (a.answer_json is null     and a.answer_value = o.option_label)
+                   or (a.answer_json is not null and json_contains(a.answer_json, json_quote(o.option_value)))
+              )
               and a.submit_seq in (
                   select submit_seq
                   from sa_survey_submit_mst

@@ -27,7 +27,7 @@
         </div>
         <div class="stats-summary-row">
             <div th:each="sc : ${stats.statusCounts}" class="stats-summary-card">
-                <span class="stats-status-label" th:text="${sc.status}">상태</span>
+                <span class="stats-status-label" th:text="${sc.statusLabel}">상태</span>
                 <strong class="stats-count" th:text="${sc.count}">0</strong>
             </div>
         </div>
@@ -82,7 +82,7 @@
 <script th:src="@{/vendor/chartjs/chart.umd.min.js}"></script>
 <script th:inline="javascript">
 /*<![CDATA[*/
-const statsData = /*[[${statsJson}]]*/ {};
+const statsData = JSON.parse(/*[[${statsJson}]]*/ '{}');
 
 document.addEventListener('DOMContentLoaded', function () {
 
