@@ -14,11 +14,9 @@ import com.reven.project.service.bd.dto.BDNoticeSaveCommand;
 import com.reven.project.service.bd.dto.BDNoticeSaveRequestDto;
 import com.reven.project.service.bd.mapper.BDNoticeMapper;
 import com.reven.project.service.bd.support.BDFileStorageConstants;
+import com.reven.project.service.bd.support.BDFileStorageSupport;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -26,19 +24,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class BDNoticeService {
 
     private final BDNoticeMapper noticeMapper;
-    private final Path rootPath;
+    private final BDFileStorageSupport fileStorage;
     private final String fileBaseUrl;
     private final int maxAttachments;
     private final int maxThumbnailSizeMb;
@@ -55,13 +50,13 @@ public class BDNoticeService {
             @Value("${reven.upload.notice.max-attachment-size-mb:20}") int maxAttachmentSizeMb
     ) {
         this.noticeMapper = noticeMapper;
-        this.rootPath = Paths.get(rootPath).toAbsolutePath().normalize();
+        this.fileStorage = new BDFileStorageSupport(rootPath);
         this.fileBaseUrl = fileBaseUrl;
         this.maxAttachments = maxAttachments;
         this.maxThumbnailSizeMb = maxThumbnailSizeMb;
         this.maxAttachmentSizeMb = maxAttachmentSizeMb;
-        this.maxThumbnailBytes = megabytesToBytes(maxThumbnailSizeMb);
-        this.maxAttachmentBytes = megabytesToBytes(maxAttachmentSizeMb);
+        this.maxThumbnailBytes = BDFileStorageSupport.megabytesToBytes(maxThumbnailSizeMb);
+        this.maxAttachmentBytes = BDFileStorageSupport.megabytesToBytes(maxAttachmentSizeMb);
     }
 
     /**
@@ -130,7 +125,7 @@ public class BDNoticeService {
         if (file == null) {
             return null;
         }
-        return resolveStoredFilePath(file.storedPath(), file.storedFileName());
+        return fileStorage.resolveStoredFilePath(file.storedPath(), file.storedFileName());
     }
 
     /**
@@ -208,7 +203,7 @@ public class BDNoticeService {
         if (file == null) {
             return null;
         }
-        return resolveStoredFilePath(file.storedPath(), file.storedFileName());
+        return fileStorage.resolveStoredFilePath(file.storedPath(), file.storedFileName());
     }
 
     /**
@@ -233,7 +228,7 @@ public class BDNoticeService {
     ) {
         BDNoticeSaveRequestDto normalized = normalize(requestDto);
         MultipartFile newThumbnail = isEmptyFile(thumbnailFile) ? null : thumbnailFile;
-        List<MultipartFile> newAttachments = normalizeFiles(attachFiles);
+        List<MultipartFile> newAttachments = BDFileStorageSupport.normalizeFiles(attachFiles);
         validateThumbnailSize(newThumbnail);
         validateAttachmentSizes(newAttachments);
 
@@ -267,7 +262,7 @@ public class BDNoticeService {
                     noticeMapper.deleteNoticeFile(removed.noticeFileSeq(), normalized.actorId());
                 }
                 if (!removedAttachments.isEmpty()) {
-                    schedulePhysicalCleanupAfterCommit(removedAttachments);
+                    fileStorage.scheduleCleanupAfterCommit(toFileRefs(removedAttachments));
                 }
                 noticeMapper.updateNotice(saveCommand);
             }
@@ -287,10 +282,10 @@ public class BDNoticeService {
             }
             return noticeSeq;
         } catch (RuntimeException exception) {
-            cleanupWrittenFiles(writtenFiles);
+            BDFileStorageSupport.cleanupWrittenFiles(writtenFiles);
             throw exception;
         } catch (IOException exception) {
-            cleanupWrittenFiles(writtenFiles);
+            BDFileStorageSupport.cleanupWrittenFiles(writtenFiles);
             throw new IllegalStateException("공지사항 파일을 저장할 수 없습니다.", exception);
         }
     }
@@ -307,7 +302,7 @@ public class BDNoticeService {
         List<BDNoticeFileResponseDto> files = noticeMapper.selectNoticeFiles(noticeSeq, null);
         noticeMapper.deleteNoticeFiles(noticeSeq, firstText(actorId, "system"));
         noticeMapper.deleteNotice(noticeSeq, firstText(actorId, "system"));
-        schedulePhysicalCleanupAfterCommit(files);
+        fileStorage.scheduleCleanupAfterCommit(toFileRefs(files));
     }
 
     private BDNoticeAdminSearchRequestDto normalizeAdminSearch(BDNoticeAdminSearchRequestDto search) {
@@ -346,7 +341,7 @@ public class BDNoticeService {
             noticeMapper.deleteNoticeFile(thumb.noticeFileSeq(), actorId);
         }
         if (!existingThumbs.isEmpty()) {
-            schedulePhysicalCleanupAfterCommit(existingThumbs);
+            fileStorage.scheduleCleanupAfterCommit(toFileRefs(existingThumbs));
         }
         storeNoticeFile(noticeSeq, thumbnailFile, BDFileStorageConstants.FILE_TYPE_THUMB, 0, actorId, writtenFiles);
     }
@@ -374,15 +369,6 @@ public class BDNoticeService {
         return keepSeqs;
     }
 
-    private List<MultipartFile> normalizeFiles(List<MultipartFile> uploadedFiles) {
-        if (uploadedFiles == null || uploadedFiles.isEmpty()) {
-            return List.of();
-        }
-        return uploadedFiles.stream()
-                .filter(file -> !isEmptyFile(file))
-                .toList();
-    }
-
     private boolean isEmptyFile(MultipartFile file) {
         return file == null || file.isEmpty();
     }
@@ -400,8 +386,8 @@ public class BDNoticeService {
     }
 
     private void storeNoticeFile(Long noticeSeq, MultipartFile file, String fileType, int sortOrder, String actorId, List<Path> writtenFiles) throws IOException {
-        String originalFileName = sanitizeFileName(firstText(file.getOriginalFilename(), "notice"));
-        String extension = fileExtension(originalFileName);
+        String originalFileName = BDFileStorageSupport.sanitizeFileName(firstText(file.getOriginalFilename(), "notice"));
+        String extension = BDFileStorageSupport.fileExtension(originalFileName);
         Set<String> allowed = BDFileStorageConstants.FILE_TYPE_THUMB.equals(fileType)
                 ? BDFileStorageConstants.IMAGE_EXTENSIONS
                 : BDFileStorageConstants.NOTICE_ATTACHMENT_EXTENSIONS;
@@ -412,22 +398,14 @@ public class BDNoticeService {
         if (BDFileStorageConstants.FILE_TYPE_THUMB.equals(fileType) && !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("썸네일은 이미지 파일만 등록할 수 있습니다.");
         }
-        String storedFileName = UUID.randomUUID().toString().replace("-", "") + "." + extension;
-        String storedPath = BDFileStorageConstants.STORAGE_PATH_FORMATTER.format(LocalDate.now());
-        Path directory = rootPath.resolve(storedPath).normalize();
-        Files.createDirectories(directory);
-        Path target = directory.resolve(storedFileName);
-        try (InputStream inputStream = file.getInputStream()) {
-            Files.copy(inputStream, target);
-        }
-        writtenFiles.add(target);
+        BDFileStorageSupport.StoredFile stored = fileStorage.writeToDisk(file, extension, writtenFiles);
 
         BDNoticeFileSaveCommand fileCommand = new BDNoticeFileSaveCommand();
         fileCommand.setNoticeSeq(noticeSeq);
         fileCommand.setFileType(fileType);
         fileCommand.setOriginalFileName(originalFileName);
-        fileCommand.setStoredFileName(storedFileName);
-        fileCommand.setStoredPath(storedPath);
+        fileCommand.setStoredFileName(stored.storedFileName());
+        fileCommand.setStoredPath(stored.storedPath());
         fileCommand.setContentType(contentType);
         fileCommand.setFileSize(file.getSize());
         fileCommand.setSortOrder(sortOrder);
@@ -449,76 +427,10 @@ public class BDNoticeService {
         }
     }
 
-    private long megabytesToBytes(int megabytes) {
-        if (megabytes <= 0) {
-            throw new IllegalArgumentException("업로드 용량 제한은 1MB 이상이어야 합니다.");
-        }
-        return megabytes * 1024L * 1024L;
-    }
-
-    private String fileExtension(String fileName) {
-        int dotIndex = fileName.lastIndexOf('.');
-        if (dotIndex < 0 || dotIndex == fileName.length() - 1) {
-            throw new IllegalArgumentException("파일 확장자를 확인할 수 없습니다.");
-        }
-        return fileName.substring(dotIndex + 1).toLowerCase(Locale.ROOT);
-    }
-
-    private String sanitizeFileName(String fileName) {
-        Path path = Path.of(fileName);
-        Path name = path.getFileName();
-        return name == null ? fileName : name.toString();
-    }
-
-    private void cleanupWrittenFiles(List<Path> writtenFiles) {
-        for (Path path : writtenFiles) {
-            try {
-                Files.deleteIfExists(path);
-            } catch (IOException ignored) {
-                // best effort cleanup
-            }
-        }
-    }
-
-    private Path resolveStoredFilePath(String storedPath, String storedFileName) {
-        Path directory = storedPath == null || storedPath.isBlank()
-                ? rootPath
-                : rootPath.resolve(storedPath);
-        Path resolved = directory.resolve(storedFileName).normalize();
-        if (!resolved.startsWith(rootPath)) {
-            return null;
-        }
-        return resolved;
-    }
-
-    private void schedulePhysicalCleanupAfterCommit(List<BDNoticeFileResponseDto> files) {
-        if (files == null || files.isEmpty()) {
-            return;
-        }
-        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            cleanupStoredFiles(files);
-            return;
-        }
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                cleanupStoredFiles(files);
-            }
-        });
-    }
-
-    private void cleanupStoredFiles(List<BDNoticeFileResponseDto> files) {
-        for (BDNoticeFileResponseDto file : files) {
-            Path path = resolveStoredFilePath(file.storedPath(), file.storedFileName());
-            if (path == null) {
-                continue;
-            }
-            try {
-                Files.deleteIfExists(path);
-            } catch (IOException ignored) {
-                // best effort cleanup
-            }
-        }
+    private List<BDFileStorageSupport.StoredFileRef> toFileRefs(List<BDNoticeFileResponseDto> files) {
+        return files.stream()
+                .map(file -> new BDFileStorageSupport.StoredFileRef(file.storedPath(), file.storedFileName()))
+                .toList();
     }
 
     private BDNoticeFileResponseDto withFileUrl(BDNoticeFileResponseDto file) {

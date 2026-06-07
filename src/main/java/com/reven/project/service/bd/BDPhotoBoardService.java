@@ -11,23 +11,17 @@ import com.reven.project.service.bd.dto.BDPhotoBoardSaveCommand;
 import com.reven.project.service.bd.dto.BDPhotoBoardSaveRequestDto;
 import com.reven.project.service.bd.mapper.BDPhotoBoardMapper;
 import com.reven.project.service.bd.support.BDFileStorageConstants;
+import com.reven.project.service.bd.support.BDFileStorageSupport;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -36,7 +30,7 @@ public class BDPhotoBoardService {
     private static final String MAX_UPLOAD_MESSAGE = "최대 업로드 갯수는 5개입니다.";
     private static final String MIN_UPLOAD_MESSAGE = "첨부 파일을 최소 1개 이상 업로드해 주세요.";
     private final BDPhotoBoardMapper photoBoardMapper;
-    private final Path rootPath;
+    private final BDFileStorageSupport fileStorage;
     private final String fileBaseUrl;
     private final int maxFiles;
     private final int maxImageSizeMb;
@@ -53,13 +47,13 @@ public class BDPhotoBoardService {
             @Value("${reven.upload.photo.max-video-size-mb:50}") int maxVideoSizeMb
     ) {
         this.photoBoardMapper = photoBoardMapper;
-        this.rootPath = Paths.get(rootPath).toAbsolutePath().normalize();
+        this.fileStorage = new BDFileStorageSupport(rootPath);
         this.fileBaseUrl = fileBaseUrl;
         this.maxFiles = maxFiles;
         this.maxImageSizeMb = maxImageSizeMb;
         this.maxVideoSizeMb = maxVideoSizeMb;
-        this.maxImageBytes = megabytesToBytes(maxImageSizeMb);
-        this.maxVideoBytes = megabytesToBytes(maxVideoSizeMb);
+        this.maxImageBytes = BDFileStorageSupport.megabytesToBytes(maxImageSizeMb);
+        this.maxVideoBytes = BDFileStorageSupport.megabytesToBytes(maxVideoSizeMb);
     }
 
     /**
@@ -101,7 +95,7 @@ public class BDPhotoBoardService {
         if (file == null) {
             return null;
         }
-        return resolveStoredFilePath(file.storedPath(), file.storedFileName());
+        return fileStorage.resolveStoredFilePath(file.storedPath(), file.storedFileName());
     }
 
     /**
@@ -187,7 +181,7 @@ public class BDPhotoBoardService {
         if (file == null) {
             return null;
         }
-        return resolveStoredFilePath(file.storedPath(), file.storedFileName());
+        return fileStorage.resolveStoredFilePath(file.storedPath(), file.storedFileName());
     }
 
     /**
@@ -208,7 +202,7 @@ public class BDPhotoBoardService {
             List<Long> keepPhotoFileSeqs
     ) {
         BDPhotoBoardSaveRequestDto normalized = normalize(requestDto);
-        List<MultipartFile> newFiles = normalizeFiles(uploadedFiles);
+        List<MultipartFile> newFiles = BDFileStorageSupport.normalizeFiles(uploadedFiles);
         validateNewFileSizes(newFiles);
         BDPhotoBoardDetailResponseDto existingPost = normalized.photoSeq() == null
                 ? null
@@ -245,7 +239,7 @@ public class BDPhotoBoardService {
                     photoBoardMapper.deletePhotoBoardFile(removedFile.photoFileSeq(), normalized.actorId());
                 }
                 if (!removedFiles.isEmpty()) {
-                    schedulePhysicalCleanupAfterCommit(removedFiles);
+                    fileStorage.scheduleCleanupAfterCommit(toFileRefs(removedFiles));
                 }
                 photoBoardMapper.updatePhotoBoard(saveCommand);
             }
@@ -260,10 +254,10 @@ public class BDPhotoBoardService {
             }
             return normalized.photoSeq();
         } catch (RuntimeException exception) {
-            cleanupWrittenFiles(writtenFiles);
+            BDFileStorageSupport.cleanupWrittenFiles(writtenFiles);
             throw exception;
         } catch (IOException exception) {
-            cleanupWrittenFiles(writtenFiles);
+            BDFileStorageSupport.cleanupWrittenFiles(writtenFiles);
             throw new IllegalStateException("사진 파일을 저장할 수 없습니다.", exception);
         }
     }
@@ -280,7 +274,7 @@ public class BDPhotoBoardService {
         List<BDPhotoBoardFileResponseDto> files = photoBoardMapper.selectPhotoBoardFiles(photoSeq);
         photoBoardMapper.deletePhotoBoardFiles(photoSeq, firstText(actorId, "system"));
         photoBoardMapper.deletePhotoBoard(photoSeq, firstText(actorId, "system"));
-        schedulePhysicalCleanupAfterCommit(files);
+        fileStorage.scheduleCleanupAfterCommit(toFileRefs(files));
     }
 
     private BDPhotoBoardSaveRequestDto normalize(BDPhotoBoardSaveRequestDto requestDto) {
@@ -330,15 +324,6 @@ public class BDPhotoBoardService {
         return keepSeqs;
     }
 
-    private List<MultipartFile> normalizeFiles(List<MultipartFile> uploadedFiles) {
-        if (uploadedFiles == null || uploadedFiles.isEmpty()) {
-            return List.of();
-        }
-        return uploadedFiles.stream()
-                .filter(file -> file != null && !file.isEmpty())
-                .toList();
-    }
-
     private BDPhotoBoardSaveCommand toSaveCommand(BDPhotoBoardSaveRequestDto requestDto) {
         BDPhotoBoardSaveCommand command = new BDPhotoBoardSaveCommand();
         command.setPhotoSeq(requestDto.photoSeq());
@@ -349,8 +334,8 @@ public class BDPhotoBoardService {
     }
 
     private void storePhotoFile(Long photoSeq, MultipartFile file, int sortOrder, String actorId, List<Path> writtenFiles) throws IOException {
-        String originalFileName = sanitizeFileName(firstText(file.getOriginalFilename(), "photo"));
-        String extension = fileExtension(originalFileName);
+        String originalFileName = BDFileStorageSupport.sanitizeFileName(firstText(file.getOriginalFilename(), "photo"));
+        String extension = BDFileStorageSupport.fileExtension(originalFileName);
         if (!BDFileStorageConstants.PHOTO_BOARD_EXTENSIONS.contains(extension)) {
             throw new IllegalArgumentException("허용되지 않는 파일 형식입니다.");
         }
@@ -358,21 +343,13 @@ public class BDPhotoBoardService {
         if (!isAllowedContentType(contentType, extension)) {
             throw new IllegalArgumentException("허용되지 않는 MIME 타입입니다.");
         }
-        String storedFileName = UUID.randomUUID().toString().replace("-", "") + "." + extension;
-        String storedPath = BDFileStorageConstants.STORAGE_PATH_FORMATTER.format(LocalDate.now());
-        Path directory = rootPath.resolve(storedPath).normalize();
-        Files.createDirectories(directory);
-        Path target = directory.resolve(storedFileName);
-        try (InputStream inputStream = file.getInputStream()) {
-            Files.copy(inputStream, target);
-        }
-        writtenFiles.add(target);
+        BDFileStorageSupport.StoredFile stored = fileStorage.writeToDisk(file, extension, writtenFiles);
 
         BDPhotoBoardFileSaveCommand fileCommand = new BDPhotoBoardFileSaveCommand();
         fileCommand.setPhotoSeq(photoSeq);
         fileCommand.setOriginalFileName(originalFileName);
-        fileCommand.setStoredFileName(storedFileName);
-        fileCommand.setStoredPath(storedPath);
+        fileCommand.setStoredFileName(stored.storedFileName());
+        fileCommand.setStoredPath(stored.storedPath());
         fileCommand.setContentType(contentType);
         fileCommand.setFileSize(file.getSize());
         fileCommand.setSortOrder(sortOrder);
@@ -382,8 +359,8 @@ public class BDPhotoBoardService {
 
     private void validateNewFileSizes(List<MultipartFile> newFiles) {
         for (MultipartFile file : newFiles) {
-            String originalFileName = sanitizeFileName(firstText(file.getOriginalFilename(), "photo"));
-            String extension = fileExtension(originalFileName);
+            String originalFileName = BDFileStorageSupport.sanitizeFileName(firstText(file.getOriginalFilename(), "photo"));
+            String extension = BDFileStorageSupport.fileExtension(originalFileName);
             validateFileSize(extension, file.getSize());
         }
     }
@@ -407,13 +384,6 @@ public class BDPhotoBoardService {
         }
     }
 
-    private long megabytesToBytes(int megabytes) {
-        if (megabytes <= 0) {
-            throw new IllegalArgumentException("업로드 용량 제한은 1MB 이상이어야 합니다.");
-        }
-        return megabytes * 1024L * 1024L;
-    }
-
     private boolean isAllowedContentType(String contentType, String extension) {
         if (contentType == null || contentType.isBlank()) {
             return false;
@@ -424,69 +394,10 @@ public class BDPhotoBoardService {
         return contentType.startsWith("image/");
     }
 
-    private String fileExtension(String fileName) {
-        int dotIndex = fileName.lastIndexOf('.');
-        if (dotIndex < 0 || dotIndex == fileName.length() - 1) {
-            throw new IllegalArgumentException("파일 확장자를 확인할 수 없습니다.");
-        }
-        return fileName.substring(dotIndex + 1).toLowerCase(Locale.ROOT);
-    }
-
-    private String sanitizeFileName(String fileName) {
-        Path path = Path.of(fileName);
-        Path name = path.getFileName();
-        return name == null ? fileName : name.toString();
-    }
-
-    private void cleanupWrittenFiles(List<Path> writtenFiles) {
-        for (Path path : writtenFiles) {
-            try {
-                Files.deleteIfExists(path);
-            } catch (IOException ignored) {
-                // best effort cleanup
-            }
-        }
-    }
-
-    private Path resolveStoredFilePath(String storedPath, String storedFileName) {
-        Path directory = storedPath == null || storedPath.isBlank()
-                ? rootPath
-                : rootPath.resolve(storedPath);
-        Path resolved = directory.resolve(storedFileName).normalize();
-        if (!resolved.startsWith(rootPath)) {
-            return null;
-        }
-        return resolved;
-    }
-
-    private void schedulePhysicalCleanupAfterCommit(List<BDPhotoBoardFileResponseDto> files) {
-        if (files == null || files.isEmpty()) {
-            return;
-        }
-        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            cleanupStoredFiles(files);
-            return;
-        }
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                cleanupStoredFiles(files);
-            }
-        });
-    }
-
-    private void cleanupStoredFiles(List<BDPhotoBoardFileResponseDto> files) {
-        for (BDPhotoBoardFileResponseDto file : files) {
-            Path path = resolveStoredFilePath(file.storedPath(), file.storedFileName());
-            if (path == null) {
-                continue;
-            }
-            try {
-                Files.deleteIfExists(path);
-            } catch (IOException ignored) {
-                // best effort cleanup
-            }
-        }
+    private List<BDFileStorageSupport.StoredFileRef> toFileRefs(List<BDPhotoBoardFileResponseDto> files) {
+        return files.stream()
+                .map(file -> new BDFileStorageSupport.StoredFileRef(file.storedPath(), file.storedFileName()))
+                .toList();
     }
 
     private BDPhotoBoardFileResponseDto withFileUrl(BDPhotoBoardFileResponseDto file) {
