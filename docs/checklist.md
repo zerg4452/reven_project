@@ -54,6 +54,16 @@
 - [x] 객관식 집계와 주관식 최근 답변 제한을 SQL에서 처리하도록 되돌린다.
 - [x] 통계 컨트롤러 메서드 시그니처 레이아웃을 규칙에 맞춘다.
 
+## 관리자 설문 P9 제출 스냅샷 보강
+
+- [x] P9 구현 설계서를 작성한다.
+- [x] `survey_type_snapshot` 컬럼을 추가한다(NULL 허용).
+- [x] `AnswerInsert`/`AnswerSnapshot` DTO에 `requiredYn`/`surveyType`을 추가한다.
+- [x] `insertAnswer`가 실제 `required_yn`과 `survey_type`을 저장하도록 고친다.
+- [x] `AnswerSnapshotMap`과 `selectStatisticFields`(COALESCE 파생)를 맞춘다.
+- [x] 제출 서비스가 문항의 `required`/`surveyType`을 답변에 채우도록 한다.
+- [x] 제출/통계 회귀 테스트를 보강하고 Gradle 검증을 완료한다.
+
 ## 관리자 AI News 상태 선택
 
 - [x] AI News 편집 화면의 상태 셀렉트가 현재 값에 맞게 자동 선택되도록 수정한다.

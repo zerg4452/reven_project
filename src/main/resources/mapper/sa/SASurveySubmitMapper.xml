@@ -33,6 +33,8 @@
         <result property="fieldKey" column="field_key"/>
         <result property="fieldLabel" column="field_label"/>
         <result property="fieldType" column="field_type"/>
+        <result property="surveyType" column="survey_type"/>
+        <result property="requiredYn" column="required_yn"/>
         <result property="answerValue" column="answer_value"/>
         <result property="answerJson" column="answer_json"/>
         <result property="sortOrd" column="sort_ord"/>
@@ -96,9 +98,9 @@
     <insert id="insertAnswer" parameterType="com.reven.project.service.sa.dto.SASurveyDto$AnswerInsert"
             useGeneratedKeys="true" keyProperty="answerSeq" keyColumn="answer_seq">
         insert into sa_survey_answer_dtl
-            (submit_seq, field_seq, field_key_snapshot, field_label_snapshot, field_type_snapshot, required_yn_snapshot, answer_value, answer_json, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id)
+            (submit_seq, field_seq, field_key_snapshot, field_label_snapshot, field_type_snapshot, survey_type_snapshot, required_yn_snapshot, answer_value, answer_json, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id)
         values
-            (#{submitSeq}, #{fieldSeq}, #{fieldKey}, #{fieldLabel}, #{fieldType}, 'N', #{answerValue}, #{answerJson}, #{sortOrd}, now(), 'system', now(), 'system')
+            (#{submitSeq}, #{fieldSeq}, #{fieldKey}, #{fieldLabel}, #{fieldType}, #{surveyType}, #{requiredYn}, #{answerValue}, #{answerJson}, #{sortOrd}, now(), 'system', now(), 'system')
     </insert>
 
     <select id="selectSubmissionList" resultMap="SubmissionListItemMap">
@@ -137,6 +139,8 @@
                field_key_snapshot as field_key,
                field_label_snapshot as field_label,
                field_type_snapshot as field_type,
+               survey_type_snapshot as survey_type,
+               required_yn_snapshot as required_yn,
                answer_value,
                answer_json,
                sort_ord
@@ -238,16 +242,18 @@
         select field_seq,
                field_key,
                field_label,
-               case
-                   when lower(field_type) in ('select', 'radio', 'checkbox') then 'objective'
-                   else 'subjective'
-               end as survey_type,
+               coalesce(survey_type_snapshot,
+                   case
+                       when lower(field_type) in ('select', 'radio', 'checkbox') then 'objective'
+                       else 'subjective'
+                   end) as survey_type,
                field_type,
                sort_ord
         from (
             select null as field_seq,
                    a.field_key_snapshot as field_key,
                    a.field_label_snapshot as field_label,
+                   a.survey_type_snapshot,
                    a.field_type_snapshot as field_type,
                    a.sort_ord,
                    row_number() over (partition by a.field_key_snapshot order by sm.submitted_dtm desc, a.answer_seq desc) as rn

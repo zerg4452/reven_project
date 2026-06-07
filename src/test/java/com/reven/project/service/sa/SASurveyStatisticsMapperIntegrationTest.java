@@ -85,6 +85,57 @@ class SASurveyStatisticsMapperIntegrationTest {
                 .isEqualTo("답변25");
     }
 
+    @Test
+    void selectStatisticFieldsPrefersSurveyTypeSnapshotOverDerivedType() {
+        long surveySeq = 990004L;
+        insertSubmission(surveySeq, "stats-submit-990004", "new");
+        Long submitSeq = jdbcTemplate.queryForObject(
+                "select submit_seq from sa_survey_submit_mst where submit_uid = ?",
+                Long.class,
+                "stats-submit-990004"
+        );
+        insertAnswerWithSurveyType(submitSeq, 4001L, "snap", "스냅샷 문항", "text", "objective", "보기값", null, 1);
+        insertAnswer(submitSeq, 4002L, "legacy", "레거시 문항", "text", "답변", null, 2);
+        insertAnswer(submitSeq, 4003L, "legacyObj", "레거시 객관식", "radio", "보기", null, 3);
+
+        List<SASurveyDto.FieldStatistics> fields = submitMapper.selectStatisticFields(surveySeq);
+
+        assertThat(fields)
+                .extracting(field -> field.fieldKey + ":" + field.surveyType)
+                .containsExactly("snap:objective", "legacy:subjective", "legacyObj:objective");
+    }
+
+    @Test
+    void insertAnswerPersistsSurveyTypeAndRequiredSnapshot() {
+        long surveySeq = 990005L;
+        insertSubmission(surveySeq, "stats-submit-990005", "new");
+        Long submitSeq = jdbcTemplate.queryForObject(
+                "select submit_seq from sa_survey_submit_mst where submit_uid = ?",
+                Long.class,
+                "stats-submit-990005"
+        );
+
+        SASurveyDto.AnswerInsert answer = new SASurveyDto.AnswerInsert();
+        answer.submitSeq = submitSeq;
+        answer.fieldSeq = 5001L;
+        answer.fieldKey = "persist";
+        answer.fieldLabel = "저장 문항";
+        answer.fieldType = "text";
+        answer.surveyType = "subjective";
+        answer.requiredYn = "Y";
+        answer.answerValue = "답변";
+        answer.answerJson = null;
+        answer.sortOrd = 1;
+        submitMapper.insertAnswer(answer);
+
+        java.util.Map<String, Object> row = jdbcTemplate.queryForMap(
+                "select survey_type_snapshot, required_yn_snapshot from sa_survey_answer_dtl where answer_seq = ?",
+                answer.answerSeq
+        );
+        assertThat(row.get("survey_type_snapshot")).isEqualTo("subjective");
+        assertThat(row.get("required_yn_snapshot")).isEqualTo("Y");
+    }
+
     private void insertSubmission(long surveySeq, String submitUid, String status) {
         jdbcTemplate.update("""
                 insert into sa_survey_submit_mst
@@ -116,6 +167,25 @@ class SASurveyStatisticsMapperIntegrationTest {
                 fieldKey,
                 fieldLabel,
                 fieldType,
+                answerValue,
+                answerJson,
+                sortOrd
+        );
+    }
+
+    private void insertAnswerWithSurveyType(Long submitSeq, Long fieldSeq, String fieldKey, String fieldLabel, String fieldType, String surveyType, String answerValue, String answerJson, int sortOrd) {
+        jdbcTemplate.update("""
+                insert into sa_survey_answer_dtl
+                    (submit_seq, field_seq, field_key_snapshot, field_label_snapshot, field_type_snapshot, survey_type_snapshot, required_yn_snapshot, answer_value, answer_json, sort_ord, reg_dtm, reg_id, mod_dtm, mod_id)
+                values
+                    (?, ?, ?, ?, ?, ?, 'N', ?, ?, ?, now(), 'test', now(), 'test')
+                """,
+                submitSeq,
+                fieldSeq,
+                fieldKey,
+                fieldLabel,
+                fieldType,
+                surveyType,
                 answerValue,
                 answerJson,
                 sortOrd

@@ -207,3 +207,16 @@
 - 추가 리뷰에서 체크박스 `answer_value` 쉼표 분해가 콤마 포함 보기 라벨을 오집계할 수 있음을 확인했다.
 - 체크박스 통계는 `answer_json` 배열 값을 SQL에서 펼쳐 집계하고, 서비스에서 현재 보기 `optionValue -> optionLabel` 매핑으로 표시 라벨을 복원한다. 매핑이 없으면 JSON 값을 그대로 표시한다.
 - 객관식 빈도는 SQL `group by`, 주관식 최근 답변은 SQL `limit 20`으로 처리해 대량 제출 설문에서 문항별 전건을 Java 메모리에 적재하지 않게 한다.
+
+## 2026-06-07 설문 P9 제출 스냅샷 보강 설계
+
+- P9 범위는 사용자 확정으로 `required_yn` 실제값 기록과 `survey_type_snapshot` 추가 두 가지로 한정했다. 옵션셋 스냅샷, 무응답 문항 기록, survey description 스냅샷은 비범위다.
+- 현재 `insertAnswer`는 `required_yn_snapshot`에 리터럴 `'N'`을 넣어 제출 시점 필수 여부가 보존되지 않는다. 이 컬럼은 아직 읽는 곳이 없어 영향은 전방 데이터 수집에 한정된다.
+- 답변 row에 survey_type 스냅샷 컬럼이 없어 P8 통계가 `field_type`에서 객관식/주관식을 파생한다. 제출 시점 유형을 권위 데이터로 남기기 위해 `survey_type_snapshot`을 추가한다.
+- `survey_type_snapshot`은 NULL 허용으로 추가한다. `schema.sql`은 매 부팅마다 실행되므로 비멱등 백필 UPDATE를 피하고, 기존 row는 NULL로 두고 `selectStatisticFields`에서 `field_type_snapshot` 기반 COALESCE 파생으로 읽는다.
+- `required_yn` 레거시 값은 복구 불가하다. 기존 row는 `'N'`으로 남고 신규 제출부터 정확히 기록한다.
+- 이력 상세 화면은 현재 required/survey_type을 표시하지 않으므로 P9는 수집·보존만 한다. 화면 노출은 향후 작업이다.
+- 설계서는 `docs/planned/survey/2026-06-07-survey-submission-snapshot-p9-design.md`이며 구현 완료 시 `docs/clear/survey/`로 옮긴다.
+- 구현 완료. `survey_type_snapshot`(NULL) 컬럼 추가, `insertAnswer` 실제 `required_yn`/`survey_type` 저장, `selectStatisticFields` COALESCE 파생, 제출 서비스 `resolveSurveyType` 추가로 답변 스냅샷을 채웠다. 설계서를 `docs/clear/survey/`로 이동했다. 제출/통계 회귀와 `./gradlew test`가 통과했다.
+- 코드 리뷰 반영. `AnswerSnapshotMap`에 추가한 `survey_type`/`required_yn` 매핑이 `selectSubmissionAnswers`에서 미선택이라 dead였던 문제를, 해당 쿼리 SELECT에 두 컬럼을 추가해 살렸다(이력 상세 화면 표시는 여전히 향후). 통계 통합 테스트에 객관식 레거시(`field_type=radio`, 스냅샷 NULL) → `objective` 파생 케이스를 추가했다.
+- `resolveSurveyType`(제출)·`defaultSurveyType`(통계)·SQL CASE 세 곳이 같은 버킷 규칙을 중복하지만, 호출처 3곳이라 지금은 공통화하지 않는다. 네 번째가 생기면 공통 헬퍼로 추출한다.

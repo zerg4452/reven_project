@@ -77,6 +77,8 @@ public class SASurveySubmitService {
             answer.fieldKey = field.fieldKey;
             answer.fieldLabel = field.label;
             answer.fieldType = field.fieldType;
+            answer.surveyType = resolveSurveyType(field);
+            answer.requiredYn = field.isRequired() ? "Y" : "N";
             answer.answerValue = buildAnswerValue(field, values);
             answer.answerJson = buildAnswerJson(field, values);
             answer.sortOrd = field.sortOrd;
@@ -177,6 +179,17 @@ public class SASurveySubmitService {
         } catch (JsonProcessingException ex) {
             throw new IllegalStateException("Failed to serialize checkbox answer values.", ex);
         }
+    }
+
+    private String resolveSurveyType(SASurveyDto.SurveyField field) {
+        if (field.surveyType != null && !field.surveyType.isBlank()) {
+            return field.surveyType;
+        }
+        String normalizedFieldType = field.fieldType == null ? "" : field.fieldType.toLowerCase();
+        return switch (normalizedFieldType) {
+            case "select", "radio", "checkbox" -> "objective";
+            default -> "subjective";
+        };
     }
 
     private String resolveOptionLabel(SASurveyDto.SurveyField field, String value) {

@@ -369,6 +369,8 @@ public final class SASurveyDto {
         public String fieldKey;
         public String fieldLabel;
         public String fieldType;
+        public String surveyType;
+        public String requiredYn;
         public String answerValue;
         public String answerJson;
         public int sortOrd;
@@ -400,6 +402,8 @@ public final class SASurveyDto {
         public String fieldKey;
         public String fieldLabel;
         public String fieldType;
+        public String surveyType;
+        public String requiredYn;
         public String answerValue;
         public String answerJson;
         public int sortOrd;

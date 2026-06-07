@@ -153,6 +153,45 @@ class SASurveySubmitServiceTest {
         verify(submitMapper, never()).insertAnswer(any());
     }
 
+    @Test
+    void submitSnapshotsRequiredAndSurveyTypeOnAnswers() {
+        SASurveyService surveyService = mock(SASurveyService.class);
+        SASurveySubmitMapper submitMapper = mock(SASurveySubmitMapper.class);
+        SASurveyDto.SurveyDetail survey = survey(1L, "survey-uid");
+        SASurveyDto.SurveyField objective = field(10L, 1L, "objective", "checkbox");
+        objective.requiredYn = "N";
+        objective.options = List.of(option(100L, 10L, "Red", "red"));
+        SASurveyDto.SurveyField subjective = field(11L, 1L, "subjective", "text");
+        subjective.requiredYn = "Y";
+        survey.fields = List.of(objective, subjective);
+        when(surveyService.findSurvey("survey-uid")).thenReturn(survey);
+
+        SASurveySubmitService service = new SASurveySubmitService(surveyService, submitMapper);
+        SASurveyDto.SurveySubmitRequest request = new SASurveyDto.SurveySubmitRequest();
+        SASurveyDto.AnswerRequest objectiveAnswer = new SASurveyDto.AnswerRequest();
+        objectiveAnswer.fieldKey = "field-10";
+        objectiveAnswer.values = List.of("red");
+        SASurveyDto.AnswerRequest subjectiveAnswer = new SASurveyDto.AnswerRequest();
+        subjectiveAnswer.fieldKey = "field-11";
+        subjectiveAnswer.values = List.of("hello");
+        request.answers = List.of(objectiveAnswer, subjectiveAnswer);
+
+        service.submit("survey-uid", request, "127.0.0.1");
+
+        ArgumentCaptor<SASurveyDto.AnswerInsert> captor = ArgumentCaptor.forClass(SASurveyDto.AnswerInsert.class);
+        verify(submitMapper, times(2)).insertAnswer(captor.capture());
+
+        SASurveyDto.AnswerInsert objectiveInsert = captor.getAllValues().get(0);
+        assertThat(objectiveInsert.fieldKey).isEqualTo("field-10");
+        assertThat(objectiveInsert.surveyType).isEqualTo("objective");
+        assertThat(objectiveInsert.requiredYn).isEqualTo("N");
+
+        SASurveyDto.AnswerInsert subjectiveInsert = captor.getAllValues().get(1);
+        assertThat(subjectiveInsert.fieldKey).isEqualTo("field-11");
+        assertThat(subjectiveInsert.surveyType).isEqualTo("subjective");
+        assertThat(subjectiveInsert.requiredYn).isEqualTo("Y");
+    }
+
     private SASurveyDto.SurveyDetail survey(Long surveySeq, String surveyUid) {
         SASurveyDto.SurveyDetail survey = new SASurveyDto.SurveyDetail();
         survey.surveySeq = surveySeq;

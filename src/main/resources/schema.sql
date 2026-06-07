@@ -162,6 +162,7 @@ CREATE TABLE IF NOT EXISTS sa_survey_answer_dtl (
     field_key_snapshot VARCHAR(100) NOT NULL COMMENT '문항 키 스냅샷',
     field_label_snapshot VARCHAR(200) NOT NULL COMMENT '문항 라벨 스냅샷',
     field_type_snapshot VARCHAR(30) NOT NULL COMMENT '문항 유형 스냅샷',
+    survey_type_snapshot VARCHAR(20) NULL COMMENT '설문 유형 스냅샷',
     required_yn_snapshot CHAR(1) NOT NULL DEFAULT 'N' COMMENT '필수 여부 스냅샷',
     answer_value TEXT NULL COMMENT '답변 표시 값',
     answer_json TEXT NULL COMMENT '답변 JSON',
@@ -173,6 +174,8 @@ CREATE TABLE IF NOT EXISTS sa_survey_answer_dtl (
     PRIMARY KEY (answer_seq),
     KEY idx_sa_survey_answer_dtl_submit_seq (submit_seq)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='설문 답변 상세';
+
+ALTER TABLE sa_survey_answer_dtl ADD COLUMN IF NOT EXISTS survey_type_snapshot VARCHAR(20) NULL COMMENT '설문 유형 스냅샷' AFTER field_type_snapshot;
 
 CREATE TABLE IF NOT EXISTS bd_ai_news_mst (
     news_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT 'AI News 일련번호',
