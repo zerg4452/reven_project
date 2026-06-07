@@ -116,3 +116,30 @@
 - [x] 첫/이전/다음/마지막과 1~10번 페이지 묶음 표시로 바꾼다.
 - [x] 공지사항과 포토 게시판의 템플릿 회귀를 추가한다.
 - [x] 페이지 구간 계산 회귀를 추가한다.
+
+## 코드 리팩토링 (중복 제거)
+
+무거운 순서로 진행한다. 각 항목은 동작 보존(behavior-preserving)을 원칙으로 하고, 기존 테스트로 회귀를 확인한다.
+
+### R1 BD 파일저장 헬퍼 공통화 (무거움)
+
+- [x] `BDNoticeService`·`BDPhotoBoardService`의 동일/유사 파일저장 헬퍼 목록을 확정한다.
+- [x] `service/bd/support`에 공통 파일저장 헬퍼를 추출한다.
+- [x] 두 서비스가 공통 헬퍼를 쓰도록 바꾸고 중복 메서드를 제거한다.
+- [x] `BDNoticeServiceTest`·`BDPhotoBoardServiceTest`로 동작 보존을 검증한다.
+- [x] Gradle 전체 테스트로 회귀를 확인한다.
+
+### R2 firstText 공통화 (중간)
+
+- [x] 4개 서비스(`BDNotice`/`BDPhotoBoard`/`BDAiNews`/`COAdminMenu`)의 `firstText` 중복을 공용 헬퍼로 통합한다.
+- [x] 호출처를 공용 헬퍼로 바꾸고 중복 정의를 제거한다.
+- [x] Gradle 테스트로 검증한다.
+
+### R3 SASurveyDto 분리 검토 (낮음, 보류 후보)
+
+- [x] 531줄 god-DTO 분리 이득 대비 churn을 평가한다.
+- [x] 진행 여부를 결정하고 미진행 시 사유를 컨텍스트 노트에 남긴다. (보류 결정)
+
+### R4 잔여 정리 (사소)
+
+- [x] `BDNoticeService.normalizedAdminSearch` thin wrapper 호출처를 확인하고 정리 여부를 판단한다. (살아 있는 API, 정리 불필요)

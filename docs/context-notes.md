@@ -234,3 +234,13 @@
 - 회귀 테스트는 저장/수정/복사 기간 전달, 관리자 기간 역전 검증, 공개 상세·제출 차단, 공개 카드/메인 mapper 조건, 템플릿 분기를 포함한다.
 - focused 테스트와 `./gradlew test`가 모두 통과했다.
 - 코드 리뷰 반영. mapper 통합 테스트가 고정 `today`와 DTO의 실제 오늘 getter를 섞어 날짜가 지나면 실패할 수 있던 점을 고쳤고, `startDate = NULL`, `endDate = NULL`인 기존 설문이 접수중으로 조회되는 호환 케이스를 추가했다. 공개 설문 목록 문구도 비활성 카드를 포함하는 실제 정책에 맞춰 `설문 목록`으로 정리했다.
+
+## 2026-06-07 코드 리팩토링 중복 제거 (R1·R2)
+
+- 리팩토링 후보 조사에서 두 가지 중복을 정리했다. 동작 보존 리팩토링이라 새 테스트는 추가하지 않고 기존 회귀로 검증했다.
+- R1. `BDNoticeService`·`BDPhotoBoardService`에 복붙돼 있던 파일 디스크 저장·경로 해석·커밋 후 삭제 로직을 `service/bd/support/BDFileStorageSupport`로 추출했다. `rootPath`가 서비스마다 달라 Spring 빈이 아니라 서비스별 인스턴스로 생성한다. 허용 확장자·MIME 검증은 서비스마다 달라 그대로 두고, 디스크 기록(`writeToDisk`)·경로 해석·삭제 스케줄링(`StoredFileRef` 기반)만 공통화했다. 두 서비스 합쳐 약 150줄 감소.
+- R2. 4개 서비스(`BDNotice`/`BDPhotoBoard`/`BDAiNews`/`COAdminMenu`)에 바이트 단위로 동일하던 `firstText(String...)`를 `common/util/TextUtils`로 추출하고 static import로 전환했다. 호출처 40곳은 수정하지 않았다.
+- R3 보류. `SASurveyDto`(531줄)는 nested static DTO 약 20개 컨테이너다. 분리해도 로직 이득이 없고 import·참조 경로 churn만 커서 분리하지 않기로 했다. 한 도메인 DTO가 한 파일에 모여 탐색이 오히려 쉽다.
+- R4 액션 없음. `BDNoticeService.normalizedAdminSearch`(public)는 `BDNoticeAdminController`가 호출하는 살아 있는 API라 private `normalizeAdminSearch`와의 thin wrapper 쌍이 의도적이다. 정리 대상 아니다.
+- 후속 후보. `COAdminManagementService`의 `firstText(String)`·`firstText(String, String)` 오버로드는 시그니처가 달라 이번 범위에 넣지 않았다. 의미가 같으면 향후 `TextUtils.firstText`로 흡수할 수 있다.
+- 계획서는 `docs/planned/2026-06-07-bd-refactor-dedup-plan.md`. `./gradlew test` 전체 통과.
