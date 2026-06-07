@@ -23,6 +23,32 @@ public final class SASurveyDto {
     private SASurveyDto() {
     }
 
+    public static LocalDate projectToday() {
+        return LocalDate.now(PROJECT_ZONE);
+    }
+
+    public static boolean accepting(LocalDate startDate, LocalDate endDate, LocalDate today) {
+        return !isBeforeStart(startDate, today) && !isAfterEnd(endDate, today);
+    }
+
+    public static String periodStatusText(LocalDate startDate, LocalDate endDate, LocalDate today) {
+        if (isBeforeStart(startDate, today)) {
+            return "예정";
+        }
+        if (isAfterEnd(endDate, today)) {
+            return "마감";
+        }
+        return "접수중";
+    }
+
+    private static boolean isBeforeStart(LocalDate startDate, LocalDate today) {
+        return startDate != null && startDate.isAfter(today);
+    }
+
+    private static boolean isAfterEnd(LocalDate endDate, LocalDate today) {
+        return endDate != null && endDate.isBefore(today);
+    }
+
     @Getter
     @Setter
     /** 설문 관리 목록 검색 조건이다. */
@@ -63,6 +89,8 @@ public final class SASurveyDto {
         public String title;
         public int fieldCount;
         public String useYn;
+        public LocalDate startDate;
+        public LocalDate endDate;
         public LocalDate regDate;
         public LocalDate modDate;
 
@@ -73,6 +101,17 @@ public final class SASurveyDto {
 
         public boolean isEnabled() {
             return "Y".equalsIgnoreCase(useYn);
+        }
+
+        public boolean isAccepting() {
+            return isEnabled() && SASurveyDto.accepting(startDate, endDate, projectToday());
+        }
+
+        public String getPeriodStatusText() {
+            if (!isEnabled()) {
+                return "마감";
+            }
+            return SASurveyDto.periodStatusText(startDate, endDate, projectToday());
         }
 
         public LocalDate getCreatedDate() {
@@ -93,6 +132,8 @@ public final class SASurveyDto {
         public String title;
         public String description;
         public String useYn = "Y";
+        public LocalDate startDate;
+        public LocalDate endDate;
         public LocalDate regDate;
         public LocalDate modDate;
         public List<SurveyField> fields = new ArrayList<>();
@@ -103,6 +144,17 @@ public final class SASurveyDto {
 
         public boolean isEnabled() {
             return "Y".equalsIgnoreCase(useYn);
+        }
+
+        public boolean isAccepting() {
+            return isEnabled() && SASurveyDto.accepting(startDate, endDate, projectToday());
+        }
+
+        public String getPeriodStatusText() {
+            if (!isEnabled()) {
+                return "마감";
+            }
+            return SASurveyDto.periodStatusText(startDate, endDate, projectToday());
         }
     }
 
@@ -176,6 +228,8 @@ public final class SASurveyDto {
         @NotBlank
         public String title;
         public String description;
+        public LocalDate startDate;
+        public LocalDate endDate;
         public String useYn = "Y";
         @Valid
         public List<SurveyFieldSaveRequest> fields = new ArrayList<>();

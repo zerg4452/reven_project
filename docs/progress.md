@@ -148,9 +148,39 @@
 
 ---
 
+### 설문 P9: 제출 스냅샷 보강 (전체 완료)
+
+**구현 완료 내용:**
+- 답변 테이블 `sa_survey_answer_dtl`에 `survey_type_snapshot` 컬럼(NULL 허용)을 추가
+- `insertAnswer`가 제출 시점의 실제 `required_yn`과 `survey_type`을 저장하도록 수정
+- `selectStatisticFields`가 `survey_type_snapshot` 우선, 레거시 row는 `field_type_snapshot` 기반 COALESCE 파생으로 읽도록 보강
+- 제출 서비스 `SASurveySubmitService`에 `resolveSurveyType`을 추가해 답변 스냅샷을 채움
+- `SASurveySubmitServiceTest`와 `SASurveyStatisticsMapperIntegrationTest`에 스냅샷 캡처 및 레거시 파생 검증을 추가
+
+**검증 결과:**
+- ✅ focused 테스트 통과
+- ✅ `./gradlew test` BUILD SUCCESSFUL
+
+### 설문 P10: 기간 관리 (전체 완료)
+
+**구현 완료 내용:**
+- 설문 마스터 `sa_survey_mst`에 `start_date`, `end_date` 컬럼을 추가했다.
+- 설문 DTO와 MyBatis 매퍼 저장/조회 경로에 접수 시작일과 종료일을 반영했다.
+- 관리자 설문 상세 화면에서 기간을 입력하고, 종료일이 시작일보다 빠른 요청은 저장하지 않도록 검증했다.
+- 공개 설문 목록은 예정/마감/미사용 설문도 비활성 카드로 표시하고, 접수중 설문만 `작성하기` 링크를 노출한다.
+- 사용자 메인 요약, 상세 진입, 제출 저장은 `Asia/Seoul` 기준 오늘 날짜로 접수중인 설문만 허용한다.
+- 설문 복사는 원본 기간을 복사하되 기존 정책대로 복사본 `useYn = N`을 유지한다.
+
+**검증 결과:**
+- ✅ 서비스, 컨트롤러, 제출 서비스, mapper 통합, 템플릿 회귀 테스트 보강
+- ✅ 코드 리뷰 지적 반영. mapper 통합 테스트 날짜 의존성 제거, NULL 기간 기존 설문 호환 케이스 추가, 공개 목록 문구 정리
+- ✅ `./gradlew test --tests '*SASurvey*' --tests '*SAPublicSurvey*' --tests '*COMainControllerTest'` BUILD SUCCESSFUL
+- ✅ `./gradlew test` BUILD SUCCESSFUL
+
+---
+
 ## 앞으로 할 일 (우선순위 순)
 
 | 순위 | 항목 | 비고 |
 |------|------|------|
-| P9 | 제출 스냅샷 상세화 | |
-| P10 | 설문 기간 관리 | |
+| - | 없음 | 설문 P10까지 완료됨 |

@@ -4,6 +4,7 @@ import com.reven.project.service.sa.dto.SASurveyDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Mapper
@@ -12,13 +13,13 @@ public interface SASurveyMapper {
     List<SASurveyDto.SurveyListItem> selectSurveyList(SASurveyDto.SurveySearchRequest request);
 
     /** 사용자 화면에 노출할 사용 중 설문 목록을 조회한다. */
-    List<SASurveyDto.SurveyListItem> selectPublicSurveyList();
+    List<SASurveyDto.SurveyListItem> selectPublicSurveyList(@Param("today") LocalDate today);
 
     /** 사용자 설문 카드 화면에 노출할 삭제되지 않은 설문 목록을 조회한다. */
-    List<SASurveyDto.SurveyListItem> selectPublicSurveyCardList();
+    List<SASurveyDto.SurveyListItem> selectPublicSurveyCardList(@Param("today") LocalDate today);
 
     /** 사용자 메인 화면에 노출할 사용 중 설문 최신 목록을 조회한다. */
-    List<SASurveyDto.SurveyListItem> selectPublicSurveySummaryList(@Param("limit") int limit);
+    List<SASurveyDto.SurveyListItem> selectPublicSurveySummaryList(@Param("limit") int limit, @Param("today") LocalDate today);
 
     /** 공개 UID 기준으로 설문 마스터를 조회한다. */
     SASurveyDto.SurveyDetail selectSurvey(@Param("surveyUid") String surveyUid);

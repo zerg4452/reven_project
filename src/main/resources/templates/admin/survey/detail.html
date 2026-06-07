@@ -55,6 +55,14 @@
                     <textarea class="form-control" name="description" rows="4" th:text="${survey?.description}"></textarea>
                 </label>
                 <label>
+                    접수 시작일
+                    <input class="form-control" type="date" name="startDate" th:value="${survey?.startDate}">
+                </label>
+                <label>
+                    접수 종료일
+                    <input class="form-control" type="date" name="endDate" th:value="${survey?.endDate}">
+                </label>
+                <label>
                     사용여부
                     <select class="form-control" name="useYn">
                         <option value="true" th:selected="${survey?.enabled != false}">사용</option>

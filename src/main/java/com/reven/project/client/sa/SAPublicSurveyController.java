@@ -41,7 +41,7 @@ public class SAPublicSurveyController {
     @GetMapping({"/surveys/detail.do", "/surveys/write.do"})
     public String detail(@RequestParam String surveyUid, Model model) {
         var survey = surveyService.findSurvey(surveyUid);
-        if (!survey.isEnabled()) {
+        if (!survey.isAccepting()) {
             return "redirect:/surveys/list.do";
         }
         model.addAttribute("survey", survey);
@@ -78,6 +78,8 @@ public class SAPublicSurveyController {
         });
         try {
             submitService.submit(surveyUid, request, servletRequest.getRemoteAddr());
+        } catch (SASurveySubmitService.SurveyNotAcceptingException ex) {
+            return "redirect:/surveys/list.do";
         } catch (SASurveySubmitService.SubmissionValidationException ex) {
             model.addAttribute("survey", surveyService.findSurvey(surveyUid));
             model.addAttribute("errors", ex.getErrors());

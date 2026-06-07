@@ -166,6 +166,7 @@ public class SAAdminSurveyController {
     ) {
         boolean isNewSurvey = surveyUid == null || surveyUid.isBlank();
         surveyUid = isNewSurvey ? null : surveyUid;
+        validateSurveyPeriod(request, bindingResult);
         validateSurveyOptions(request, bindingResult);
         if (bindingResult.hasErrors()) {
             model.addAttribute("survey", requestToDetail(surveyUid, request));
@@ -175,6 +176,12 @@ public class SAAdminSurveyController {
         surveyService.saveSurvey(surveyUid, request);
         redirectAttributes.addFlashAttribute("surveySavedMessage", "저장되었습니다.");
         return "redirect:/admin/surveys/list.do";
+    }
+
+    private void validateSurveyPeriod(SASurveyDto.SurveySaveRequest request, BindingResult bindingResult) {
+        if (request.startDate != null && request.endDate != null && request.endDate.isBefore(request.startDate)) {
+            bindingResult.rejectValue("endDate", "survey.period.invalid", "종료일은 시작일보다 빠를 수 없습니다.");
+        }
     }
 
     private void validateSurveyOptions(SASurveyDto.SurveySaveRequest request, BindingResult bindingResult) {
@@ -209,6 +216,8 @@ public class SAAdminSurveyController {
         detail.surveyUid = surveyUid;
         detail.title = request.title;
         detail.description = request.description;
+        detail.startDate = request.startDate;
+        detail.endDate = request.endDate;
         detail.useYn = request.useYn;
 
         List<SASurveyDto.SurveyField> fields = new ArrayList<>();

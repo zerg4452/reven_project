@@ -5,6 +5,7 @@ package com.reven.project.client.sa;
 import com.reven.project.service.sa.SASurveyService;
 import com.reven.project.service.sa.SASurveySubmitService;
 import com.reven.project.service.sa.dto.SASurveyDto;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -16,8 +17,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -25,6 +28,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 class SAPublicSurveyControllerTest {
+
+    @Test
+    void detailRedirectsToListWhenSurveyIsNotAccepting() throws Exception {
+        SASurveyService surveyService = mock(SASurveyService.class);
+        SASurveySubmitService submitService = mock(SASurveySubmitService.class);
+        SASurveyDto.SurveyDetail survey = survey();
+        survey.endDate = LocalDate.of(2000, 1, 1);
+        when(surveyService.findSurvey("survey-uid")).thenReturn(survey);
+
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new SAPublicSurveyController(surveyService, submitService)).build();
+
+        mvc.perform(get("/surveys/detail.do").param("surveyUid", "survey-uid"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/surveys/list.do"));
+    }
 
     @Test
     void submitGroupsRepeatedCheckboxValuesIntoOneAnswerRequest() throws Exception {
@@ -71,6 +89,25 @@ class SAPublicSurveyControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("client/survey/form"))
                 .andExpect(model().attributeExists("survey", "errors"));
+    }
+
+    @Test
+    void submitRedirectsToListWhenSurveyIsNotAccepting() throws Exception {
+        SASurveyService surveyService = mock(SASurveyService.class);
+        SASurveySubmitService submitService = mock(SASurveySubmitService.class);
+        when(submitService.submit(anyString(), any(), anyString()))
+                .thenThrow(new SASurveySubmitService.SurveyNotAcceptingException("survey-uid"));
+
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new SAPublicSurveyController(surveyService, submitService)).build();
+
+        mvc.perform(post("/surveys/submit.do")
+                        .param("surveyUid", "survey-uid")
+                        .param("submitterName", "홍길동")
+                        .param("phone", "010-0000-0000"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/surveys/list.do"));
+
+        verify(surveyService, never()).findSurvey(anyString());
     }
 
     private SASurveyDto.SurveyDetail survey() {

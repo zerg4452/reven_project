@@ -2,7 +2,7 @@
 
 # 설문 P9 — 제출 스냅샷 보강 (required_yn + survey_type)
 
-- 상태. 진행 예정 (planned)
+- 상태. 완료 (completed)
 - 작성일. 2026-06-07
 - 관련 체크리스트. `docs/checklist.md` → "관리자 설문 우선순위" P9
 - 선행. P8 응답 통계 (스냅샷 기준 집계)

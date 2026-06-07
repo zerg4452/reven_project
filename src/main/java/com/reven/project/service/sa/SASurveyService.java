@@ -29,21 +29,21 @@ public class SASurveyService {
      * 사용자 화면에 노출할 사용 중 설문만 조회한다.
      */
     public List<SASurveyDto.SurveyListItem> findPublicSurveys() {
-        return surveyMapper.selectPublicSurveyList();
+        return surveyMapper.selectPublicSurveyList(SASurveyDto.projectToday());
     }
 
     /**
      * 사용자 설문 목록 카드에 표시할 설문을 진행/마감 상태와 함께 조회한다.
      */
     public List<SASurveyDto.SurveyListItem> findPublicSurveyCards() {
-        return surveyMapper.selectPublicSurveyCardList();
+        return surveyMapper.selectPublicSurveyCardList(SASurveyDto.projectToday());
     }
 
     /**
      * 사용자 메인 화면에 노출할 진행중인 설문 최신 목록을 제한 개수만큼 조회한다.
      */
     public List<SASurveyDto.SurveyListItem> findPublicSurveySummaries(int limit) {
-        return surveyMapper.selectPublicSurveySummaryList(Math.max(1, limit));
+        return surveyMapper.selectPublicSurveySummaryList(Math.max(1, limit), SASurveyDto.projectToday());
     }
 
     /**
@@ -81,6 +81,8 @@ public class SASurveyService {
         copy.title = source.title + " 사본";
         copy.description = source.description;
         copy.useYn = "N";
+        copy.startDate = source.startDate;
+        copy.endDate = source.endDate;
         for (SASurveyDto.SurveyField sourceField : source.fields) {
             SASurveyDto.SurveyField field = new SASurveyDto.SurveyField();
             field.fieldSeq = null;
@@ -167,6 +169,8 @@ public class SASurveyService {
         survey.title = request.title;
         survey.description = request.description;
         survey.useYn = defaultYn(request.useYn, "Y");
+        survey.startDate = request.startDate;
+        survey.endDate = request.endDate;
         return survey;
     }
 

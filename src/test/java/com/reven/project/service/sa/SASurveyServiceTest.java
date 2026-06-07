@@ -46,6 +46,8 @@ class SASurveyServiceTest {
         request.surveyUid = "survey-uid";
         request.title = "새 설문";
         request.description = "설명";
+        request.startDate = LocalDate.of(2026, 6, 1);
+        request.endDate = LocalDate.of(2026, 6, 30);
         request.useYn = "true";
 
         SASurveyDto.SurveyFieldSaveRequest field = new SASurveyDto.SurveyFieldSaveRequest();
@@ -56,9 +58,13 @@ class SASurveyServiceTest {
 
         SASurveyDto.SurveyDetail result = service.saveSurvey(null, request);
 
+        ArgumentCaptor<SASurveyDto.SurveyDetail> surveyCaptor = ArgumentCaptor.forClass(SASurveyDto.SurveyDetail.class);
         ArgumentCaptor<SASurveyDto.SurveyField> fieldCaptor = ArgumentCaptor.forClass(SASurveyDto.SurveyField.class);
+        verify(mapper).insertSurvey(surveyCaptor.capture());
         verify(mapper).insertSurveyField(fieldCaptor.capture());
 
+        assertThat(surveyCaptor.getValue().startDate).isEqualTo(LocalDate.of(2026, 6, 1));
+        assertThat(surveyCaptor.getValue().endDate).isEqualTo(LocalDate.of(2026, 6, 30));
         assertThat(fieldCaptor.getValue().surveyType).isEqualTo("subjective");
         assertThat(fieldCaptor.getValue().fieldType).isEqualTo("textarea");
         assertThat(result.surveySeq).isEqualTo(1L);
@@ -81,6 +87,8 @@ class SASurveyServiceTest {
         request.surveyUid = "ignored";
         request.title = "수정 설문";
         request.description = "설명";
+        request.startDate = LocalDate.of(2026, 7, 1);
+        request.endDate = LocalDate.of(2026, 7, 31);
         request.useYn = "false";
 
         SASurveyDto.SurveyFieldSaveRequest field = new SASurveyDto.SurveyFieldSaveRequest();
@@ -101,6 +109,8 @@ class SASurveyServiceTest {
         assertThat(surveyCaptor.getValue().surveySeq).isEqualTo(7L);
         assertThat(surveyCaptor.getValue().surveyUid).isEqualTo("survey-uid");
         assertThat(surveyCaptor.getValue().useYn).isEqualTo("N");
+        assertThat(surveyCaptor.getValue().startDate).isEqualTo(LocalDate.of(2026, 7, 1));
+        assertThat(surveyCaptor.getValue().endDate).isEqualTo(LocalDate.of(2026, 7, 31));
         assertThat(fieldCaptor.getValue().surveyType).isEqualTo("objective");
         assertThat(fieldCaptor.getValue().fieldType).isEqualTo("select");
         assertThat(result.surveySeq).isEqualTo(7L);
@@ -149,6 +159,8 @@ class SASurveyServiceTest {
     void copySurveyFormDuplicatesStructureAsNewRecord() {
         SASurveyMapper mapper = mock(SASurveyMapper.class);
         SASurveyDto.SurveyDetail source = survey(5L, "source-uid");
+        source.startDate = LocalDate.of(2026, 6, 1);
+        source.endDate = LocalDate.of(2026, 6, 30);
         SASurveyDto.SurveyField sourceField = field(50L, 5L, "objective", "radio");
         SASurveyDto.SurveyOption sourceOption = new SASurveyDto.SurveyOption();
         sourceOption.optionSeq = 500L;
@@ -169,6 +181,8 @@ class SASurveyServiceTest {
         assertThat(copy.title).isEqualTo("설문 사본");
         assertThat(copy.description).isEqualTo("설명");
         assertThat(copy.useYn).isEqualTo("N");
+        assertThat(copy.startDate).isEqualTo(LocalDate.of(2026, 6, 1));
+        assertThat(copy.endDate).isEqualTo(LocalDate.of(2026, 6, 30));
         assertThat(copy.fields).hasSize(1);
 
         SASurveyDto.SurveyField copiedField = copy.fields.get(0);

@@ -87,6 +87,8 @@ CREATE TABLE IF NOT EXISTS sa_survey_mst (
     survey_uid VARCHAR(32) NOT NULL COMMENT '설문 공개 식별자',
     title VARCHAR(200) NOT NULL COMMENT '설문 제목',
     description TEXT NULL COMMENT '설문 설명',
+    start_date DATE NULL COMMENT '설문 접수 시작일',
+    end_date DATE NULL COMMENT '설문 접수 종료일',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
     delete_flg CHAR(1) NOT NULL DEFAULT 'N' COMMENT '삭제 여부',
     reg_dtm DATETIME NOT NULL COMMENT '등록 일시',
@@ -97,6 +99,9 @@ CREATE TABLE IF NOT EXISTS sa_survey_mst (
     UNIQUE KEY uq_sa_survey_mst_survey_uid (survey_uid),
     KEY idx_sa_survey_mst_reg_dtm (reg_dtm)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='설문 마스터';
+
+ALTER TABLE sa_survey_mst ADD COLUMN IF NOT EXISTS start_date DATE NULL COMMENT '설문 접수 시작일' AFTER description;
+ALTER TABLE sa_survey_mst ADD COLUMN IF NOT EXISTS end_date DATE NULL COMMENT '설문 접수 종료일' AFTER start_date;
 
 CREATE TABLE IF NOT EXISTS sa_survey_field_dtl (
     field_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT '설문 문항 일련번호',

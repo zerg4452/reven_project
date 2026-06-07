@@ -4,6 +4,7 @@ package com.reven.project.admin.sa;
 
 import com.reven.project.service.sa.SASurveyService;
 import com.reven.project.service.sa.dto.SASurveyDto;
+import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.test.web.servlet.MockMvc;
@@ -156,6 +157,8 @@ class SAAdminSurveyControllerTest {
         mvc.perform(post("/admin/surveys/insert.do")
                         .param("surveyUid", "survey-uid")
                         .param("title", "순서 테스트")
+                        .param("startDate", "2026-06-01")
+                        .param("endDate", "2026-06-30")
                         .param("useYn", "Y")
                         .param("fields[0].label", "두 번째")
                         .param("fields[0].surveyType", "subjective")
@@ -169,9 +172,32 @@ class SAAdminSurveyControllerTest {
         ArgumentCaptor<SASurveyDto.SurveySaveRequest> captor =
                 ArgumentCaptor.forClass(SASurveyDto.SurveySaveRequest.class);
         verify(surveyService).saveSurvey(isNull(), captor.capture());
+        assertThat(captor.getValue().startDate).isEqualTo(LocalDate.of(2026, 6, 1));
+        assertThat(captor.getValue().endDate).isEqualTo(LocalDate.of(2026, 6, 30));
         assertThat(captor.getValue().fields)
                 .extracting(field -> field.label)
                 .containsExactly("두 번째", "첫 번째");
+    }
+
+    @Test
+    void saveSurveyRejectsEndDateBeforeStartDate() throws Exception {
+        SASurveyService surveyService = mock(SASurveyService.class);
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new SAAdminSurveyController(surveyService)).build();
+
+        mvc.perform(post("/admin/surveys/insert.do")
+                        .param("surveyUid", "survey-uid")
+                        .param("title", "설문")
+                        .param("startDate", "2026-06-30")
+                        .param("endDate", "2026-06-01")
+                        .param("useYn", "Y")
+                        .param("fields[0].label", "질문 1")
+                        .param("fields[0].surveyType", "subjective")
+                        .param("fields[0].fieldType", "text"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/survey/detail"))
+                .andExpect(model().attributeExists("survey", "errors"));
+
+        verify(surveyService, never()).saveSurvey(any(), any());
     }
 
     @Test

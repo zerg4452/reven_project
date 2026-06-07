@@ -4,6 +4,7 @@ package com.reven.project.service.sa;
 
 import com.reven.project.service.sa.dto.SASurveyDto;
 import com.reven.project.service.sa.mapper.SASurveySubmitMapper;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -190,6 +191,23 @@ class SASurveySubmitServiceTest {
         assertThat(subjectiveInsert.fieldKey).isEqualTo("field-11");
         assertThat(subjectiveInsert.surveyType).isEqualTo("subjective");
         assertThat(subjectiveInsert.requiredYn).isEqualTo("Y");
+    }
+
+    @Test
+    void submitRejectsSurveyOutsideAcceptancePeriodBeforeInsert() {
+        SASurveyService surveyService = mock(SASurveyService.class);
+        SASurveySubmitMapper submitMapper = mock(SASurveySubmitMapper.class);
+        SASurveyDto.SurveyDetail survey = survey(1L, "survey-uid");
+        survey.endDate = LocalDate.of(2000, 1, 1);
+        when(surveyService.findSurvey("survey-uid")).thenReturn(survey);
+
+        SASurveySubmitService service = new SASurveySubmitService(surveyService, submitMapper);
+        SASurveyDto.SurveySubmitRequest request = new SASurveyDto.SurveySubmitRequest();
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.submit("survey-uid", request, "127.0.0.1"))
+                .isInstanceOf(SASurveySubmitService.SurveyNotAcceptingException.class);
+        verify(submitMapper, never()).insertSubmission(any());
+        verify(submitMapper, never()).insertAnswer(any());
     }
 
     private SASurveyDto.SurveyDetail survey(Long surveySeq, String surveyUid) {

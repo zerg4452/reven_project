@@ -31,6 +31,26 @@ class SASurveyPreviewViewTest {
     }
 
     @Test
+    void detailTemplateIncludesSurveyAcceptancePeriodInputs() throws IOException {
+        String html = readClasspath("/templates/admin/survey/detail.html");
+
+        assertThat(html).contains("name=\"startDate\"");
+        assertThat(html).contains("name=\"endDate\"");
+        assertThat(html).contains("th:value=\"${survey?.startDate}\"");
+        assertThat(html).contains("th:value=\"${survey?.endDate}\"");
+    }
+
+    @Test
+    void publicSurveyListUsesAcceptanceStatusForCards() throws IOException {
+        String html = readClasspath("/templates/client/survey/list.html");
+
+        assertThat(html).contains("${survey.accepting}");
+        assertThat(html).contains("${survey.periodStatusText}");
+        assertThat(html).contains("아직 접수 전입니다.");
+        assertThat(html).contains("참여 불가");
+    }
+
+    @Test
     void publicSurveyFormBlocksSubmitInPreviewMode() throws IOException {
         String html = readClasspath("/templates/client/survey/form.html");
 

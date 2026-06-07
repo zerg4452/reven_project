@@ -1,0 +1,44 @@
+{
+  "status": "N",
+  "title": "오늘의 Codex/Cursor/Claude + Harness 소식",
+  "slug": "ai-news-2026-06-07",
+  "category": "AI News",
+  "tags": [
+    "Codex",
+    "Cursor",
+    "Claude",
+    "Harness"
+  ],
+  "summary": "오늘은 Cursor와 Claude Code의 비용/역할 비교가 계속 확인됐고, Codex/Claude/Cursor를 HTTP API나 multi-harness plugin 구조로 묶는 agentapi와 wshobson/agents가 주요 추적 후보로 남았습니다.",
+  "content_markdown": "오늘의 Codex/Cursor/Claude + Harness 소식\n\n1. Cursor vs Claude Code 최신 비교 토론\n- 출처: Reddit r/cursor\n- 링크: https://www.reddit.com/r/cursor/comments/1twy9k7/cursor_vs_claude_code/\n- 핵심 요약: 최근 Cursor와 Claude Code를 비교하는 토론입니다. 흐름은 Cursor가 IDE 안 빠른 수정에는 강하지만, 긴 작업이나 복잡한 context 유지에서는 Claude Code가 더 안정적이라는 쪽입니다.\n- 왜 중요한지: Cursor, Claude, Codex를 한 줄로 순위 매기기보다 작업 단위별로 분리해야 합니다. 특히 context bleed나 장기 작업 실패가 생기는 작업은 별도 agent로 보내는 편이 낫습니다.\n- 다음 행동: Cursor는 짧은 UI/문구/스타일 수정, Claude Code는 여러 파일 구현, Codex는 계획/리뷰/검증으로 나눠 실제 프로젝트에서 1주일만 기록하세요.\n\n2. Claude Code $100 vs Cursor $60 플랜 비교\n- 출처: Reddit r/cursor\n- 링크: https://www.reddit.com/r/cursor/comments/1txczjl/claude_code_100_vs_cursor_60/\n- 핵심 요약: Claude Code의 상위 플랜과 Cursor 상위 플랜 중 어떤 쪽이 실제 개발에 더 나은지 묻는 토론입니다. 가격 자체보다 quota, latency, agent loop 품질, 작업 종류가 더 중요한 판단 기준으로 보입니다.\n- 왜 중요한지: AI 코딩 도구 비용 최적화는 단순 구독료 비교가 아니라 실패 복구 시간까지 포함한 총비용 문제입니다.\n- 다음 행동: 각 도구별로 “작업 완료까지 걸린 시간”, “수동 수정 횟수”, “테스트 실패 원인”을 같이 기록하세요.\n\n3. agentapi: Codex, Claude Code, Cursor CLI를 HTTP API로 제어\n- 출처: GitHub coder/agentapi\n- 링크: https://github.com/coder/agentapi\n- 핵심 요약: Claude Code, Codex, Cursor CLI 등 여러 coding agent를 HTTP API 뒤에 붙이는 프로젝트입니다. MCP backend로도 쓸 수 있어 agent 간 위임 구조를 만들 수 있습니다.\n- 왜 중요한지: Codex를 PHP 사이트나 로컬 관리 UI에 붙이려면 CLI 직접 호출보다 HTTP API wrapper가 운영하기 쉽습니다. 다만 권한, workspace, 로그, 취소 처리 경계를 별도로 설계해야 합니다.\n- 다음 행동: read-only workspace에서 Codex 타입으로 실행하고 작업 디렉터리 제한, 로그 저장, 중단 처리부터 확인하세요.\n\n4. wshobson/agents: Codex CLI 지원 multi-harness plugin 구조\n- 출처: GitHub wshobson/agents docs/harnesses.md\n- 링크: https://github.com/wshobson/agents/blob/main/docs/harnesses.md\n- 핵심 요약: Claude Code, Codex CLI, Cursor, OpenCode, Gemini CLI 같은 여러 하네스를 대상으로 agent/plugin 구조를 비교합니다. Codex 쪽은 marketplace, plugin.json, skills, agents 디렉터리 흐름을 기준으로 설명합니다.\n- 왜 중요한지: Codex용 agent나 plugin을 직접 만들 때 파일 구조와 배포 구조를 참고할 수 있습니다. 전체 설치보다 필요한 agent만 부분 적용하는 전략이 안전합니다.\n- 다음 행동: Codex 생성 결과물의 plugin.json, skills, agents 구조만 먼저 확인하고 기존 .codex 설정을 덮어쓰는지 확인하세요.\n\n5. OpenClaw Codex plugin regression: 업데이트 안정성 경고\n- 출처: GitHub openclaw/openclaw Issue #82368\n- 링크: https://github.com/openclaw/openclaw/issues/82368\n- 핵심 요약: OpenClaw 업데이트 이후 Codex 플러그인/runtime migration 누락으로 Codex harness 등록이 깨졌다는 이슈입니다.\n- 왜 중요한지: Codex용 하네스/플러그인은 “설치 가능”보다 “업데이트 후 계속 동작”이 중요합니다. runtime 등록, migration, rollback 경로가 없으면 자동화가 조용히 멈출 수 있습니다.\n- 다음 행동: 하네스 후보 평가 체크리스트에 release note, migration, registration test, rollback 경로를 넣으세요.\n\n오늘의 추천 액션\n1. PHP importer에는 status=Y 보호, slug unique, JSON parse 실패 시 error 기록, 위험 카테고리 자동 승인 금지를 넣으세요.\n2. Codex 하네스 후보는 agentapi, wshobson/agents, OpenClaw 이슈를 기준으로 통합 편의성과 업데이트 안정성을 따로 평가하세요.\n3. Cursor/Claude/Codex 비교는 모델 승패보다 context 관리, quota, tool loop, 실패 복구 비용을 기준으로 읽으세요.",
+  "sources": [
+    {
+      "title": "Cursor vs Claude Code",
+      "source": "Reddit r/cursor",
+      "url": "https://www.reddit.com/r/cursor/comments/1twy9k7/cursor_vs_claude_code/"
+    },
+    {
+      "title": "Claude Code 100$ vs Cursor 60$",
+      "source": "Reddit r/cursor",
+      "url": "https://www.reddit.com/r/cursor/comments/1txczjl/claude_code_100_vs_cursor_60/"
+    },
+    {
+      "title": "agentapi",
+      "source": "GitHub coder/agentapi",
+      "url": "https://github.com/coder/agentapi"
+    },
+    {
+      "title": "agents/docs/harnesses.md",
+      "source": "GitHub wshobson/agents",
+      "url": "https://github.com/wshobson/agents/blob/main/docs/harnesses.md"
+    },
+    {
+      "title": "OpenClaw Codex plugin regression",
+      "source": "GitHub openclaw/openclaw Issue #82368",
+      "url": "https://github.com/openclaw/openclaw/issues/82368"
+    }
+  ],
+  "published_at": "2026-06-07T18:03:37+09:00",
+  "inserted_at": null,
+  "error": null
+}

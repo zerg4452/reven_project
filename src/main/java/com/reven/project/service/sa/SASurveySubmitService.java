@@ -37,6 +37,13 @@ public class SASurveySubmitService {
         }
     }
 
+    public static class SurveyNotAcceptingException extends RuntimeException {
+
+        public SurveyNotAcceptingException(String surveyUid) {
+            super("Survey is not accepting submissions: " + surveyUid);
+        }
+    }
+
     public SASurveySubmitService(SASurveyService surveyService, SASurveySubmitMapper submitMapper) {
         this.surveyService = surveyService;
         this.submitMapper = submitMapper;
@@ -48,6 +55,10 @@ public class SASurveySubmitService {
     @Transactional
     public SASurveyDto.SurveySubmitResponse submit(String surveyUid, SASurveyDto.SurveySubmitRequest request, String ip) {
         SASurveyDto.SurveyDetail survey = surveyService.findSurvey(surveyUid);
+        if (!survey.isAccepting()) {
+            throw new SurveyNotAcceptingException(surveyUid);
+        }
+
         Map<String, List<String>> normalizedAnswersByFieldKey = normalizeAnswers(request);
         Map<String, String> errors = validateSubmission(survey, normalizedAnswersByFieldKey);
         if (!errors.isEmpty()) {

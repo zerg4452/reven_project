@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('접수 가능한 설문')}"></head>
+<head th:replace="~{fragments/layout :: head('설문 목록')}"></head>
 <body>
 <!-- screen: 설문 목록 / purpose: 사용자가 접수 가능한 설문을 선택하는 화면 / created: 2026-05-23 -->
 <header th:replace="~{fragments/layout :: publicGnb('survey')}"></header>
@@ -9,18 +9,18 @@
     <!-- 페이지 헤더 시작 -->
     <section class="page-head">
         <h1>설문</h1>
-        <p>진행 중인 설문을 선택해 제출할 수 있습니다.</p>
+        <p>접수 상태를 확인하고 진행 중인 설문에 참여할 수 있습니다.</p>
     </section>
     <!-- 페이지 헤더 끝 -->
 
     <!-- 설문 카드 목록 시작 -->
     <section class="survey-card-grid">
-        <article class="survey-card public-survey-card" th:each="survey : ${surveys}" th:classappend="${survey.enabled} ? '' : ' is-closed'">
-            <span class="badge" th:classappend="${survey.enabled} ? ' badge-success' : ' badge-muted'" th:text="${survey.enabled} ? '접수중' : '마감'">접수중</span>
+        <article class="survey-card public-survey-card" th:each="survey : ${surveys}" th:classappend="${survey.accepting} ? '' : ' is-closed'">
+            <span class="badge" th:classappend="${survey.accepting} ? ' badge-success' : ' badge-muted'" th:text="${survey.periodStatusText}">접수중</span>
             <h2 th:text="${survey.title}">설문 제목</h2>
-            <p th:text="${survey.enabled} ? '내용을 작성해 제출해주세요.' : '마감된 설문으로 더 이상 참여할 수 없습니다.'">내용을 작성해 제출해주세요.</p>
-            <a class="btn btn-register" th:if="${survey.enabled}" th:href="@{/surveys/detail.do(surveyUid=${survey.surveyUid})}">작성하기</a>
-            <button class="btn btn-neutral" th:unless="${survey.enabled}" type="button" disabled>참여 불가</button>
+            <p th:text="${survey.accepting} ? '내용을 작성해 제출해주세요.' : (${survey.periodStatusText == '예정'} ? '아직 접수 전입니다.' : '마감된 설문으로 더 이상 참여할 수 없습니다.')">내용을 작성해 제출해주세요.</p>
+            <a class="btn btn-register" th:if="${survey.accepting}" th:href="@{/surveys/detail.do(surveyUid=${survey.surveyUid})}">작성하기</a>
+            <button class="btn btn-neutral" th:unless="${survey.accepting}" type="button" disabled>참여 불가</button>
         </article>
         <p class="empty" th:if="${#lists.isEmpty(surveys)}">현재 등록된 내용이 없습니다.</p>
     </section>

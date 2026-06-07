@@ -216,7 +216,21 @@
 - `survey_type_snapshot`은 NULL 허용으로 추가한다. `schema.sql`은 매 부팅마다 실행되므로 비멱등 백필 UPDATE를 피하고, 기존 row는 NULL로 두고 `selectStatisticFields`에서 `field_type_snapshot` 기반 COALESCE 파생으로 읽는다.
 - `required_yn` 레거시 값은 복구 불가하다. 기존 row는 `'N'`으로 남고 신규 제출부터 정확히 기록한다.
 - 이력 상세 화면은 현재 required/survey_type을 표시하지 않으므로 P9는 수집·보존만 한다. 화면 노출은 향후 작업이다.
-- 설계서는 `docs/planned/survey/2026-06-07-survey-submission-snapshot-p9-design.md`이며 구현 완료 시 `docs/clear/survey/`로 옮긴다.
-- 구현 완료. `survey_type_snapshot`(NULL) 컬럼 추가, `insertAnswer` 실제 `required_yn`/`survey_type` 저장, `selectStatisticFields` COALESCE 파생, 제출 서비스 `resolveSurveyType` 추가로 답변 스냅샷을 채웠다. 설계서를 `docs/clear/survey/`로 이동했다. 제출/통계 회귀와 `./gradlew test`가 통과했다.
+- 설계서는 `docs/clear/survey/2026-06-07-survey-submission-snapshot-p9-design.md`로 옮겼다.
+- 구현 완료. `survey_type_snapshot`(NULL) 컬럼 추가, `insertAnswer` 실제 `required_yn`/`survey_type` 저장, `selectStatisticFields` COALESCE 파생, 제출 서비스 `resolveSurveyType` 추가로 답변 스냅샷을 채웠다. 제출/통계 회귀와 `./gradlew test`가 통과했다.
 - 코드 리뷰 반영. `AnswerSnapshotMap`에 추가한 `survey_type`/`required_yn` 매핑이 `selectSubmissionAnswers`에서 미선택이라 dead였던 문제를, 해당 쿼리 SELECT에 두 컬럼을 추가해 살렸다(이력 상세 화면 표시는 여전히 향후). 통계 통합 테스트에 객관식 레거시(`field_type=radio`, 스냅샷 NULL) → `objective` 파생 케이스를 추가했다.
 - `resolveSurveyType`(제출)·`defaultSurveyType`(통계)·SQL CASE 세 곳이 같은 버킷 규칙을 중복하지만, 호출처 3곳이라 지금은 공통화하지 않는다. 네 번째가 생기면 공통 헬퍼로 추출한다.
+
+## 2026-06-07 설문 P10 기간 관리 구현
+
+- 완료 설계서는 `docs/clear/survey/2026-06-07-survey-period-p10-design.md`에 둔다.
+- P10은 설문 마스터에 `start_date`/`end_date`를 추가해 날짜 단위 접수 기간을 관리한다. 두 컬럼은 NULL 허용이며, NULL은 해당 방향 기간 제한 없음으로 본다.
+- 날짜 판단은 DB `current_date()`가 아니라 서비스와 DTO가 `Asia/Seoul` 기준 오늘을 사용한다. 공개 조회 mapper에는 `today`를 bind 파라미터로 넘긴다.
+- 공개 설문 목록은 삭제되지 않은 설문을 모두 카드로 보여주고, 접수중/예정/마감 상태를 badge로 표시한다. `작성하기` 링크는 접수중 설문만 노출한다.
+- 사용자 메인 요약, 상세 진입, 제출 저장은 접수중 설문만 허용한다. 상세 GET과 제출 POST를 둘 다 막아 오래 열린 form이나 직접 POST 저장을 차단한다.
+- `use_yn`은 수동 사용 여부로 유지한다. `use_yn='N'`이면 기간과 무관하게 접수 불가이고, 관리자 목록의 사용여부 컬럼 의미도 바꾸지 않는다.
+- 관리자 미리보기는 기간과 무관하게 계속 허용한다. P10에서는 기간을 제출 이력 스냅샷에 저장하지 않고, 기간 검색이나 예약 배치도 비범위다.
+- 설문 복사는 원본 기간을 복사하지만 복사본은 기존 정책대로 `useYn = N`이므로 즉시 공개되지 않는다.
+- 회귀 테스트는 저장/수정/복사 기간 전달, 관리자 기간 역전 검증, 공개 상세·제출 차단, 공개 카드/메인 mapper 조건, 템플릿 분기를 포함한다.
+- focused 테스트와 `./gradlew test`가 모두 통과했다.
+- 코드 리뷰 반영. mapper 통합 테스트가 고정 `today`와 DTO의 실제 오늘 getter를 섞어 날짜가 지나면 실패할 수 있던 점을 고쳤고, `startDate = NULL`, `endDate = NULL`인 기존 설문이 접수중으로 조회되는 호환 케이스를 추가했다. 공개 설문 목록 문구도 비활성 카드를 포함하는 실제 정책에 맞춰 `설문 목록`으로 정리했다.

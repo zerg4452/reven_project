@@ -9,6 +9,8 @@
         <result property="title" column="title"/>
         <result property="fieldCount" column="field_count"/>
         <result property="useYn" column="use_yn"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
         <result property="regDate" column="reg_date"/>
         <result property="modDate" column="mod_date"/>
     </resultMap>
@@ -19,6 +21,8 @@
         <result property="title" column="title"/>
         <result property="description" column="description"/>
         <result property="useYn" column="use_yn"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
         <result property="regDate" column="reg_date"/>
         <result property="modDate" column="mod_date"/>
     </resultMap>
@@ -67,12 +71,14 @@
                s.title,
                count(f.field_seq) as field_count,
                s.use_yn,
+               s.start_date,
+               s.end_date,
                date(s.reg_dtm) as reg_date,
                date(s.mod_dtm) as mod_date
         from sa_survey_mst s
         left join sa_survey_field_dtl f on f.survey_seq = s.survey_seq
         <include refid="SurveySearchWhere"/>
-        group by s.survey_seq, s.survey_uid, s.title, s.use_yn, s.reg_dtm, s.mod_dtm
+        group by s.survey_seq, s.survey_uid, s.title, s.use_yn, s.start_date, s.end_date, s.reg_dtm, s.mod_dtm
         order by s.reg_dtm desc, s.survey_seq desc
     </select>
 
@@ -83,30 +89,58 @@
                s.title,
                count(f.field_seq) as field_count,
                s.use_yn,
+               s.start_date,
+               s.end_date,
                date(s.reg_dtm) as reg_date,
                date(s.mod_dtm) as mod_date
         from sa_survey_mst s
         left join sa_survey_field_dtl f on f.survey_seq = s.survey_seq
         where s.use_yn = 'Y'
           and s.delete_flg = 'N'
-        group by s.survey_seq, s.survey_uid, s.title, s.use_yn, s.reg_dtm, s.mod_dtm
+          and (s.start_date is null or s.start_date &lt;= #{today})
+          and (s.end_date is null or s.end_date &gt;= #{today})
+        group by s.survey_seq, s.survey_uid, s.title, s.use_yn, s.start_date, s.end_date, s.reg_dtm, s.mod_dtm
         order by s.reg_dtm desc, s.survey_seq desc
     </select>
 
     <select id="selectPublicSurveyCardList" resultMap="SurveyListItemMap">
-        select row_number() over (order by case when s.use_yn = 'Y' then 0 else 1 end, s.reg_dtm desc, s.survey_seq desc) as row_no,
+        select row_number() over (order by
+                   case
+                       when s.use_yn = 'Y'
+                        and (s.start_date is null or s.start_date &lt;= #{today})
+                        and (s.end_date is null or s.end_date &gt;= #{today}) then 0
+                       when s.use_yn = 'Y'
+                        and s.start_date is not null
+                        and s.start_date &gt; #{today} then 1
+                       else 2
+                   end,
+                   s.reg_dtm desc,
+                   s.survey_seq desc) as row_no,
                s.survey_seq,
                s.survey_uid,
                s.title,
                count(f.field_seq) as field_count,
                s.use_yn,
+               s.start_date,
+               s.end_date,
                date(s.reg_dtm) as reg_date,
                date(s.mod_dtm) as mod_date
         from sa_survey_mst s
         left join sa_survey_field_dtl f on f.survey_seq = s.survey_seq
         where s.delete_flg = 'N'
-        group by s.survey_seq, s.survey_uid, s.title, s.use_yn, s.reg_dtm, s.mod_dtm
-        order by case when s.use_yn = 'Y' then 0 else 1 end, s.reg_dtm desc, s.survey_seq desc
+        group by s.survey_seq, s.survey_uid, s.title, s.use_yn, s.start_date, s.end_date, s.reg_dtm, s.mod_dtm
+        order by
+            case
+                when s.use_yn = 'Y'
+                 and (s.start_date is null or s.start_date &lt;= #{today})
+                 and (s.end_date is null or s.end_date &gt;= #{today}) then 0
+                when s.use_yn = 'Y'
+                 and s.start_date is not null
+                 and s.start_date &gt; #{today} then 1
+                else 2
+            end,
+            s.reg_dtm desc,
+            s.survey_seq desc
     </select>
 
     <select id="selectPublicSurveySummaryList" resultMap="SurveyListItemMap">
@@ -116,13 +150,17 @@
                s.title,
                count(f.field_seq) as field_count,
                s.use_yn,
+               s.start_date,
+               s.end_date,
                date(s.reg_dtm) as reg_date,
                date(s.mod_dtm) as mod_date
         from sa_survey_mst s
         left join sa_survey_field_dtl f on f.survey_seq = s.survey_seq
         where s.use_yn = 'Y'
           and s.delete_flg = 'N'
-        group by s.survey_seq, s.survey_uid, s.title, s.use_yn, s.reg_dtm, s.mod_dtm
+          and (s.start_date is null or s.start_date &lt;= #{today})
+          and (s.end_date is null or s.end_date &gt;= #{today})
+        group by s.survey_seq, s.survey_uid, s.title, s.use_yn, s.start_date, s.end_date, s.reg_dtm, s.mod_dtm
         order by s.reg_dtm desc, s.survey_seq desc
         limit #{limit}
     </select>
@@ -132,6 +170,8 @@
                survey_uid,
                title,
                description,
+               start_date,
+               end_date,
                use_yn,
                date(reg_dtm) as reg_date,
                date(mod_dtm) as mod_date
@@ -168,14 +208,16 @@
 
     <insert id="insertSurvey" parameterType="com.reven.project.service.sa.dto.SASurveyDto$SurveyDetail"
             useGeneratedKeys="true" keyProperty="surveySeq" keyColumn="survey_seq">
-        insert into sa_survey_mst (survey_uid, title, description, use_yn, reg_dtm, reg_id, mod_dtm, mod_id)
-        values (#{surveyUid}, #{title}, #{description}, #{useYn}, now(), 'system', now(), 'system')
+        insert into sa_survey_mst (survey_uid, title, description, start_date, end_date, use_yn, reg_dtm, reg_id, mod_dtm, mod_id)
+        values (#{surveyUid}, #{title}, #{description}, #{startDate}, #{endDate}, #{useYn}, now(), 'system', now(), 'system')
     </insert>
 
     <update id="updateSurvey" parameterType="com.reven.project.service.sa.dto.SASurveyDto$SurveyDetail">
         update sa_survey_mst
         set title = #{title},
             description = #{description},
+            start_date = #{startDate},
+            end_date = #{endDate},
             use_yn = #{useYn},
             mod_dtm = now()
         where survey_seq = #{surveySeq}
