@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import static com.reven.project.common.util.TextUtils.firstText;
 
 @Service
 public class COAdminMenuService {
@@ -459,15 +460,6 @@ public class COAdminMenuService {
         } catch (JsonProcessingException e) {
             return "";
         }
-    }
-
-    private String firstText(String... values) {
-        for (String value : values) {
-            if (value != null && !value.isBlank()) {
-                return value;
-            }
-        }
-        return "";
     }
 
     private List<COAdminMenuResponseDto> dedupeMenus(List<COAdminMenuResponseDto> menus, Comparator<COAdminMenuResponseDto> menuOrder) {

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Comparator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import static com.reven.project.common.util.TextUtils.firstText;
 
 @Service
 public class BDAiNewsService {
@@ -297,15 +298,6 @@ public class BDAiNewsService {
             case "P", "Y", "E" -> value.trim().toUpperCase();
             default -> "P";
         };
-    }
-
-    private String firstText(String... values) {
-        for (String value : values) {
-            if (value != null && !value.isBlank()) {
-                return value;
-            }
-        }
-        return "";
     }
 
     private String generatedSlug() {
