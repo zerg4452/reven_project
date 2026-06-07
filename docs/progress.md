@@ -1,6 +1,6 @@
 # 진행 상황 및 할 일
 
-작성일: 2026-06-06
+작성일: 2026-06-07
 
 ---
 
@@ -177,10 +177,24 @@
 - ✅ `./gradlew test --tests '*SASurvey*' --tests '*SAPublicSurvey*' --tests '*COMainControllerTest'` BUILD SUCCESSFUL
 - ✅ `./gradlew test` BUILD SUCCESSFUL
 
+### 코드 리팩토링: 중복 제거 (전체 완료)
+
+**구현 완료 내용:**
+- R1. `BDNoticeService`·`BDPhotoBoardService`의 중복 파일 저장 헬퍼(디스크 기록·경로 해석·커밋 후 삭제)를 `service/bd/support/BDFileStorageSupport`로 추출. 서비스마다 다른 `rootPath`로 인스턴스를 생성하고, 검증 규칙(확장자·MIME)은 서비스별로 유지.
+- R2. 4개 서비스(`BDNotice`/`BDPhotoBoard`/`BDAiNews`/`COAdminMenu`)에 동일하던 `firstText(String...)`를 `common/util/TextUtils`로 통합하고 static import로 전환.
+- R3. `SASurveyDto`(531줄) 분리는 churn 대비 이득이 낮아 보류.
+- R4. `normalizedAdminSearch`는 컨트롤러가 쓰는 살아 있는 API라 유지.
+
+**검증 결과:**
+- ✅ 동작 보존 리팩토링. 기존 회귀로 검증, 두 BD 서비스 합쳐 약 150줄 감소
+- ✅ 코드 리뷰 Critical/Important 0건, 머지 가능 판정 → `refactor/bd-dedup` main fast-forward 머지
+- ✅ `./gradlew test` BUILD SUCCESSFUL (150 tests, 0 실패)
+- 완료 계획서: `docs/clear/refactor/2026-06-07-bd-refactor-dedup-plan.md`
+
 ---
 
 ## 앞으로 할 일 (우선순위 순)
 
 | 순위 | 항목 | 비고 |
 |------|------|------|
-| - | 없음 | 설문 P10까지 완료됨 |
+| 후속 | BD 파일저장 테스트 갭 보강 | `BDNoticeServiceTest`가 파일 로직 미커버 + `resolveStoredFilePath` 경로 탈출 음성 테스트 부재. 둘 다 기존 갭 |

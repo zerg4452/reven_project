@@ -243,4 +243,6 @@
 - R3 보류. `SASurveyDto`(531줄)는 nested static DTO 약 20개 컨테이너다. 분리해도 로직 이득이 없고 import·참조 경로 churn만 커서 분리하지 않기로 했다. 한 도메인 DTO가 한 파일에 모여 탐색이 오히려 쉽다.
 - R4 액션 없음. `BDNoticeService.normalizedAdminSearch`(public)는 `BDNoticeAdminController`가 호출하는 살아 있는 API라 private `normalizeAdminSearch`와의 thin wrapper 쌍이 의도적이다. 정리 대상 아니다.
 - 후속 후보. `COAdminManagementService`의 `firstText(String)`·`firstText(String, String)` 오버로드는 시그니처가 달라 이번 범위에 넣지 않았다. 의미가 같으면 향후 `TextUtils.firstText`로 흡수할 수 있다.
-- 계획서는 `docs/planned/2026-06-07-bd-refactor-dedup-plan.md`. `./gradlew test` 전체 통과.
+- 계획서는 완료 후 `docs/clear/refactor/2026-06-07-bd-refactor-dedup-plan.md`로 옮겼다. `./gradlew test` 전체 통과(150 tests).
+- 코드 리뷰. 별도 리뷰어 검토 Critical/Important 0건·머지 가능 판정. 추출 헬퍼 byte-identical, `StoredFileRef` 인자 순서·`COAdminManagementService.firstText`(trim 오버로드) 함정 모두 정상 처리 확인. `refactor/bd-dedup` → main fast-forward 머지.
+- 후속 테스트 갭 2건을 별도 태스크로 분리. `BDNoticeServiceTest`는 파일 로직을 직접 커버하지 않고(공유 헬퍼 통해 `BDPhotoBoardServiceTest`가 간접 커버), `resolveStoredFilePath` 경로 탈출 음성 테스트가 없다. 둘 다 이번 리팩토링이 만든 게 아닌 기존 갭이다. 계획서 Context/Verification의 안전망 문구도 이 사실에 맞게 정정했다.

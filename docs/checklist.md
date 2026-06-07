@@ -121,6 +121,8 @@
 
 무거운 순서로 진행한다. 각 항목은 동작 보존(behavior-preserving)을 원칙으로 하고, 기존 테스트로 회귀를 확인한다.
 
+(2026-06-07 완료. 코드 리뷰 머지 가능 판정 후 main 머지. 완료 계획서 `docs/clear/refactor/`. 후속: BD 파일저장 테스트 갭 보강.)
+
 ### R1 BD 파일저장 헬퍼 공통화 (무거움)
 
 - [x] `BDNoticeService`·`BDPhotoBoardService`의 동일/유사 파일저장 헬퍼 목록을 확정한다.

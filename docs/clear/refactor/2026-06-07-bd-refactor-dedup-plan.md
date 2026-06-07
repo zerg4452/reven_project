@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 17 records, Spring `@Service`, MyBatis, JUnit (`./gradlew test`).
 
-**Plan 파일 위치:** 현재는 하네스 플랜 파일에 작성. 실행 시작 시 프로젝트 컨벤션대로 `docs/planned/2026-06-07-bd-refactor-dedup-plan.md`로 복사한다(진행중→`docs/planned`, 완료→`docs/clear`).
+**Plan 파일 위치:** 작업 완료 후 프로젝트 컨벤션대로 `docs/clear/refactor/`로 이동했다(진행중→`docs/planned`, 완료→`docs/clear`).
 
 ---
 
@@ -19,7 +19,7 @@
 - `BDNoticeService`(575줄)와 `BDPhotoBoardService`(559줄)가 파일 저장 관련 private 헬퍼 ~10개를 거의 동일하게 복붙 보유한다. `megabytesToBytes`·`fileExtension`·`sanitizeFileName`·`cleanupWrittenFiles`·`resolveStoredFilePath`는 **완전 동일**, `schedulePhysicalCleanupAfterCommit`·`cleanupStoredFiles`는 DTO 타입만 다르고 로직 동일, `normalizeFiles`와 `store*File`의 디스크 기록 블록도 동일하다.
 - `firstText(String...)`는 `BDNoticeService`·`BDPhotoBoardService`·`BDAiNewsService`·`COAdminMenuService` **4개 파일에 바이트 단위로 동일**하게 존재한다(호출 40곳). 팀 정책이 rule-of-three(`docs/context-notes.md` 2026-06-07 P9 노트)인데 4곳이라 임계를 넘는다.
 
-기대 결과는 동작 변화 없이 서비스당 ~80줄 감소, 단일 출처(single source of truth) 확보다. 기존 회귀 테스트(`BDNoticeServiceTest`, `BDPhotoBoardServiceTest` 19개, `BDAiNewsServiceTest`, `COAdminMenuServiceTest`)가 안전망이다.
+기대 결과는 동작 변화 없이 서비스당 ~80줄 감소, 단일 출처(single source of truth) 확보다. 안전망은 `BDPhotoBoardServiceTest`(19개, `@TempDir`로 실제 파일 저장·삭제·경로 해석을 검증)이며, R1에서 추출한 공유 헬퍼가 두 서비스에 동일하게 쓰이므로 notice 경로도 같은 헬퍼로 간접 커버된다. 다만 `BDNoticeServiceTest`는 현재 파일 로직을 직접 검증하지 않는다(후속 보강 대상). `BDAiNewsServiceTest`·`COAdminMenuServiceTest`는 R2 `firstText` 회귀를 잡는다.
 
 ## File Structure
 
@@ -358,7 +358,7 @@ git commit -m "refactor: 중복 firstText를 TextUtils로 통합"
 
 - 태스크별 focused 테스트는 각 Step에 명시.
 - 최종 전체 회귀: `./gradlew test` — 전부 PASS여야 한다.
-- 동작 보존 확인 포인트: 파일 업로드 저장 경로(`yyyy/MM/dd`)·UUID 파일명·허용 확장자/MIME 거부·트랜잭션 커밋 후 물리 삭제·경로 탈출 방지(`resolveStoredFilePath`의 `startsWith(rootPath)` 가드)가 리팩토링 전후 동일해야 한다. 이는 기존 `BDPhotoBoardServiceTest`(19개)·`BDNoticeServiceTest`가 커버한다.
+- 동작 보존 확인 포인트: 파일 업로드 저장 경로(`yyyy/MM/dd`)·UUID 파일명·허용 확장자/MIME 거부·트랜잭션 커밋 후 물리 삭제·경로 탈출 방지(`resolveStoredFilePath`의 `startsWith(rootPath)` 가드)가 리팩토링 전후 동일해야 한다. 이는 `BDPhotoBoardServiceTest`(19개, `@TempDir`)가 공유 헬퍼 경로로 커버한다. `BDNoticeServiceTest`는 현재 파일 로직을 직접 검증하지 않고, 경로 탈출 가드의 음성 케이스(`..` 입력 시 null) 테스트도 없다 — 둘 다 기존 갭이며 후속 보강 대상이다.
 - 추가 테스트 작성 불필요(behavior-preserving, 기존 커버리지로 충분).
 
 ## Self-Review 메모
@@ -375,3 +375,15 @@ git commit -m "refactor: 중복 firstText를 TextUtils로 통합"
 2. **Inline 실행** — 이 세션에서 체크포인트 두고 순차 실행. (`superpowers:executing-plans`)
 
 R1 → R2 순서(무거운 것 먼저). R3는 결정만, R4는 액션 없음.
+
+---
+
+## 완료 기록 (2026-06-07)
+
+- 실행 방식. Inline 실행(`executing-plans`). main에서 분기한 `refactor/bd-dedup`에서 R1→R2 순차 진행.
+- 커밋. `4f9442d` R1(BDFileStorageSupport), `c220f24` R2(TextUtils). 두 BD 서비스 합쳐 약 150줄 감소.
+- 검증. `./gradlew test` 전체 통과(150 tests, 0 실패).
+- 코드 리뷰. 별도 리뷰어 검토 결과 Critical/Important 0건, 머지 가능 판정. 추출 헬퍼 byte-identical, `StoredFileRef` 인자 순서·`COAdminManagementService.firstText`(trim 오버로드) 함정 모두 정상 처리 확인.
+- 후속 갭(이번 범위 밖). 1) `BDNoticeServiceTest`가 파일 로직을 직접 커버하지 않음. 2) `resolveStoredFilePath` 경로 탈출 음성 테스트 없음. 테스트 보강 후속 태스크로 분리했다.
+- R3 보류, R4 액션 없음 — 본문 결정대로 확정.
+- 통합. `refactor/bd-dedup` → `main` fast-forward 머지, feature 브랜치 삭제.
